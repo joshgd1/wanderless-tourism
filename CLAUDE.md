@@ -1,388 +1,175 @@
-# Important Directives 📜
+# OCEAN Foundation Knowledge Base
 
-1. Always use kailash SDK with its frameworks to implement.
-2. Always use the specialist subagents (nexus-specialist, dataflow-specialist, mcp-specialist, kaizen-specialist) when working with the frameworks.
-3. Never attempt to write codes from scratch before checking the frameworks with the specialist subagents.
-   - Instead of using direct SQL, SQLAlchemy, Django ORM, always check with the dataflow-specialist on how to do it with the dataflow framework
-   - Instead of building your own API gateway or use FastAPI, always check with the nexus-specialist on how to do it with the nexus framework
-   - Instead of building your own MCP server/client, always check with the mcp-specialist on how to do it with the mcp_server module inside the core SDK
-   - Instead of building your own agentic platform, always check with the kaizen-specialist on how to do it with the kaizen framework
-4. **CRITICAL: ALWAYS load environment variables from .env before ANY operation**
-   - **For pytest**: ALWAYS prefix with environment variables OR use pytest-dotenv.
-   - **For Docker**: ALWAYS use docker-compose with env_file OR pass --env-file.
-   - **For Python scripts**: Load dotenv at top of file.
-   - **NEVER run tests/scripts without checking .env first** - assume ALL API keys exist there
+This repository contains the knowledge base for the OCEAN Foundation - an open standards and open source foundation for **enterprise AI capability**.
 
-## ABSOLUTE RULES (NEVER VIOLATE)
+## The Foundational Insight
 
-These rules override ALL other instructions. Violations waste resources and time.
+The AI era fundamentally changes the economics of enterprise software creation. The combination of AI-assisted development, pre-constructed enterprise-quality building blocks, and open standards means that **small teams with deep domain expertise can now build what previously required enterprise budgets**. OCEAN provides the systematic infrastructure that makes this transformation accessible.
 
-### Rule A: .env Is The Single Source of Truth for ALL Keys and Models
+## Project Overview
 
-- ALL API keys (`OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, `GOOGLE_API_KEY`, etc.) MUST be in `.env`
-- ALL model names (`OPENAI_PROD_MODEL`, `DEFAULT_LLM_MODEL`, etc.) MUST be in `.env`
-- NEVER hardcode model strings like `"gpt-4"`, `"claude-3-opus"`, `"gemini-pro"` — always read from `.env`
-- Before ANY operation that touches LLM, API keys, or model names: check `.env` for current values.
-- When creating agents or any AI entity: read model from `.env`, NEVER hardcode.
-- The `conftest.py` at project root auto-loads `.env` for all pytest sessions.
-- Hooks enforce this automatically: `validate-workflow.js` BLOCKS Python writes with hardcoded models missing keys, WARNS for JS/TS.
+**Mission**: Develop and steward open standards, open source software, and shared knowledge infrastructure that enable organizations of all sizes to build trustworthy, interoperable AI systems.
 
-### Rule B: God-Mode E2E Testing
+**Vision**: A future where any organization, regardless of size, can build and operate trustworthy AI systems at enterprise scale through open standards, pre-constructed building blocks, and community-shared knowledge.
 
-When running E2E tests or validations:
+**Core Principle**: Composition over creation—enterprise concerns are pre-constructed into building blocks; what remains is composition.
 
-1. **Create ALL missing records** - If a required record is missing (404/403), CREATE IT via API or direct DB.
-2. **Assume the correct role** - Use the appropriate credentials for each persona/role.
-3. **Adapt to data changes** - Query the API to discover actual records. NEVER hardcode emails, IDs, or names.
-4. **Implement missing endpoints** - If an API endpoint doesn't exist and you need it, IMPLEMENT IT. Do not document it as a "gap".
-5. **Follow up on failures** - NEVER move on from a failure without attempting to resolve it.
+## Complete Platform Stack
 
-### Rule C: Implement, Don't Document
+### Standards Layer (Open Standards)
+- **EATP Framework** - Enterprise Agent Trust Protocol for trust lineage
+- **CDI Framework** - Competency Depth Index for measuring AI adoption depth
+- **Interoperability** - Integration with MCP, A2A, SPIFFE/SPIRE
 
-- When you discover a missing feature, endpoint, or capability: IMPLEMENT IT, don't just note it.
-- When a test fails due to missing infrastructure: CREATE the infrastructure, don't skip the test.
-- When an API returns 404/403 due to missing data: CREATE the data, don't report it as expected.
-- The only acceptable reason to skip is if the user explicitly says "skip this".
+### Software Layer (Open Source - Apache 2.0)
+- **Kailash Core SDK** - 115+ production nodes, workflow orchestration, runtime engines
+- **DataFlow** - Zero-config database operations, MongoDB-style queries
+- **Nexus** - Multi-channel deployment (API + CLI + MCP)
+- **Kaizen** - AI agent framework, signature-based, 87% less code
 
-## 🏗️ Documentation
+### Knowledge Layer (Community)
+- Reference architectures and best practices
+- Training programs (via NTUC partnership)
+- Vibe coding methodology and setup
 
-### Core SDK (`sdk-users/`)
+### Ecosystem Layer (Partnerships)
+- ASME (SME advocacy), NTUC (training), SBF (policy bridge)
+- Certification and conformance programs
+- Community governance
 
-**Foundational building blocks** for workflow automation:
+## Repository Structure
 
-- **Purpose**: Custom workflows, fine-grained control, integrations
-- **Components**: WorkflowBuilder, LocalRuntime, 140+ nodes, MCP integration
-- **CARE Audit Storage** (v0.12.2): SQLite WAL-mode backend for CARE/EATP audit persistence with ACID guarantees, batch inserts, and deferred in-memory tracking (~35us/node overhead)
-- **Custom Node Execution**: Fully async pipeline (CodeExecutor, AsyncLocalRuntime, aiohttp) for custom nodes
-- **Cloud Integration**: Azure cloud support alongside AWS
-- **Cache TTL**: MemoryCache supports TTL-based expiration with background reaper for automatic cleanup
-- **Usage**: Direct workflow construction with full programmatic control
-- **Install**: `pip install kailash`
-
-### DataFlow (`sdk-users/apps/dataflow/`) - v0.12.2
-
-**Zero-config database framework** built on Core SDK:
-
-- **Purpose**: Database operations with automatic model-to-node generation
-- **Features**: @db.model decorator generates 11 nodes per model automatically:
-  - CRUD: CREATE, READ, UPDATE, DELETE, LIST, UPSERT, COUNT
-  - Bulk: BULK_CREATE, BULK_UPDATE, BULK_DELETE, BULK_UPSERT
-  - DataFlow IS NOT AN ORM!
-- **Async Transactions**: Transaction nodes are AsyncNode subclasses (use `async_run()`)
-- **Auto-Wired Multi-Tenancy**: QueryInterceptor injects tenant filtering at 8 SQL execution points automatically
-- **Debug Persistence**: KnowledgeBase supports persistent SQLite storage for debug patterns
-- **Usage**: Database-first applications with enterprise features
-- **Install**: `pip install kailash-dataflow`
-- **Import**: `from dataflow import DataFlow`
-
-### Nexus (`sdk-users/apps/nexus/`) - v1.4.2
-
-**Multi-channel platform** built on Core SDK:
-
-- **Purpose**: Deploy workflows as API + CLI + MCP simultaneously
-- **Features**: Unified sessions, zero-config platform deployment, handler support, native middleware API, plugin protocol, preset system
-- **Handler Support**: `@app.handler()` decorator for registering async functions directly as multi-channel workflows, bypassing PythonCodeNode sandbox restrictions (recommended for new workflows)
-- **Middleware API**: `app.add_middleware()`, `app.include_router()`, `app.add_plugin()` for Starlette-compatible middleware and plugins
-- **Preset System**: `Nexus(preset="saas")` for one-line middleware stacks (none, lightweight, standard, saas, enterprise)
-- **Auth Plugin**: `NexusAuthPlugin` with JWT, RBAC, SSO (GitHub/Google/Azure), rate limiting, tenant isolation, audit logging
-- **Security Defaults**: `cors_allow_credentials=False`, JWT secrets >= 32 chars for HS\*, sanitized RBAC errors
-- **Usage**: Platform applications requiring multiple access methods
-- **Install**: `pip install kailash-nexus`
-- **Import**: `from nexus import Nexus`
-
-**Nexus Handler Pattern (NEW)**:
-
-```python
-from nexus import Nexus
-
-app = Nexus()
-
-@app.handler("greet", description="Greeting handler")
-async def greet(name: str, greeting: str = "Hello") -> dict:
-    """Direct async function as multi-channel workflow."""
-    return {"message": f"{greeting}, {name}!"}
-
-app.start()
-# Now available via API POST /greet, CLI, and MCP
+```
+docs/
+├── 00-anchor/           # Foundation truths (AUTHORITATIVE - must not contradict)
+│   ├── 00-first-principles.md    # Core beliefs, entrenched constraints
+│   ├── 01-core-entities.md       # Foundation independence
+│   ├── 02-the-gap.md             # What OCEAN fills
+│   ├── 03-ip-ownership.md        # IP and licensing
+│   ├── 04-value-model.md         # Economics of openness
+│   ├── 05-governance.md          # Decision-making authority
+│   ├── 06-stakeholders.md        # Commitments to each audience
+│   ├── 07-failure-modes.md       # What happens when things go wrong
+│   └── 08-gap-closure.md         # Implementation requirements
+├── 01-strategy/         # Strategic direction
+├── 02-standards/        # EATP, CDI specifications
+├── 03-technology/       # Kailash SDK, architecture
+├── 04-community/        # Community governance
+├── 05-partnerships/     # Partner documentation (ASME, NTUC, SBF, Government)
+├── 06-operations/       # Operational processes
+├── 07-compliance/       # Legal and compliance
+├── 08-research/         # Supporting research
+├── presentations/       # Generated output
+└── instructions/        # Agent instructions
 ```
 
-**Why Use Handlers?**
-
-- Bypasses PythonCodeNode sandbox restrictions (no import blocking)
-- Simpler syntax for straightforward workflows
-- Automatic parameter derivation from function signatures
-- Multi-channel deployment from a single function definition
-
-**Golden Patterns for Codegen**:
-
-- 7 production-validated patterns ranked by usage across 382K LOC + 3 scaffolding templates
-- Decision tree for pattern selection, 7 anti-patterns
-- See `.claude/skills/03-nexus/golden-patterns-catalog.md` and `.claude/skills/03-nexus/codegen-decision-tree.md`
-- Auth imports: `from nexus.auth.plugin import NexusAuthPlugin`, `JWTConfig(secret=os.environ["JWT_SECRET"])` (>= 32 chars), `rbac=dict`, `TenantConfig(admin_role=...)`
-
-### Kaizen (`sdk-users/apps/kaizen/`) - v1.2.2
-
-**AI agent framework** built on Core SDK:
-
-- **Purpose**: Production-ready AI agents with multi-modal processing, multi-agent coordination, and enterprise features built on Kailash SDK
-- **Features**: Signature-based programming, BaseAgent architecture, automatic optimization, error handling, audit trails
-- **Unified Agent API (v1.0.0+)**: Progressive configuration from 2-line quickstart to expert mode
-- **CARE/EATP Trust Framework (v1.2.0)**: Cryptographic trust chains, posture system, constraint dimensions, knowledge ledger, RFC 3161 timestamping
-- **FallbackRouter Safety**: `on_fallback` callback fires before each fallback (raise `FallbackRejectedError` to block), WARNING-level logging on every fallback, model capability validation
-- **AgentTeam Deprecated**: Use `OrchestrationRuntime` instead of `AgentTeam` for multi-agent coordination
-- **MCP Session Methods**: `discover_mcp_resources()`, `read_mcp_resource()`, `discover_mcp_prompts()`, `get_mcp_prompt()` are now wired and functional
-- **Usage**: Agentic applications requiring robust AI capabilities
-- **Install**: `pip install kailash-kaizen`
-- **Import**: `from kaizen.api import Agent` (v1.0.0+) or `from kaizen.core.base_agent import BaseAgent`
-
-**Kaizen Quick Start (Unified Agent API)**:
-
-```python
-import os
-from dotenv import load_dotenv
-load_dotenv()
-
-from kaizen.api import Agent
-
-# Read model from .env — NEVER hardcode
-model = os.environ.get("OPENAI_PROD_MODEL", os.environ.get("DEFAULT_LLM_MODEL", "gpt-4o"))
-agent = Agent(model=model)
-result = await agent.run("What is IRP?")
-
-# Autonomous mode with memory
-agent = Agent(
-    model=model,
-    execution_mode="autonomous",  # TAOD loop
-    memory="session",
-    tool_access="constrained",
-)
-```
-
-### Critical Relationships
-
-- **DataFlow, Nexus, and Kaizen are built ON Core SDK** - they don't replace it
-- **Framework choice affects development patterns** - different approaches for each
-- **All use the same underlying workflow execution** - `runtime.execute(workflow.build())`
-
-## 🎯 Specialized Subagents
-
-### Analysis & Planning
-
-- **deep-analyst** → Deep failure analysis, complexity assessment
-- **requirements-analyst** → Requirements breakdown, ADR creation
-- **sdk-navigator** → Find patterns before coding, resolve errors during development
-- **framework-advisor** → Choose Core SDK, DataFlow, or Nexus; coordinates with specialists
-
-### Framework Implementation
-
-- **nexus-specialist** → Multi-channel platform (API/CLI/MCP), middleware, auth, handlers, presets
-- **dataflow-specialist** → Database operations with auto-generated nodes. String IDs preserved, multi-instance isolation, deferred schema ops (PostgreSQL + SQLite)
-
-### Core Implementation
-
-- **pattern-expert** → Workflow patterns, nodes, parameters
-- **tdd-implementer** → Test-first development
-- **intermediate-reviewer** → Review after todos and implementation
-- **gold-standards-validator** → Compliance checking
-
-### Testing & Validation
-
-- **testing-specialist** → 3-tier strategy with real infrastructure
-- **documentation-validator** → Test code examples, ensure accuracy
-
-### Release & Operations
-
-- **todo-manager** → Task management and project tracking
-- **mcp-specialist** → MCP server implementation and integration
-- **git-release-specialist** → Git workflows, CI validation, releases
-
-### Success Factors
-
-- **What Worked Well** ✅
-  1. Systematic Task Completion - Finishing each task completely before moving on
-  2. Test-First Development: Writing all tests before implementation prevented bugs
-  3. Comprehensive Testing: Catching issues early with comprehensive tests
-  4. Real Infrastructure Testing - NO MOCKING policy found real-world issues
-  5. Evidence-Based Tracking: Clear audit trail with file:line references made progress clear
-  6. Comprehensive Documentation: Guides provide clear path for users and prevent future support questions
-  7. Subagent Specialization - Right agent for each task type
-  8. Manual Verification: Running all examples caught integration issues
-  9. Design System Foundation: Creating comprehensive design system FIRST prevented inconsistencies
-  10. Institutional Directives: Documented design patterns as mandatory guides for future work
-  11. Component Reusability: Building 16 reusable components eliminated redundant work
-  12. Responsive-First Design: Building responsive patterns from the start prevented mobile/desktop divergence
-  13. Dark Mode Built-In: Supporting dark mode in all components from day 1 avoided retrofitting
-  14. Design Token System: Using centralized tokens (colors, spacing, typography) enabled easy theme changes
-
-- **Lessons Learned** 🎓
-  1. Documentation Early: Writing guides after implementation is easier
-  2. Pattern Consistency: Following same structure across examples reduces errors
-  3. Incremental Validation: Verifying tests pass immediately prevents compounding issues
-  4. Comprehensive Coverage: Detailed documentation prevents future questions
-  5. Design System as Foundation: Create design system BEFORE features to enforce consistency
-  6. Mandatory Guides: Institutionalizing design patterns as "must follow" directives prevents drift
-  7. Single Import Pattern: Consolidating all design system exports into one file (design_system.dart) simplifies usage
-  8. Component Showcase: Building live demo app while developing components catches UX issues early
-  9. Deprecation Fixes: Address all deprecations immediately to prevent tech debt accumulation
-  10. Real Device Testing: Testing on actual trackpad/touch reveals issues that simulators miss
-  11. Pointer Events for Touch: Low-level pointer events (PointerDownEvent, PointerMoveEvent) handle trackpad/touch better than high-level gestures alone
-  12. Responsive Testing: Test at all three breakpoints (mobile/tablet/desktop) for every feature
-
-## ⚡ Essential Pattern (All Frameworks)
-
-### For Docker/FastAPI Deployment (RECOMMENDED)
-
-```python
-from kailash.workflow.builder import WorkflowBuilder
-from kailash.runtime import AsyncLocalRuntime  # Docker-optimized runtime
-
-workflow = WorkflowBuilder()
-workflow.add_node("NodeName", "id", {"param": "value"})  # String-based
-runtime = AsyncLocalRuntime()  # Async-first, no threading
-results, run_id = await runtime.execute_workflow_async(workflow.build(), inputs={})  # Same return as LocalRuntime!
-```
-
-### For CLI/Scripts (Sync Contexts)
-
-```python
-from kailash.workflow.builder import WorkflowBuilder
-from kailash.runtime import LocalRuntime
-
-workflow = WorkflowBuilder()
-workflow.add_node("NodeName", "id", {"param": "value"})  # String-based
-runtime = LocalRuntime()  # Inherits from BaseRuntime with 3 mixins
-results, run_id = runtime.execute(workflow.build())  # ALWAYS .build()
-```
-
-### Auto-Detection (Simplest)
-
-```python
-from kailash.runtime import get_runtime
-
-# Automatically selects AsyncLocalRuntime for Docker/FastAPI,
-# LocalRuntime for CLI/scripts
-runtime = get_runtime()  # Defaults to "async" context
-```
-
-### Runtime Architecture (Internal)
-
-Both LocalRuntime and AsyncLocalRuntime inherit from BaseRuntime and use shared mixins:
-
-**BaseRuntime Foundation**:
-
-- 29 configuration parameters (debug, enable_cycles, conditional_execution, connection_validation, etc.)
-- Execution metadata management (run IDs, workflow caching)
-- Common initialization and validation modes (strict, warn, off)
-
-**Shared Mixins**:
-
-- **CycleExecutionMixin**: Cycle execution delegation to CyclicWorkflowExecutor with validation and error wrapping
-- **ValidationMixin**: Workflow structure validation (5 methods)
-  - validate_workflow(): Checks workflow structure, node connections, parameter mappings
-  - \_validate_connection_contracts(): Validates connection parameter contracts
-  - \_validate_conditional_execution_prerequisites(): Validates conditional execution setup
-  - \_validate_switch_results(): Validates switch node results
-  - \_validate_conditional_execution_results(): Validates conditional execution results
-- **ConditionalExecutionMixin**: Conditional execution and branching logic with SwitchNode support
-  - Pattern detection and cycle detection
-  - Node skipping and hierarchical execution
-  - Conditional workflow orchestration
-
-**LocalRuntime-Specific Features**:
-
-- Enhanced error messages via \_generate_enhanced_validation_error()
-- Connection context building via \_build_connection_context()
-- Public validation API: get_validation_metrics(), reset_validation_metrics()
-
-**ParameterHandlingMixin Not Used**:
-LocalRuntime uses WorkflowParameterInjector for enterprise parameter handling instead of ParameterHandlingMixin (architectural boundary for complex workflows).
-
-**Usage**:
-
-```python
-# Configuration from BaseRuntime (29 parameters)
-runtime = LocalRuntime(
-    debug=True,
-    enable_cycles=True,                    # CycleExecutionMixin
-    conditional_execution="skip_branches",  # ConditionalExecutionMixin
-    connection_validation="strict"          # ValidationMixin (strict/warn/off)
-)
-results, run_id = runtime.execute(workflow.build())
-
-# Validation metrics (LocalRuntime public API)
-metrics = runtime.get_validation_metrics()
-runtime.reset_validation_metrics()
-```
-
-This architecture ensures consistent behavior between sync and async runtimes with no API changes.
-
-**AsyncLocalRuntime-Specific Features**:
-AsyncLocalRuntime extends LocalRuntime with async-optimized execution:
-
-- **WorkflowAnalyzer**: Analyzes workflows to determine optimal execution strategy
-- **ExecutionContext**: Async execution context with integrated resource access
-- **Execution Strategies**: Automatically selects pure async, mixed, or sync-only execution
-- **Level-Based Parallelism**: Executes independent nodes concurrently within dependency levels
-- **Thread Pool**: Executes sync nodes without blocking async loop
-- **Semaphore Control**: Limits concurrent executions to prevent resource exhaustion
-
-Inherits all LocalRuntime capabilities through MRO:
-
-- All 29 BaseRuntime configuration parameters
-- All mixin methods (cycle execution, validation, conditional execution)
-- Enhanced error messages and validation metrics
-
-**Usage**:
-
-```python
-from kailash.runtime import AsyncLocalRuntime
-
-# Same configuration as LocalRuntime
-runtime = AsyncLocalRuntime(
-    debug=True,
-    enable_cycles=True,                    # CycleExecutionMixin
-    conditional_execution="skip_branches",  # ConditionalExecutionMixin
-    connection_validation="strict",         # ValidationMixin
-    max_concurrent_nodes=10                 # AsyncLocalRuntime-specific
-)
-results, run_id = await runtime.execute_workflow_async(workflow.build(), inputs={})
-
-# All inherited methods available
-runtime.validate_workflow(workflow)  # ValidationMixin
-metrics = runtime.get_validation_metrics()  # LocalRuntime
-```
-
-This inheritance ensures 100% feature parity between sync and async runtimes, including identical return structures.
-
-## ⚠️ Critical Rules
-
-- ALWAYS: `runtime.execute(workflow.build())`
-- NEVER: `workflow.execute(runtime)`
-- String-based nodes: `workflow.add_node("NodeName", "id", {})`
-- Real infrastructure: NO MOCKING in Tiers 2-3 tests
-- **Return Structure**: Both LocalRuntime and AsyncLocalRuntime return `(results, run_id)` - identical structure
-- **Docker/FastAPI**: Use `AsyncLocalRuntime()` or `WorkflowAPI()` (defaults to async)
-- **CLI/Scripts**: Use `LocalRuntime()` for synchronous execution
-- **Performance**: Resource limit checks are opt-in via `enable_resource_limits=True` (default: `False`)
-- **Caching**: Topological sort and cycle edge classification are cached per workflow; invalidated on `add_node()`/`connect()`
-- **networkx**: Removed from hot-path execution in `local.py` and `async_local.py`; still used in `graph.py` for core DAG ops
-- **Regression Tests**: `tests/unit/runtime/test_phase0{a,b,c}_optimizations.py` (53 tests) guard performance optimizations
-
-## 📚 Framework-Specific Guides
-
-For detailed framework documentation, see:
-
-| Framework    | Quick Reference                                    | Full Documentation                                       |
-| ------------ | -------------------------------------------------- | -------------------------------------------------------- |
-| **DataFlow** | `sdk-users/apps/dataflow/CLAUDE.md` (2,900+ lines) | Database operations, critical gotchas, Docker deployment |
-| **Kaizen**   | `sdk-users/apps/kaizen/CLAUDE.md` (1,900+ lines)   | AI agents, signatures, multi-modal, v1.0 features        |
-| **Nexus**    | `sdk-users/apps/nexus/CLAUDE.md`                   | Multi-channel, auth, middleware, handlers, presets       |
-| **Core SDK** | `.claude/skills/01-core-sdk/`                      | WorkflowBuilder, nodes, runtime patterns                 |
-
-**Key DataFlow Gotchas** (see full guide for details):
-
-1. NEVER manually set `created_at`/`updated_at` (auto-managed)
-2. CreateNode uses FLAT params; UpdateNode uses `filter` + `fields`
-3. Primary key MUST be named `id`
-4. `soft_delete` only affects DELETE, NOT queries
-5. Use `$null`/`$exists` operators for NULL checking
+**Rule of Precedence**: When documents conflict, 00-anchor/ is authoritative. Nothing can contradict anchor documents.
+
+## Working with This Knowledge Base
+
+### Available Agents
+
+**Domain Experts** (for technical questions):
+- `care-expert` - CARE framework, Dual Plane Model, Mirror Thesis, Human-on-the-Loop
+- `eatp-expert` - EATP Framework, trust lineage, verification gradient, trust postures
+- `coc-expert` - COC framework, five-layer architecture, vibe coding critique
+- `agentic-enterprise-expert` - Agent hierarchy, governance mesh
+- `kailash-expert` - Kailash SDK, implementation details
+- `depth-metrics-expert` - CDI levels, adoption measurement
+- `context-engineering-expert` - Context engineering, knowledge persistence, portability
+- `singapore-ecosystem-expert` - ASME, NTUC, SBF, government
+- `foundation-governance-expert` - Legal structure, funding, IP
+
+**Use-Case Agents** (for tasks):
+- `research-analyst` - Create/update papers and documentation
+- `debate-expert` - Answer and debate questions
+- `presentation-creator` - Create decks and talking points
+- `stakeholder-communicator` - Craft communications for specific audiences
+- `alignment-critic` - Check alignment with OCEAN philosophy
+
+### Available Skills
+
+- `/ocean-philosophy` - Core principles and mission
+- `/care-reference` - CARE framework reference (Dual Plane, Mirror Thesis, Human-on-the-Loop)
+- `/eatp-reference` - EATP technical reference (trust lineage, verification gradient, trust postures)
+- `/coc-reference` - COC framework reference (five-layer architecture, institutional knowledge)
+- `/cdi-assessment` - CDI assessment framework
+- `/ocean-alignment` - Alignment checklist
+
+### Available Commands
+
+- `/kb-search [topic]` - Search the knowledge base
+- `/create-whitepaper [topic]` - Create a white paper
+- `/create-presentation [topic]` - Create a presentation
+- `/debate [topic]` - Engage in debate on a position
+- `/check-alignment [content]` - Check alignment with philosophy
+- `/assess-cdi [context]` - Assess CDI level
+
+## Key Principles (from 00-anchor/00-first-principles.md)
+
+1. **Sustainability Enables Mission** - Commercial viability required, not shameful
+2. **Contributors Deserve Recognition and Reward** - No martyrdom; fair exchange
+3. **Protection Without Restriction** - Patents as shields, not swords
+4. **Transparency Over Cleverness** - All relationships documented publicly
+5. **Community Before Platform** - People, not code, are irreplaceable
+6. **Applications Over Research** - Commercializing AI, not creating models
+
+## Entrenched Constraints (require 90% board + 80% member approval + 12-month notice)
+
+1. Foundation does not profit (CLG structure)
+2. License stability (no retroactive changes)
+3. Contributor protection is irrevocable
+4. Transparent relationships (all disclosed)
+5. Community voice (RFC process)
+6. Singapore first, then ASEAN
+
+## What OCEAN IS NOT
+
+- NOT a methodology provider
+- NOT a rapid delivery accelerator
+- NOT a proprietary product company
+- NOT a consulting firm
+- NOT a vendor (we enable vendors)
+
+## When Creating Content
+
+**CRITICAL**: All content must align with `docs/00-anchor/` documents.
+
+1. Read relevant anchor documents FIRST
+2. Check alignment using `/check-alignment` or invoke `alignment-critic` agent
+3. Content that contradicts anchors is NOT aligned, regardless of other considerations
+
+**Key Terminology:**
+
+*Governance Framework (CARE):*
+- CARE: Collaborative Autonomous Reflective Enterprise
+- Dual Plane Model: Trust Plane (human) + Execution Plane (shared with AI)
+- Mirror Thesis: AI execution reveals uniquely human value
+- Human-on-the-Loop: Third path between human-in-the-loop and human-out-of-the-loop
+- Six Human Competencies: Ethical Judgment, Relationship Capital, Contextual Wisdom, Creative Synthesis, Emotional Intelligence, Cultural Navigation
+
+*Trust Protocol (EATP):*
+- EATP elements: Genesis Record, Capability Attestation, Delegation Record, Constraint Envelope, Audit Anchor
+- Trust Lineage Chain: The complete chain formed by linking the five EATP elements
+- EATP Operations: ESTABLISH, DELEGATE, VERIFY, AUDIT
+- Verification Gradient: Auto-approved, Flagged, Held, Blocked
+- Trust Postures: Pseudo-Agent, Supervised, Shared Planning, Continuous Insight, Delegated
+- Traceability vs Accountability: EATP provides traceability; accountability requires organizational practices
+
+*Development Methodology (COC):*
+- COC: Cognitive Orchestration for Codegen
+- Five Layers: Intent (agents), Context (library), Guardrails (supervisor), Instructions (procedures), Learning (evolution)
+- Three Fault Lines of Vibe Coding: Amnesia, Convention Drift, Security Blindness
+- Anti-amnesia hook: Deterministic rule re-injection surviving context compression
+- Framework-First: Check frameworks before coding from scratch
+- Context Engineering: Organizational knowledge persisting across sessions (distinct from prompt engineering)
+- CDI levels: 1 (Aware), 2 (Experimenting), 3 (Implementing), 4 (Optimizing), 5 (Transforming)
+
+*Platform Components:*
+- Kailash Core SDK: Foundation layer with 115+ nodes
+- DataFlow: Zero-config database operations
+- Nexus: Multi-channel deployment platform
+- Kaizen: AI agent framework
+
+*Institutional Roles:*
+- Foundation (standards + software), ASME (SME advocacy), NTUC (training), SBF (policy bridge)
