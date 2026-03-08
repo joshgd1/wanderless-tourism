@@ -5,36 +5,41 @@ description: "React + Kailash SDK integration. Use when asking 'react integratio
 
 # React + Kailash Integration
 
-> **Skill Metadata**
-> Category: `frontend`
-> Priority: `MEDIUM`
-> SDK Version: `0.9.25+`
-
 ## Quick Setup
 
 ### 1. Backend API (Python)
-```python
-from kailash.api.workflow_api import WorkflowAPI
-from kailash.workflow.builder import WorkflowBuilder
 
-# Create workflow
+```python
+from kailash_nexus import Nexus
+from kailash.workflow.builder import WorkflowBuilder
+from kailash.runtime import LocalRuntime
+import os
+
 workflow = WorkflowBuilder()
 workflow.add_node("LLMNode", "chat", {
     "provider": "openai",
-    "model": "gpt-4",
-    "prompt": "{{input.message}}"
+    "model": os.environ.get("DEFAULT_LLM_MODEL", "gpt-5"),
+    "prompt": "{{input.message}}",
 })
+built = workflow.build()
 
-# Deploy as API
-api = WorkflowAPI(workflow.build())
-api.run(port=8000)  # POST /execute
+app = Nexus(preset="standard")
+
+@app.route("/execute", methods=["POST"])
+def execute(message: str):
+    runtime = LocalRuntime()
+    results, run_id = runtime.execute(built, {"message": message})
+    return results["chat"]
+
+app.serve(port=3000)
 ```
 
 ### 2. React Frontend
+
 ```typescript
 // src/api/workflow.ts
 export async function executeWorkflow(message: string) {
-  const response = await fetch('http://localhost:8000/execute', {
+  const response = await fetch('http://localhost:3000/execute', {
     method: 'POST',
     headers: {'Content-Type': 'application/json'},
     body: JSON.stringify({inputs: {message}})
@@ -73,24 +78,21 @@ export function Chat() {
 ## Streaming Responses
 
 ```typescript
-// Backend (Python)
-api = WorkflowAPI(workflow.build(), streaming=True)
-
 // Frontend (React)
 async function streamWorkflow(message: string) {
-  const response = await fetch('http://localhost:8000/stream', {
-    method: 'POST',
-    body: JSON.stringify({inputs: {message}})
+  const response = await fetch("http://localhost:3000/stream", {
+    method: "POST",
+    body: JSON.stringify({ inputs: { message } }),
   });
 
   const reader = response.body.getReader();
   const decoder = new TextDecoder();
 
   while (true) {
-    const {done, value} = await reader.read();
+    const { done, value } = await reader.read();
     if (done) break;
     const chunk = decoder.decode(value);
-    console.log(chunk);  // Update UI incrementally
+    console.log(chunk); // Update UI incrementally
   }
 }
 ```

@@ -1,152 +1,147 @@
 ---
 skill: nexus-quickstart
-description: Zero-config Nexus() setup and basic workflow registration. Start here for all Nexus applications.
+description: Zero-config Nexus setup and basic workflow registration. Start here for all Nexus applications.
 priority: CRITICAL
 tags: [nexus, quickstart, zero-config, setup]
 ---
 
 # Nexus Quickstart
 
-Zero-configuration platform deployment. Get running in 30 seconds.
+Get started with Kailash Nexus for multi-channel deployment.
 
-## Instant Start
-
-```python
-from nexus import Nexus
-
-# Zero configuration required
-app = Nexus()
-app.start()
-```
-
-That's it! You now have:
-
-- API Server on `http://localhost:8000`
-- Health Check at `http://localhost:8000/health`
-- MCP Server on port 3001
-
-## Add Your First Workflow
-
-```python
-from nexus import Nexus
-from kailash.workflow.builder import WorkflowBuilder
-
-# Create platform
-app = Nexus()
-
-# Create workflow
-workflow = WorkflowBuilder()
-workflow.add_node("HTTPRequestNode", "fetch", {
-    "url": "https://httpbin.org/json",
-    "method": "GET"
-})
-
-# Register once, available everywhere
-app.register("fetch-data", workflow.build())  # Must call .build()
-
-# Start platform
-app.start()
-```
-
-## Test All Three Channels
-
-**API (HTTP)**:
-
-```bash
-curl -X POST http://localhost:8000/workflows/fetch-data/execute
-```
-
-**CLI**:
-
-```bash
-nexus run fetch-data
-```
-
-**MCP** (for AI agents):
-
-```json
-{
-  "method": "tools/call",
-  "params": { "name": "fetch-data", "arguments": {} }
-}
-```
-
-## Critical Patterns
-
-### Always Call .build()
-
-```python
-# CORRECT
-app.register("workflow-name", workflow.build())
-
-# WRONG - Will fail
-app.register("workflow-name", workflow)
-```
-
-### Correct Parameter Order
-
-```python
-# CORRECT - name first, workflow second
-app.register("name", workflow.build())
-
-# WRONG - reversed
-app.register(workflow.build(), "name")
-```
-
-## Common Issues
-
-### Port Conflicts
-
-```python
-# Use custom ports if defaults are taken
-app = Nexus(api_port=8001, mcp_port=3002)
-```
-
-### Import Errors
+## Install
 
 ```bash
 pip install kailash-nexus
 ```
 
-### Workflow Not Found
+## Quick Start
 
 ```python
-# Ensure .build() is called
-workflow = WorkflowBuilder()
-workflow.add_node("PythonCodeNode", "test", {"code": "result = {'ok': True}"})
-app.register("test", workflow.build())  # Don't forget .build()
+from kailash_nexus import Nexus
+from kailash.workflow.builder import WorkflowBuilder
+from kailash.runtime import LocalRuntime
+
+# Create Nexus app
+app = Nexus()
+
+# Register a workflow handler
+@app.route("/greet")
+def greet(name: str = "World"):
+    workflow = WorkflowBuilder()
+    workflow.add_node("TextTransformNode", "greeting", {
+        "template": f"Hello, {name}!",
+    })
+    runtime = LocalRuntime()
+    results, run_id = runtime.execute(workflow.build())
+    return results["greeting"]
+
+# Start server
+app.serve(port=3000)
 ```
 
-## Handler Pattern (Recommended)
-
-For simple workflows, use `@app.handler()` instead of WorkflowBuilder:
+## Handler Registration
 
 ```python
-from nexus import Nexus
+from kailash_nexus import Nexus
 
 app = Nexus()
 
-@app.handler("greet", description="Greeting handler")
-async def greet(name: str, greeting: str = "Hello") -> dict:
-    return {"message": f"{greeting}, {name}!"}
+# Simple function handler
+@app.route("/echo")
+def echo(message: str):
+    return {"echo": message}
 
-app.start()
+# With method specification
+@app.route("/users", methods=["POST"])
+def create_user(name: str, email: str):
+    # Create user logic
+    return {"user": {"name": name, "email": email}}
+
+# With workflow execution
+@app.route("/process")
+def process(data: str):
+    workflow = WorkflowBuilder()
+    workflow.add_node("JSONTransformNode", "transform", {
+        "expression": "@.value",
+    })
+    runtime = LocalRuntime()
+    results, run_id = runtime.execute(workflow.build(), {"data": data})
+    return results["transform"]
 ```
 
-See [nexus-handler-support](nexus-handler-support.md) for full details.
+## Middleware
 
-## Next Steps
+```python
+from kailash_nexus import Nexus
 
-- **Use handlers** (recommended): See [nexus-handler-support](nexus-handler-support.md)
-- Add parameters: See [nexus-workflow-registration](nexus-workflow-registration.md)
-- Use multiple channels: See [nexus-multi-channel](nexus-multi-channel.md)
-- Integrate DataFlow: See [nexus-dataflow-integration](nexus-dataflow-integration.md)
-- Add authentication: See [nexus-auth-plugin](nexus-auth-plugin.md)
+app = Nexus()
 
-## Key Takeaways
+# CORS
+app.add_middleware("cors", {
+    "origins": ["http://localhost:3000"],
+    "methods": ["GET", "POST"],
+})
 
-- Zero configuration: Just `Nexus()` and go
-- Always call `.build()` before registration (or use `@app.handler()`)
-- Single registration creates API + CLI + MCP
-- Default ports: 8000 (API), 3001 (MCP)
-- `cors_allow_credentials=False` by default (security)
+# Rate limiting
+app.add_middleware("rate_limit", {
+    "max_requests": 100,
+    "window_seconds": 60,
+})
+
+# Authentication
+app.add_middleware("auth", {
+    "type": "jwt",
+    "secret": "your-jwt-secret",
+})
+```
+
+## Presets
+
+```python
+from kailash_nexus import Nexus
+
+# Lightweight -- minimal middleware
+app = Nexus(preset="lightweight")
+
+# Standard -- CORS + rate limiting + logging
+app = Nexus(preset="standard")
+
+# Enterprise -- full middleware stack
+app = Nexus(preset="enterprise")
+```
+
+## With DataFlow
+
+```python
+from kailash_nexus import Nexus
+from kailash_dataflow import DataFlow, db
+
+@db.model
+class Task:
+    title: str
+    done: bool = False
+
+df = DataFlow("sqlite:///tasks.db")
+df.register_model(Task)
+
+app = Nexus()
+app.register_dataflow(df)
+app.serve(port=3000)
+# Auto-generates CRUD endpoints for Task
+```
+
+## Custom Port
+
+```python
+app = Nexus()
+app.serve(port=8080)  # Default is 3000
+```
+
+## Related Skills
+
+- **[01-core-sdk](../01-core-sdk/SKILL.md)** - Workflow creation
+- **[02-dataflow](../02-dataflow/SKILL.md)** - Database integration
+- **[04-kaizen](../04-kaizen/SKILL.md)** - AI agent integration
+
+<!-- Trigger Keywords: nexus quickstart, nexus setup, nexus server, nexus API, nexus deployment -->
