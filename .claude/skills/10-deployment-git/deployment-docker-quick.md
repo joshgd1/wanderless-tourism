@@ -24,8 +24,19 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy application
 COPY . .
 
+# Create non-root user for security
+RUN useradd -r appuser
+USER appuser
+
+# Use AsyncLocalRuntime for Docker
+ENV RUNTIME_TYPE=async
+
 # Expose API port
 EXPOSE 8000
+
+# Health check (using python since slim image has no curl)
+HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
+  CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"
 
 # Run with async runtime (Docker-optimized)
 CMD ["python", "app.py"]
@@ -35,13 +46,14 @@ CMD ["python", "app.py"]
 
 ```python
 # app.py
+import os
 from kailash.api.workflow_api import WorkflowAPI
 from kailash.workflow.builder import WorkflowBuilder
 
 workflow = WorkflowBuilder()
 workflow.add_node("LLMNode", "chat", {
     "provider": "openai",
-    "model": "gpt-4",
+    "model": os.environ.get("LLM_MODEL", "gpt-4"),
     "prompt": "{{input.message}}"
 })
 
@@ -68,8 +80,6 @@ curl http://localhost:8000/health
 ## Docker Compose
 
 ```yaml
-version: '3.8'
-
 services:
   app:
     build: .
@@ -77,16 +87,18 @@ services:
       - "8000:8000"
     environment:
       - OPENAI_API_KEY=${OPENAI_API_KEY}
-      - DATABASE_URL=postgresql://user:pass@db:5432/mydb
+      - LLM_MODEL=${LLM_MODEL}
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${DB_PASSWORD}@db:5432/${POSTGRES_DB}
+      - RUNTIME_TYPE=async
     depends_on:
       - db
 
   db:
     image: postgres:15
     environment:
-      - POSTGRES_USER=user
-      - POSTGRES_PASSWORD=pass
-      - POSTGRES_DB=mydb
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
     volumes:
       - postgres_data:/var/lib/postgresql/data
 

@@ -13,8 +13,6 @@ description: "Docker and Kubernetes deployment patterns for containerized applic
 ## Docker Compose Service Architecture
 
 ```yaml
-version: '3.8'
-
 services:
   # Backend API Service
   backend:
@@ -30,6 +28,7 @@ services:
       - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
       - REDIS_URL=redis://:${REDIS_PASSWORD}@redis:6379/0
       - JWT_SECRET_KEY=${JWT_SECRET_KEY}
+      - RUNTIME_TYPE=async
     ports:
       - "${BACKEND_PORT:-8000}:8000"
     volumes:
@@ -53,7 +52,7 @@ services:
           cpus: '2'
           memory: 4G
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -69,6 +68,8 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_HOST_AUTH_METHOD: scram-sha-256
     ports:
+      # WARNING: Remove or restrict in production — exposing DB port to host is a security risk.
+      # Use internal Docker network only, or restrict to 127.0.0.1:5432:5432.
       - "${POSTGRES_PORT:-5432}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
@@ -246,6 +247,8 @@ spec:
             secretKeyRef:
               name: app-secrets
               key: jwt-secret
+        - name: RUNTIME_TYPE
+          value: "async"
         envFrom:
         - configMapRef:
             name: app-config
@@ -380,14 +383,18 @@ data:
   POSTGRES_DB: "app_db"
 ---
 # Secrets (sensitive data)
+# EXAMPLES ONLY — these contain weak placeholder values.
+# In production, use `kubectl create secret generic` or a secrets manager (Vault, AWS Secrets Manager).
 apiVersion: v1
 kind: Secret
 metadata:
   name: app-secrets
 type: Opaque
 data:
-  # Base64-encoded values
+  # EXAMPLE ONLY — replace with real base64-encoded credentials
+  # Generate with: echo -n "postgresql://user:$(openssl rand -hex 16)@postgres:5432/db" | base64
   database-url: cG9zdGdyZXNxbDovL3VzZXI6cGFzc0Bwb3N0Z3Jlczo1NDMyL2RiCg==
+  # EXAMPLE ONLY — generate with: echo -n "$(openssl rand -hex 32)" | base64
   jwt-secret: Y2hhbmdlX3RoaXNfdG9fc2VjdXJlX2tleQo=
 ```
 
@@ -428,7 +435,7 @@ kubectl create namespace production
 
 # 2. Create secrets
 kubectl create secret generic app-secrets \
-  --from-literal=database-url="postgresql://user:pass@postgres:5432/db" \
+  --from-literal=database-url="${DATABASE_URL}" \
   --from-literal=jwt-secret="$(openssl rand -hex 32)" \
   --namespace=production
 
@@ -487,9 +494,11 @@ async def readiness_check():
         await redis.ping()
         return {"status": "ready"}
     except Exception as e:
+        import logging
+        logging.getLogger(__name__).error("Readiness check failed: %s", e)
         return JSONResponse(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            content={"status": "not ready", "error": str(e)}
+            content={"status": "not ready", "error": "dependency check failed"}
         )
 ```
 
@@ -497,7 +506,8 @@ async def readiness_check():
 
 ```yaml
 healthcheck:
-  test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+  # Use python urllib instead of curl (python:slim images don't include curl)
+  test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
   interval: 30s      # Check every 30 seconds
   timeout: 10s       # Wait 10 seconds for response
   retries: 3         # Retry 3 times before marking unhealthy

@@ -45,6 +45,8 @@ spec:
             configMapKeyRef:
               name: kailash-config
               key: database-url
+        - name: RUNTIME_TYPE
+          value: "async"
         resources:
           requests:
             memory: "256Mi"
@@ -94,14 +96,26 @@ data:
 ```
 
 ### Secret
+
+> **Production note**: Prefer creating secrets imperatively with `kubectl create secret generic`
+> instead of committing base64-encoded values in YAML manifests. For production, use a secrets
+> manager (Vault, AWS Secrets Manager, etc.).
+
+```bash
+# Preferred: create secret from literal values (never commit this command to git)
+kubectl create secret generic kailash-secrets \
+  --from-literal=openai-api-key="$OPENAI_API_KEY"
+```
+
 ```yaml
-# secret.yaml
+# secret.yaml — alternative declarative approach (base64-encoded)
 apiVersion: v1
 kind: Secret
 metadata:
   name: kailash-secrets
 type: Opaque
 data:
+  # echo -n "$OPENAI_API_KEY" | base64
   openai-api-key: <base64-encoded-key>
 ```
 
@@ -125,11 +139,16 @@ kubectl logs -f deployment/kailash-app
 kubectl scale deployment kailash-app --replicas=5
 ```
 
+## Kailash Framework Notes
+
+- **AsyncLocalRuntime required**: All Kailash containers must set `RUNTIME_TYPE=async` for proper async workflow execution in containerized environments.
+- **Nexus health endpoint**: If your app uses NexusApp, the built-in `/health` endpoint is automatically available for liveness/readiness probes — no custom health check code needed.
+
 ## Best Practices
 
-1. **Health checks** - Liveness and readiness probes
+1. **Health checks** - Liveness and readiness probes (use Nexus built-in `/health` if available)
 2. **Resource limits** - Set memory/CPU limits
-3. **Secrets** - Use Kubernetes secrets for sensitive data
+3. **Secrets** - Use `kubectl create secret generic --from-literal` or a secrets manager (never commit base64-encoded secrets to git)
 4. **ConfigMaps** - For configuration
 5. **Horizontal scaling** - Multiple replicas
 6. **Rolling updates** - Zero-downtime deployments
