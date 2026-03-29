@@ -1,6 +1,6 @@
 ---
 name: eatp-expert
-description: "EATP trust protocol expert. Use for trust lineage, attestation, delegation chains, or verification gradient."
+description: "EATP protocol expert. Use for trust lineage, attestation, delegation chains, or verification gradient questions."
 model: inherit
 allowed-tools:
   - Read
@@ -156,7 +156,7 @@ Invoke these skills when needed:
 
 ## TrustPlane Reference Implementation
 
-TrustPlane (`src/kailash/trust/plane/`) is the EATP reference implementation — a production-grade Python library implementing the full trust chain.
+TrustPlane for the Kailash Python SDK is the EATP reference implementation — a production-grade Python library implementing the full trust chain.
 
 ### Trust Chain Coverage
 

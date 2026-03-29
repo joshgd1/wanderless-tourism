@@ -1,6 +1,6 @@
 ---
 name: gold-standards-validator
-description: "Compliance validator for naming, licensing, and terminology. Use when checking Terrene Foundation standards."
+description: "Terrene naming and licensing validator. Use for compliance checks on terminology, naming, or cross-references."
 tools: Read, Glob, Grep, LS
 model: opus
 ---

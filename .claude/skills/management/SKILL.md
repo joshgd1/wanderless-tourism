@@ -1,54 +1,20 @@
 # Management Skills
 
-## Quick Patterns
+## Artifact Flow
 
-Management skills handle internal COC infrastructure and synchronization workflows.
+This repo's artifacts are managed by the variant architecture. See `rules/artifact-flow.md`.
 
-### COC Sync Mapping
+### Key Commands
 
-The sync mapping defines transformation rules for syncing BUILD repo artifacts to COC template:
+| Command | Context | What it does |
+|---------|---------|-------------|
+| `/sync` | This repo | Pull and merge latest from upstream USE template |
+| `/codify` | This repo | Create artifacts locally + proposal for upstream |
 
-```yaml
-# Categories of transforms during sync
-Category 1: As-Is # No transform needed, copy directly
-Category 2: Strip Paths # Remove builder-specific source paths
-Category 3: Fix Abs Paths # Convert absolute paths to relative
-Category 4: Rule Softening # MUST -> SHOULD for user-facing rules
-Category 5: CLAUDE.md # Full rewrite for user context
-```
-
-### Exclusions (Never Sync)
+### Flow
 
 ```
-agents/management/coc-sync.md         # Sync infrastructure (meta)
-skills/management/coc-sync-mapping.md  # Sync infrastructure (meta)
-rules/learned-instincts.md             # Auto-generated per repo
-learning/                              # Per-repo learning data
+BUILD repo → /codify → proposal → kailash/ → /sync → USE template → /sync → this repo
 ```
 
-### Global Strip Patterns
-
-```
-src/kailash/                              # Internal SDK source - NEVER sync
-packages/kailash-dataflow/src/                # Internal DataFlow source
-packages/kailash-kaizen/src/                  # Internal Kaizen source
-packages/kailash-nexus/src/                   # Internal Nexus source
-# contrib (removed)/                         # Builder-only docs
-```
-
-## Critical Gotchas
-
-- NEVER sync internal source paths (`src/kailash/`, `apps/kailash-*/src/`)
-- NEVER sync absolute paths (`
-- NEVER sync learning data or auto-generated instincts
-- Always preserve user-facing imports (`from kailash.workflow.builder import WorkflowBuilder`)
-
-## Related Skills
-
-- `.claude/skills/management/coc-sync-mapping.md` - Full transformation rules and mapping tables
-
-## Full Documentation
-
-When this guidance is insufficient, consult:
-
-- `coc-sync-mapping.md` - Complete sync mapping with all categories and patterns
+Artifacts flow through kailash/ (source of truth). Direct BUILD-to-template sync is prohibited.

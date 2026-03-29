@@ -131,7 +131,6 @@ Expert in Kaizen AI framework - signature-based programming, BaseAgent architect
 - **[Kaizen Skills](../../skills/04-kaizen/SKILL.md)** - Quick reference
 - **[Agent Patterns](../../skills/04-kaizen/kaizen-agent-patterns.md)** - Agent architecture patterns
 - **[Advanced Patterns](../../skills/04-kaizen/kaizen-advanced-patterns.md)** - Control protocol, meta-controller, journeys
-- **[Example Gallery](../../../packages/kailash-kaizen/examples/autonomy/EXAMPLE_GALLERY.md)** - 15 autonomy examples
 
 ### By Use Case
 
