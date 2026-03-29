@@ -68,25 +68,34 @@ Phase commands replace the manual copy-paste workflow. Each loads the correspond
 
 ## Rules Index
 
-| Concern                               | Rule File                       | Scope                                                                 |
-| ------------------------------------- | ------------------------------- | --------------------------------------------------------------------- |
-| **Foundation independence**           | `rules/independence.md`         | **Global — overrides all**                                            |
-| **Autonomous execution model**        | `rules/autonomous-execution.md` | **Global — 10x multiplier, structural vs execution gates**            |
-| **LLM-first agent reasoning**         | `rules/agent-reasoning.md`      | **Global — all agent code, Kaizen, AI patterns**                      |
-| Agent orchestration & review recommendations | `rules/agents.md`          | Global                                                                |
-| SDK release & PyPI publishing         | `rules/deployment.md`           | `deploy/**`, `.github/workflows/**`, `pyproject.toml`, `CHANGELOG.md` |
-| E2E god-mode testing                  | `rules/e2e-god-mode.md`         | `tests/e2e/**`, `**/*e2e*`, `**/*playwright*`                         |
-| API keys & model names                | `rules/env-models.md`           | `**/*.py`, `**/*.ts`, `**/*.js`, `.env*`                              |
-| Git commits, branches, PRs            | `rules/git.md`                  | Global                                                                |
-| Branch protection & PR workflow       | `rules/branch-protection.md`    | Global                                                                |
-| Avoid stubs, TODOs, or placeholders in production | `rules/no-stubs.md`    | Global                                                                |
-| Kailash SDK execution patterns        | `rules/patterns.md`             | `**/*.py`, `**/*.ts`, `**/*.js`                                       |
-| Security (secrets, injection)         | `rules/security.md`             | Global                                                                |
-| 3-tier testing, real infrastructure recommended | `rules/testing.md`      | `tests/**`, `**/*test*`, `**/*spec*`, `conftest.py`                   |
-| Auto-generated workflow instincts     | `rules/learned-instincts.md`    | Global                                                                |
-| Infrastructure SQL safety             | `rules/infrastructure-sql.md`   | Database and infrastructure files                                     |
-| PACT governance security              | `rules/pact-governance.md`      | PACT governance files                                                 |
-| Journal knowledge trail               | `rules/journal.md`              | Global                                                                |
+| Concern                                         | Rule File                       | Scope                                                       |
+| ----------------------------------------------- | ------------------------------- | ----------------------------------------------------------- |
+| **Foundation independence**                     | `rules/independence.md`         | **Global — overrides all**                                  |
+| **Autonomous execution model**                  | `rules/autonomous-execution.md` | **Global — 10x multiplier, structural vs execution gates**  |
+| **LLM-first agent reasoning**                   | `rules/agent-reasoning.md`      | `**/kaizen/**`, `**/*agent*`                                |
+| Agent orchestration & review recommendations    | `rules/agents.md`               | Global                                                      |
+| Branch protection & PR workflow                 | `rules/branch-protection.md`    | Global                                                      |
+| CC artifact quality                             | `rules/cc-artifacts.md`         | `.claude/**`, `scripts/hooks/**`                            |
+| Plain-language communication                    | `rules/communication.md`        | Global                                                      |
+| Connection pool safety                          | `rules/connection-pool.md`      | Database connection code                                    |
+| DataFlow pool configuration                     | `rules/dataflow-pool.md`        | `**/dataflow/**`                                            |
+| SDK release & PyPI publishing                   | `rules/deployment.md`           | `deploy/**`, `.github/**`, `pyproject.toml`, `CHANGELOG.md` |
+| Documentation standards                         | `rules/documentation.md`        | `README.md`, `docs/**`, `CHANGELOG.md`                      |
+| E2E god-mode testing                            | `rules/e2e-god-mode.md`         | `tests/e2e/**`, `**/*e2e*`, `**/*playwright*`               |
+| EATP SDK conventions                            | `rules/eatp.md`                 | `**/trust/**`, `**/eatp/**`                                 |
+| API keys & model names                          | `rules/env-models.md`           | `**/*.py`, `**/*.ts`, `**/*.js`, `.env*`                    |
+| Git commits, branches, PRs                      | `rules/git.md`                  | Global                                                      |
+| Infrastructure SQL safety                       | `rules/infrastructure-sql.md`   | `**/db/**`, `**/infrastructure/**`                          |
+| Journal knowledge trail                         | `rules/journal.md`              | Global                                                      |
+| No stubs, TODOs, or placeholders                | `rules/no-stubs.md`             | Global                                                      |
+| PACT governance security                        | `rules/pact-governance.md`      | `**/pact/**`, `**/governance/**`                            |
+| Kailash SDK execution patterns                  | `rules/patterns.md`             | `**/*.py`, `**/*.ts`, `**/*.js`                             |
+| Security (secrets, injection)                   | `rules/security.md`             | Global                                                      |
+| Terrene naming & terminology                    | `rules/terrene-naming.md`       | Global                                                      |
+| 3-tier testing, real infrastructure recommended | `rules/testing.md`              | `tests/**`, `**/*test*`, `**/*spec*`, `conftest.py`         |
+| Trust-plane security                            | `rules/trust-plane-security.md` | `**/trust/**`                                               |
+| Zero-tolerance enforcement                      | `rules/zero-tolerance.md`       | **Global — overrides all**                                  |
+| Auto-generated workflow instincts               | `rules/learned-instincts.md`    | Global                                                      |
 
 **Note**: Rules with path scoping are loaded only when editing matching files. Global rules load every session.
 

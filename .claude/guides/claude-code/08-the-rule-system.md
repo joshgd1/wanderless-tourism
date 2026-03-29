@@ -38,7 +38,7 @@ Rules are Markdown files that Claude reads and follows:
 │   ┌───────────────┐  ┌───────────────┐  ┌───────────────┐   │
 │   │  agents.md    │  │  testing.md   │  │  security.md  │   │
 │   │               │  │               │  │               │   │
-│   │ Should delegate │  │ Real infrastructure recommended    │  │ OWASP checks  │   │
+│   │ MUST delegate │  │ NO MOCKING    │  │ OWASP checks  │   │
 │   │ MUST review   │  │ Test-first    │  │ Secret mgmt   │   │
 │   └───────────────┘  └───────────────┘  └───────────────┘   │
 │                                                               │
@@ -79,7 +79,7 @@ Rules are Markdown files that Claude reads and follows:
 | `no-stubs.md`          | No stubs/TODOs        | No placeholders in production code         |
 | `patterns.md`          | SDK patterns          | Correct API usage, imports                 |
 | `security.md`          | Security requirements | OWASP, secrets, input validation           |
-| `testing.md`           | Testing policies      | Real infrastructure recommended, test-first, coverage           |
+| `testing.md`           | Testing policies      | NO MOCKING, test-first, coverage           |
 
 ---
 
@@ -146,7 +146,7 @@ For features requiring design decisions:
 
 ### Purpose
 
-Defines testing requirements, especially the Real infrastructure recommended policy.
+Defines testing requirements, especially the NO MOCKING policy.
 
 ### MUST Rules
 
@@ -183,19 +183,19 @@ Tier 1 (Unit Tests):
 - Fast execution (<1s per test)
 
 Tier 2 (Integration Tests):
-- Real infrastructure recommended - use real database
+- NO MOCKING - use real database
 - Test component interactions
 - Real API calls (use test server)
 
 Tier 3 (E2E Tests):
-- Real infrastructure recommended - real everything
+- NO MOCKING - real everything
 - Test full user journeys
 - Real browser, real database
 ```
 
 ### MUST NOT Rules (CRITICAL)
 
-#### Real infrastructure recommended in Tier 2-3
+#### NO MOCKING in Tier 2-3
 
 ```
 MUST NOT use mocking in integration or E2E tests.
@@ -513,7 +513,7 @@ MUST NOT [prohibited action].
 | Domain       | Key Rules                                           |
 | ------------ | --------------------------------------------------- |
 | **Agents**   | Review after changes, security review before commit |
-| **Testing**  | Real infrastructure recommended in Tier 2-3, test-first                  |
+| **Testing**  | NO MOCKING in Tier 2-3, test-first                  |
 | **Security** | Validate input, manage secrets, OWASP               |
 | **Patterns** | runtime.execute(), absolute imports                 |
 | **Git**      | Branch strategy, pre-commit checks                  |

@@ -47,7 +47,7 @@ class MyCustomNode(Node):
                 type=dict,
                 required=False,
                 default=None,
-                description="Optional metadata (current version)"
+                description="Optional metadata (Core SDK v0.10.3+)"
             )
         }
 
@@ -92,7 +92,7 @@ class MyCustomNode(Node):
 
 ### Available Parameter Names
 
-You can use any parameter name including `metadata` (current version):
+You can use any parameter name including `metadata` (Core SDK v0.10.3+):
 
 ```python
 def get_parameters(self):

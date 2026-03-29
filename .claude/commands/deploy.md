@@ -1,8 +1,9 @@
-# /deploy is for USE repos only
+# /deploy — Application Deployment
 
-**This is a BUILD repo.** Use `/release` instead.
+Deploy your application to production infrastructure.
 
-`/deploy` is for application deployment in USE repos (`kailash-coc-claude-py`).
-`/release` is for SDK publishing in BUILD repos (`kailash-py`).
+Use `/deploy` when your Kailash SDK application is ready for deployment (Docker, Kubernetes, cloud platforms).
 
-Run `/release` to publish packages to PyPI.
+Use `/release` for SDK package publishing to PyPI.
+
+See `skills/10-deployment-git/` for deployment patterns and guides.

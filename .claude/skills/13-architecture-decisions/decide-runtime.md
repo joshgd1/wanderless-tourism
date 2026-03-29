@@ -247,6 +247,9 @@ async_runtime = AsyncLocalRuntime(**config)
 - [`CLAUDE.md#L111-177`](../../../CLAUDE.md)
 
 ### Internal Architecture
+- `src/kailash/runtime/base.py` - Shared BaseRuntime
+- `src/kailash/runtime/local.py` - LocalRuntime implementation
+- `src/kailash/runtime/async_local.py` - AsyncLocalRuntime implementation
 
 ## Quick Tips
 

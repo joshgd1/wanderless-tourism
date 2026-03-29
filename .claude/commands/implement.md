@@ -123,44 +123,4 @@ At the end of each implementation cycle, create and update documentation at the 
 
 ## Agent Teams
 
-Deploy these agents as a team for each implementation cycle:
-
-**Core team (always):**
-
-- **tdd-implementer** — Test-first development, red-green-refactor
-- **testing-specialist** — 3-tier test strategy, Real infrastructure recommended in Tier 2-3
-- **intermediate-reviewer** — Code review after every file change (MANDATORY)
-- **todo-manager** — Track progress, update todo status, verify completion with evidence
-
-**Specialist (invoke ONE matching the current todo):**
-
-- **pattern-expert** — Workflow patterns, node configuration
-- **dataflow-specialist** — Database operations (if project uses DataFlow)
-- **nexus-specialist** — API deployment (if project uses Nexus)
-- **kaizen-specialist** — AI agents (if project uses Kaizen)
-- **mcp-specialist** — MCP integration (if project uses MCP)
-
-**Frontend team (when implementing frontend):**
-
-- **uiux-designer** — Design system, visual hierarchy, responsive layouts
-- **react-specialist** or **flutter-specialist** — Framework-specific implementation
-- **ai-ux-designer** — AI interaction patterns (if AI-facing UI)
-- **frontend-developer** — Responsive UI components
-
-**Recovery (invoke when builds break):**
-
-- **build-fix** — Fix build/type errors with minimal changes (NO architectural changes)
-
-**Quality gate (once per todo, before closing):**
-
-- **value-auditor** — Evaluate from user/buyer perspective, not just technical assertions
-- **security-reviewer** — Security audit before any commit (MANDATORY)
-
-### Journal
-
-After completing each task, create journal entries for insights produced:
-- **DECISION** entries for implementation choices (architecture, library selection, design patterns)
-- **DISCOVERY** entries for technical findings during development
-- **RISK** entries for potential issues discovered during implementation
-
-Use sequential naming: check the highest existing `NNNN-` prefix and increment.
+Deploy specialist agents as needed. See agent definitions for review criteria.

@@ -1,6 +1,6 @@
 ---
 name: pact-specialist
-description: PACT governance framework specialist for D/T/R organizational accountability, operating envelopes, knowledge clearance, verification gradient, and MCP tool governance for AI agent organizations. Use proactively when implementing organizational governance, access control, agent constraint management, or MCP tool enforcement.
+description: "PACT governance specialist. Use for D/T/R addressing, operating envelopes, clearance, or MCP tool governance."
 tools: Read, Write, Edit, Bash, Grep, Glob, Task
 model: opus
 ---
