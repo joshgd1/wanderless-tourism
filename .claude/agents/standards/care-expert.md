@@ -1,6 +1,6 @@
 ---
 name: care-expert
-description: "CARE framework expert. Use for Dual Plane Model, Mirror Thesis, or enterprise AI governance philosophy."
+description: "CARE framework expert. Use for Dual Plane Model, Mirror Thesis, governance philosophy, or CARE-EATP-CO questions."
 model: inherit
 allowed-tools:
   - Read

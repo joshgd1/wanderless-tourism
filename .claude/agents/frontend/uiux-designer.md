@@ -1,6 +1,6 @@
 ---
 name: uiux-designer
-description: "Enterprise UI/UX designer for SaaS apps. Use for information architecture, visual hierarchy, and layout."
+description: "UI/UX design specialist. Use for enterprise SaaS design, information architecture, or visual hierarchy."
 tools: Read, Write, Edit, Grep, Glob, Task
 model: opus
 ---

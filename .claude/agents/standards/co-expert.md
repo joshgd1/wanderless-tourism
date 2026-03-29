@@ -1,6 +1,6 @@
 ---
 name: co-expert
-description: "CO methodology expert. Use for seven first principles, five-layer architecture, or CO domain applications."
+description: "CO methodology expert. Use for seven first principles, five-layer architecture, or domain-agnostic orchestration."
 model: inherit
 allowed-tools:
   - Read
