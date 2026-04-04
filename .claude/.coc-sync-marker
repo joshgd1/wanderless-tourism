@@ -1,18 +1,18 @@
 {
-  "synced_at": "2026-04-04T00:00:00.000000",
-  "source": "loom/.claude/",
-  "target": "kailash-coc-claude-py/.claude/",
+  "synced_at": "2026-04-04T14:00:00Z",
+  "source": "loom/.claude",
+  "source_version": "1.5.0",
+  "template_version": "1.9.0",
   "variant": "py",
-  "source_version": "1.4.0",
-  "template_version": "1.6.0",
-  "artifacts_updated": 124,
-  "artifacts_created": 9,
-  "artifacts_unchanged": 385,
-  "artifacts_deleted": 17,
-  "content_adaptations": 4,
-  "scripts_updated": 0,
-  "scripts_created": 1,
-  "scripts_unchanged": 57,
-  "settings_changed": false,
-  "claude_md_preserved": true
+  "files": {
+    "unchanged": 525,
+    "updated": 54,
+    "new": 13,
+    "preserved": 3,
+    "content_adapted": 2
+  },
+  "adaptations": [
+    "rules/agents.md: Quality Gates MUST -> RECOMMENDED, Zero-Tolerance softened for USE",
+    "rules/zero-tolerance.md: Scope softened, Rule 4 rewritten for USE (GitHub issues, not fix SDK source)"
+  ]
 }

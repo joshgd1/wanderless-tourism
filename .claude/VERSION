@@ -1,16 +1,48 @@
 {
-  "version": "1.7.0",
+  "version": "1.9.0",
   "type": "coc-use-template",
   "description": "COC USE template for Python SDK projects",
   "released": "2026-04-04",
   "upstream": {
     "name": "kailash",
     "type": "coc-source",
-    "version": "1.4.0",
+    "version": "1.5.0",
     "build_version": "2.4.1",
-    "synced_at": "2026-04-04T08:00:00Z"
+    "synced_at": "2026-04-04T14:00:00Z"
   },
   "changelog": [
+    {
+      "version": "1.9.0",
+      "date": "2026-04-04",
+      "summary": "v1.5.0 source sync: 13 new dataflow/nexus skills, agent updates, framework-first refreshed",
+      "changes": [
+        "NEW: 8 dataflow skills (derived-models, events, express-cache, file-import, ml-integration, read-replicas, retention, validation-dsl)",
+        "NEW: 2 nexus skills (eventbus-phase2, transport-architecture)",
+        "NEW: 3 project skills (dataflow-provenance-audit, fabric-cache-consumers, pact-enforcement-modes)",
+        "UPDATED: 5 agents (mcp-specialist, nexus-specialist, flutter-specialist, gh-manager, testing-specialist)",
+        "UPDATED: 14 rules (agents, cc-artifacts, dataflow-pool, framework-first, infrastructure-sql, pact-governance, patterns, testing, zero-tolerance + 5 more)",
+        "UPDATED: 28 skills across core-sdk, nexus, kaizen, cheatsheets, dev-guides, frontend, testing, architecture, templates, validation, gold-standards, pact, claude-code",
+        "ADAPTED: 2 rules preserved USE softening (agents.md RECOMMENDED gates, zero-tolerance.md GitHub issues for SDK bugs)"
+      ]
+    },
+    {
+      "version": "1.8.0",
+      "date": "2026-04-04",
+      "summary": "Rule Why: rationale + security hardening + cross-ref cleanup + sync enforcement",
+      "changes": [
+        "UPDATED: All 27 global rules — added **Why:** rationale lines (153 lines total, USE-adapted where applicable)",
+        "UPDATED: 46 global skill files — hardcoded model names replaced with os.environ['LLM_MODEL']",
+        "UPDATED: 95 py variant skill sub-files — Python-specific API corrections (phantom nodes, import paths, Nexus/Kaizen/PACT/EATP fixes)",
+        "UPDATED: 6 py variant SKILL.md indexes (03-nexus, 05-mcp, 08-nodes, 13-architecture, 18-security, 29-pact)",
+        "FIXED: session-start.js — shell injection in checkSdkPinFreshness() (execSync→execFileSync)",
+        "FIXED: version-utils.js — command injection in fetchUpstreamVersion() (execSync→execFileSync)",
+        "FIXED: NaN bypass on COC sync marker timestamp — added isFinite check",
+        "FIXED: 9 broken dataflow-specialist.md file path links in skill sub-files",
+        "CLEANED: 8 workspaces/ provenance refs in global skills",
+        "ADAPTED: 4 rules preserved USE softening (agents.md, testing.md, zero-tolerance.md, git.md) with new Why: rationale merged",
+        "UPDATED: /sync command with mandatory step 10 (uv sync) and step 11 (verify hooks)"
+      ]
+    },
     {
       "version": "1.7.0",
       "date": "2026-04-04",

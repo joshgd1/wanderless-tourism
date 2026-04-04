@@ -129,7 +129,7 @@ async def process(data: dict) -> dict:
     return {"result": response.json()}
 ```
 
-**Why**: PythonCodeNode runs in a sandboxed environment that blocks most imports. Handlers run with full Python access.
+**Why:** PythonCodeNode runs in a sandboxed environment that blocks most imports. Handlers run with full Python access.
 
 ---
 
@@ -168,7 +168,7 @@ async def health():
     return {"status": "ok"}
 ```
 
-**Why**: Using `_gateway.app` bypasses Nexus middleware, auth, and breaks in future versions.
+**Why:** Using `_gateway.app` bypasses Nexus middleware, auth, and breaks in future versions.
 
 ---
 
@@ -223,7 +223,7 @@ auth = NexusAuthPlugin(
 app.add_plugin(auth)
 ```
 
-**Why**: Auth is complex (refresh tokens, RBAC, tenant isolation). NexusAuthPlugin handles edge cases.
+**Why:** Auth is complex (refresh tokens, RBAC, tenant isolation). NexusAuthPlugin handles edge cases.
 
 ---
 
@@ -261,7 +261,7 @@ async def get_user(user_id: str) -> dict:
     # ...
 ```
 
-**Why**: DataFlow manages connection pools. Creating per request exhausts connections.
+**Why:** DataFlow manages connection pools. Creating per request exhausts connections.
 
 ---
 
@@ -299,7 +299,7 @@ async def create_user(name: str, email: str) -> dict:
     return results["create"]
 ```
 
-**Why**: WorkflowBuilder shines for multi-step orchestration. For simple CRUD, handlers are cleaner.
+**Why:** WorkflowBuilder shines for multi-step orchestration. For simple CRUD, handlers are cleaner.
 
 ---
 
@@ -349,7 +349,7 @@ def test_create_user(real_db):
     assert results["create"]["id"] == "test-123"
 ```
 
-**Why**: Mocks hide real integration issues. Use `:memory:` SQLite for fast, real tests.
+**Why:** Mocks hide real integration issues. Use `:memory:` SQLite for fast, real tests.
 
 ---
 
@@ -371,7 +371,7 @@ app = Nexus()
 app.add_middleware(SomeMiddleware, config={"key": "value"})
 ```
 
-**Why**: `_gateway` is implementation detail. Public APIs are stable across versions.
+**Why:** `_gateway` is implementation detail. Public APIs are stable across versions.
 
 ---
 
@@ -596,8 +596,8 @@ from kailash.runtime import AsyncLocalRuntime
 
 @dataclass
 class AgentConfig:
-    llm_provider: str = "openai"
-    model: str = "gpt-4"
+    llm_provider: str = os.environ.get("LLM_PROVIDER", "openai")
+    model: str = os.environ.get("LLM_MODEL", "")
     temperature: float = 0.7
     max_tokens: int = 2000
     max_turns: int = 10
@@ -652,7 +652,7 @@ app = Nexus(api_port=8000, mcp_port=3001, auto_discovery=False)
 
 config = AgentConfig(
     llm_provider=os.environ.get("LLM_PROVIDER", "openai"),
-    model=os.environ.get("LLM_MODEL", "gpt-4")
+    model=os.environ.get("LLM_MODEL", "")
 )
 
 chat_agent = ChatAgent(config)

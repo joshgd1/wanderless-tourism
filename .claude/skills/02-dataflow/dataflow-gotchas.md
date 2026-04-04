@@ -110,7 +110,7 @@ async def db_fixture():
     db.close()  # Also fails!
 ```
 
-#### The Fix 
+#### The Fix
 
 ```python
 # ✅ CORRECT - Use async methods in async context
@@ -210,12 +210,12 @@ db = DataFlow(":memory:", auto_migrate=True)  # Tables created on first access
 
 #### When to Use Each Pattern
 
-| Context                 | Pattern                       | Notes                      |
-| ----------------------- | ----------------------------- | -------------------------- |
-| **Docker/FastAPI**      | `auto_migrate=True` (default) | ✅ Works in current version      |
-| **In-Memory SQLite**    | `auto_migrate=True`           | Uses lazy creation (works) |
-| **CLI Scripts**         | `auto_migrate=True` (default) | Works                      |
-| **pytest (sync/async)** | `auto_migrate=True` (default) | Works via sync DDL         |
+| Context                 | Pattern                       | Notes                       |
+| ----------------------- | ----------------------------- | --------------------------- |
+| **Docker/FastAPI**      | `auto_migrate=True` (default) | ✅ Works in current version |
+| **In-Memory SQLite**    | `auto_migrate=True`           | Uses lazy creation (works)  |
+| **CLI Scripts**         | `auto_migrate=True` (default) | Works                       |
+| **pytest (sync/async)** | `auto_migrate=True` (default) | Works via sync DDL          |
 
 #### Alternative: Manual Control
 
@@ -310,7 +310,7 @@ class Agent:
     model_id: str  # FAILS
 ```
 
-**Why**: DataFlow's auto-generated nodes expect `id` as the primary key field name.
+**Why:** DataFlow's auto-generated nodes expect `id` as the primary key field name.
 
 **Fix: Use 'id' Exactly**
 
@@ -338,7 +338,7 @@ workflow.add_node("UserUpdateNode", "update", {
 # Error: "column user_id does not exist" (misleading!)
 ```
 
-**Why**: CreateNode and UpdateNode use FUNDAMENTALLY DIFFERENT patterns:
+**Why:** CreateNode and UpdateNode use FUNDAMENTALLY DIFFERENT patterns:
 
 - **CreateNode**: Flat individual fields at top level
 - **UpdateNode**: Nested `filter` + `fields` dicts
@@ -381,7 +381,7 @@ workflow.add_node("UserUpdateNode", "update", {
 # Error: "multiple assignments to same column 'updated_at'"
 ```
 
-**Why**: DataFlow automatically manages `created_at` and `updated_at` fields.
+**Why:** DataFlow automatically manages `created_at` and `updated_at` fields.
 
 **Fix: Omit Auto-Managed Fields**
 
@@ -413,7 +413,7 @@ user = User(name="John")  # FAILS - not supported by design
 user.save()  # FAILS - no save() method
 ```
 
-**Why**: DataFlow is workflow-native, not object-oriented. Models are schemas, not classes.
+**Why:** DataFlow is workflow-native, not object-oriented. Models are schemas, not classes.
 
 **Fix: Use Workflow Nodes**
 
@@ -496,7 +496,7 @@ count = results["count"]["count"]  # ✅ CountNode returns "count"
 record = results["read"]  # ✅ ReadNode returns dict directly
 ```
 
-### 4.1 soft_delete Auto-Filters Queries  ✅ FIXED
+### 4.1 soft_delete Auto-Filters Queries ✅ FIXED
 
 **DataFlow introduced auto-filtering for soft_delete models!**
 
@@ -662,10 +662,9 @@ class DevModel:
 
 ### Primary Sources
 
-- **DataFlow Specialist**: [`.claude/skills/dataflow-specialist.md`](../../dataflow-specialist.md#L28-L72)
+- **DataFlow Specialist**: `dataflow-specialist` agent
 
 ### Related Documentation
-
 
 ## Related Patterns
 

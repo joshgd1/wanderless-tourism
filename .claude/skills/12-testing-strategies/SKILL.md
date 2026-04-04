@@ -21,7 +21,7 @@ description: "Comprehensive testing strategies for Kailash applications includin
 
 ### Real Infrastructure Policy (Tiers 2-3)
 
-**Why**: Mocking hides database constraints, API timeouts, race conditions, connection pool exhaustion, schema migration issues, and LLM token limits.
+**Why:** Mocking hides database constraints, API timeouts, race conditions, connection pool exhaustion, schema migration issues, and LLM token limits.
 
 **What to use instead**: Test databases (Docker containers), test API endpoints, test LLM accounts (with caching), temp directories.
 
