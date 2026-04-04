@@ -205,15 +205,15 @@ app.start()
 
 ## Critical Rules
 
-- Use Nexus instead of FastAPI for workflow platforms
-- Register workflows, not individual routes
-- Leverage unified sessions across channels
-- Enable health monitoring in production
-- Use plugins for custom behavior
-- Nexus uses AsyncLocalRuntime by default (correct for Docker)
-- NEVER mix FastAPI routes with Nexus
-- NEVER implement manual API/CLI/MCP servers when Nexus can do it
-- NEVER skip health checks in production
+- ✅ Use Nexus instead of FastAPI for workflow platforms
+- ✅ Register workflows, not individual routes
+- ✅ Leverage unified sessions across channels
+- ✅ Enable health monitoring in production
+- ✅ Use plugins for custom behavior
+- ✅ Nexus uses AsyncLocalRuntime by default (correct for Docker)
+- ❌ NEVER mix FastAPI routes with Nexus
+- ❌ NEVER implement manual API/CLI/MCP servers when Nexus can do it
+- ❌ NEVER skip health checks in production
 
 ## Deployment Patterns
 
@@ -249,9 +249,9 @@ docker-compose up --scale nexus=3
 | **Access**    | HTTP | Terminal  | MCP Clients |
 | **Input**     | JSON | Args/JSON | Structured  |
 | **Output**    | JSON | Text/JSON | Structured  |
-| **Sessions**  | Yes  | Yes       | Yes         |
-| **Auth**      | Yes  | Yes       | Yes         |
-| **Streaming** | Yes  | Yes       | Yes         |
+| **Sessions**  | ✓    | ✓         | ✓           |
+| **Auth**      | ✓    | ✓         | ✓           |
+| **Streaming** | ✓    | ✓         | ✓           |
 
 ## Related Skills
 
@@ -267,4 +267,4 @@ For Nexus-specific questions, invoke:
 
 - `nexus-specialist` - Nexus implementation and deployment
 - `release-specialist` - Production deployment patterns
-- `decide-framework` skill - When to use Nexus vs other approaches
+- ``decide-framework` skill` - When to use Nexus vs other approaches
