@@ -1,16 +1,33 @@
 {
-  "version": "3.2.2",
+  "version": "3.3.0",
   "type": "coc-use-template",
   "description": "COC USE template for Python SDK projects",
-  "released": "2026-04-11",
+  "released": "2026-04-12",
   "upstream": {
     "name": "kailash",
     "type": "coc-source",
     "version": "2.8.0",
     "build_version": "2.8.1",
-    "synced_at": "2026-04-11T00:00:00+08:00"
+    "synced_at": "2026-04-12T00:00:00+08:00"
   },
   "changelog": [
+    {
+      "version": "3.3.0",
+      "date": "2026-04-12",
+      "summary": "Sync loom eacd989 \u2014 Specs authority system: new specs-authority.md rule (domain truth management, 8 MUST rules), new proposal-protocol guide (3-state lifecycle), all 6 phase commands updated with specs integration (read/write/verify), agents.md gains specs-context-in-delegation section, artifact-flow.md gains proposal lifecycle rules.",
+      "changes": [
+        "NEW: rules/specs-authority.md \u2014 CO tier. specs/ as single source of domain truth. 8 MUST rules: _index.md manifest, domain ontology organization, detailed not summaries, phase commands read specs, first-instance updates, deviation acknowledgment, delegation includes specs, large file splitting.",
+        "NEW: guides/co-setup/09-proposal-protocol.md \u2014 CO tier. Upstream proposal protocol for /codify Step 7 (BUILD\u2192loom) and Step 8 (loom\u2192atelier). Fresh/append formats, tier suggestions, reporting templates.",
+        "MODIFIED: commands/analyze.md \u2014 New Step 5: Create specs/ (MUST before red team). Step 6 (red team) now includes brief-to-spec traceability verification.",
+        "MODIFIED: commands/todos.md \u2014 Phase Check: specs/_index.md read gate (STOP if missing). Todos must reference spec files. Spec update discipline on new contracts.",
+        "MODIFIED: commands/implement.md \u2014 Context anchoring Step 2: spec re-read added as first priority. Brief staleness check. Step 7: spec deviation check, orchestrator-only spec writes.",
+        "MODIFIED: commands/redteam.md \u2014 Step 1: specs/** added as PRIMARY audit source. Specs-to-code field-level verification, cross-spec consistency, brief-to-spec coverage checks.",
+        "MODIFIED: commands/codify.md \u2014 Steps 7/8 refactored to reference proposal protocol guide. Step 2: specs/ added to knowledge extraction sources.",
+        "MODIFIED: commands/wrapup.md \u2014 specs/ added to 'free' context list (Domain specs).",
+        "MODIFIED: rules/agents.md \u2014 New section: Specs Context in Delegation (MUST). Worktree section preserved as stripped (Python-irrelevant).",
+        "MODIFIED: rules/artifact-flow.md \u2014 Proposal Lifecycle section added (3-state: pending_review/reviewed/distributed). Append-not-overwrite, reset-on-append, archive-before-fresh MUST rules with BLOCKED phrases."
+      ]
+    },
     {
       "version": "3.2.2",
       "date": "2026-04-11",
