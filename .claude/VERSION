@@ -1,5 +1,5 @@
 {
-  "version": "3.4.6",
+  "version": "3.4.7",
   "type": "coc-use-template",
   "description": "COC USE template for Python SDK projects",
   "released": "2026-04-14",
@@ -23,6 +23,15 @@
     }
   },
   "changelog": [
+    {
+      "version": "3.4.7",
+      "date": "2026-04-14",
+      "summary": "Patch: sync.md Step 0 auto-detects template-derived repos + Gate 1 nexus-specialist (py)",
+      "changes": [
+        "COMMAND: sync.md Step 0 \u2014 now verifies coc-use-template repos against dirname/git-remote before routing to loom. Template-derived repos (created via \"Use this template\") auto-correct VERSION in-place.",
+        "AGENT (py only): nexus-specialist.md updated with 3 new Nexus Python patterns \u2014 @app.use_middleware, app.mount, @app.websocket class handler (PRs #447/#448/#449). rs binding parity pending kailash-rs#386/#387."
+      ]
+    },
     {
       "version": "3.4.6",
       "date": "2026-04-14",
