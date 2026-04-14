@@ -1,5 +1,5 @@
 {
-  "version": "3.4.7",
+  "version": "3.4.8",
   "type": "coc-use-template",
   "description": "COC USE template for Python SDK projects",
   "released": "2026-04-14",
@@ -23,6 +23,14 @@
     }
   },
   "changelog": [
+    {
+      "version": "3.4.8",
+      "date": "2026-04-14",
+      "summary": "sync.md preserves downstream VERSION to prevent type clobber",
+      "changes": [
+        "COMMAND: sync.md Downstream Sync \u2014 .claude/VERSION now in the \"NEVER overwritten\" list. Step 6 clarified as \"update in-place, never replace the file\". Prevents downstream repos from ping-ponging between correct type=coc-project (set by session-start auto-correction) and wrong type=coc-use-template (clobbered by /sync)."
+      ]
+    },
     {
       "version": "3.4.7",
       "date": "2026-04-14",
