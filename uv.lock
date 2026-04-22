@@ -2407,7 +2407,7 @@ wheels = [
 
 [[package]]
 name = "kailash"
-version = "2.8.8"
+version = "2.8.12"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "aiofiles" },
@@ -2446,14 +2446,14 @@ dependencies = [
     { name = "sqlalchemy" },
     { name = "uvicorn", extra = ["standard"] },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/93/a7/7bbe1ac3d4506d4eebb38a67af7cebc14a57a733984b3e07549c625a1be4/kailash-2.8.8.tar.gz", hash = "sha256:fc6d86ca26fa79ffdef777b1a359ba375dccf296555785bc5ec156deb5663401", size = 2408979, upload-time = "2026-04-19T10:59:39.607Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/33/d1/62e63b4a5180500b39b0b149f8abe9f68f4ec1a2c74aa0862954859ecb57/kailash-2.8.12.tar.gz", hash = "sha256:36da4ebb062d445c176db597e7e51d556f9c003ec64ef83ed9ceae04bbed16ed", size = 2415430, upload-time = "2026-04-21T05:42:33.292Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/84/65/5799286730b2b10126b1ccee3adb94f25b7ed3fa2ebd127885320ad35a5d/kailash-2.8.8-py3-none-any.whl", hash = "sha256:7fe1ee13f3bf5eb4da8998629a6153271a990fbaa30b9594323de9c0191ae4c4", size = 2791904, upload-time = "2026-04-19T10:59:37.013Z" },
+    { url = "https://files.pythonhosted.org/packages/4a/0d/b96bed0247ff3f6a3e7a2518726d1aadecf4446924c13b1d7719743b5075/kailash-2.8.12-py3-none-any.whl", hash = "sha256:ae29e07556791743be017d667440dea1a409cba09f9da79dda9be30b5e338f03", size = 2798739, upload-time = "2026-04-21T05:42:30.952Z" },
 ]
 
 [[package]]
 name = "kailash-align"
-version = "0.3.2"
+version = "0.4.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "accelerate" },
@@ -2469,7 +2469,7 @@ dependencies = [
     { name = "trl" },
 ]
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/13/f2/d6f322fd852c5081223fb7d0f003261da44934dd24ab99a8e65dac102452/kailash_align-0.3.2-py3-none-any.whl", hash = "sha256:18b2b03c46e9e04d6339bc8735494756829ab8ac300946b587b61901af29c259", size = 59560, upload-time = "2026-04-19T10:59:06.052Z" },
+    { url = "https://files.pythonhosted.org/packages/89/85/4da3f79fdaf42fc7848f3ec70ca5701f01acc95fbd25d1461ce8d85420c6/kailash_align-0.4.0-py3-none-any.whl", hash = "sha256:75499e01fb2787f3b2f79b6ea45f9be398130d6351327bd6169451af1ad33a72", size = 71294, upload-time = "2026-04-21T05:44:29.8Z" },
 ]
 
 [package.optional-dependencies]
@@ -2514,7 +2514,7 @@ wheels = [
 
 [[package]]
 name = "kailash-kaizen"
-version = "2.7.5"
+version = "2.10.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "aiohttp" },
@@ -2548,12 +2548,12 @@ dependencies = [
     { name = "uvicorn", extra = ["standard"] },
 ]
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/39/02/a062073179e0bf30dbf9cff427189820a594b2645248fcbdd4829cc09e53/kailash_kaizen-2.7.5-py3-none-any.whl", hash = "sha256:d49ef1945de5bac4a6bbd038e1ffed9db36bfda30872aa6ef38aad86d40b44ec", size = 1452916, upload-time = "2026-04-19T06:32:44.989Z" },
+    { url = "https://files.pythonhosted.org/packages/1e/e9/a55894d732c713087bcd7f2c6d200b22313185ac42b27e03acdb93f2941b/kailash_kaizen-2.10.1-py3-none-any.whl", hash = "sha256:79dbbe2b0754e2ff4defd5fcbbf780dfc5e545929194b3e3718321128831d886", size = 1508744, upload-time = "2026-04-21T05:53:26.268Z" },
 ]
 
 [[package]]
 name = "kailash-mcp"
-version = "0.2.5"
+version = "0.2.8"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "kailash" },
@@ -2561,12 +2561,12 @@ dependencies = [
     { name = "pydantic" },
 ]
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/f6/43/c5118a43522ffb86d36284150f01fe9796452771762e85daea221ff89d09/kailash_mcp-0.2.5-py3-none-any.whl", hash = "sha256:af0473f31928f45f8a0ec4aeeaa3e73a81e14bb0c6978715a1bd2070234fbf8f", size = 179401, upload-time = "2026-04-19T06:33:06.589Z" },
+    { url = "https://files.pythonhosted.org/packages/ad/b5/5a6e08acba0f6e5d8267e8932f3e8b489e55b38861e6dee4db04c6dcc0bb/kailash_mcp-0.2.8-py3-none-any.whl", hash = "sha256:df3f1ab694097aa63937c09e7dc788398505d812074675d491af3de8413bf6eb", size = 183949, upload-time = "2026-04-21T05:42:22.609Z" },
 ]
 
 [[package]]
 name = "kailash-ml"
-version = "0.11.1"
+version = "0.17.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "kailash" },
@@ -2584,10 +2584,11 @@ dependencies = [
     { name = "scipy" },
     { name = "skl2onnx" },
     { name = "torch" },
+    { name = "umap-learn" },
     { name = "xgboost" },
 ]
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/61/15/8c391980be41055d6d79247197d0ee5371a4582f2337a7c1dc7252d79c35/kailash_ml-0.11.1-py3-none-any.whl", hash = "sha256:6c9456b6058fa07b0269f4e28f80a9af604ca342a7111ae3062afb3c7ee6dfab", size = 228621, upload-time = "2026-04-19T12:04:05.045Z" },
+    { url = "https://files.pythonhosted.org/packages/5e/3b/0b7eb5b8f3bd1975419fb82ad688e7ef3fc2628f7c5caf6c5b48598da761/kailash_ml-0.17.0-py3-none-any.whl", hash = "sha256:c77a235d5945a3f105a0d35264b9e72b55d8c6e08fe24e3ca7f179e84a0bfc41", size = 324172, upload-time = "2026-04-21T05:44:31.864Z" },
 ]
 
 [[package]]
@@ -2608,7 +2609,7 @@ wheels = [
 
 [[package]]
 name = "kailash-pact"
-version = "0.8.2"
+version = "0.9.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "click" },
@@ -2620,18 +2621,7 @@ dependencies = [
     { name = "slowapi" },
 ]
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/f2/4b/7a697833a75b0357d4a60035908de0e9786846e3f45b167f67d8d368af83/kailash_pact-0.8.2-py3-none-any.whl", hash = "sha256:6b06e7a619c1ae1cb5bda5c777f875a76054085edb2bbae76277a078955f99ab", size = 62422, upload-time = "2026-04-19T10:59:14.386Z" },
-]
-
-[[package]]
-name = "kailash-trust"
-version = "0.1.1"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "kailash" },
-]
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/3f/3d/10ecd9525e55ce9e7e26bf7bbc7be2a4f091574b18d7cf6f524756c15e13/kailash_trust-0.1.1-py3-none-any.whl", hash = "sha256:dc465c39428cb32a68c2cc9613d9627440cacb7a8d2daa0fc19c0501a5217d1c", size = 2710, upload-time = "2026-04-19T11:21:50.406Z" },
+    { url = "https://files.pythonhosted.org/packages/a5/32/06649d35cca66235b8693b45ab59748293360762f21d0ff3a59fd619c714/kailash_pact-0.9.0-py3-none-any.whl", hash = "sha256:954b2c732a16dcd4daaa1de8942ba9fa2a45bcbb378b5e2ebbec05af07a11f0b", size = 73491, upload-time = "2026-04-21T05:44:28.015Z" },
 ]
 
 [[package]]
@@ -3488,7 +3478,6 @@ dependencies = [
     { name = "kailash-ml" },
     { name = "kailash-nexus" },
     { name = "kailash-pact" },
-    { name = "kailash-trust" },
     { name = "kaizen-agents" },
     { name = "python-dotenv" },
     { name = "rich" },
@@ -3522,16 +3511,15 @@ requires-dist = [
     { name = "black", marker = "extra == 'dev'", specifier = ">=23.0" },
     { name = "detect-secrets", marker = "extra == 'dev'", specifier = ">=1.5.0" },
     { name = "isort", marker = "extra == 'dev'", specifier = ">=5.12.0" },
-    { name = "kailash", specifier = ">=2.8.8" },
-    { name = "kailash-align", marker = "extra == 'align'", specifier = ">=0.3.2" },
-    { name = "kailash-align", extras = ["all"], marker = "extra == 'all'", specifier = ">=0.3.2" },
+    { name = "kailash", specifier = ">=2.8.12" },
+    { name = "kailash-align", marker = "extra == 'align'", specifier = ">=0.4.0" },
+    { name = "kailash-align", extras = ["all"], marker = "extra == 'all'", specifier = ">=0.4.0" },
     { name = "kailash-dataflow", specifier = ">=2.0.12" },
-    { name = "kailash-kaizen", specifier = ">=2.7.5" },
-    { name = "kailash-mcp", specifier = ">=0.2.5" },
-    { name = "kailash-ml", specifier = ">=0.11.1" },
+    { name = "kailash-kaizen", specifier = ">=2.10.1" },
+    { name = "kailash-mcp", specifier = ">=0.2.8" },
+    { name = "kailash-ml", specifier = ">=0.17.0" },
     { name = "kailash-nexus", specifier = ">=2.1.1" },
-    { name = "kailash-pact", specifier = ">=0.8.2" },
-    { name = "kailash-trust", specifier = ">=0.1.1" },
+    { name = "kailash-pact", specifier = ">=0.9.0" },
     { name = "kaizen-agents", specifier = ">=0.9.3" },
     { name = "mypy", marker = "extra == 'dev'", specifier = ">=1.0" },
     { name = "pre-commit", marker = "extra == 'dev'", specifier = ">=4.2.0" },
@@ -5247,15 +5235,15 @@ wheels = [
 
 [[package]]
 name = "pydantic-extra-types"
-version = "2.11.2"
+version = "2.11.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "pydantic" },
     { name = "typing-extensions" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/41/d3/3be31542180c0300b6860129ff1e3a428f3ef580727616ce22462626129b/pydantic_extra_types-2.11.2.tar.gz", hash = "sha256:3a2b83b61fe920925688e7838b59caa90a45637d1dbba2b1364b8d1f7ff72a0a", size = 203929, upload-time = "2026-04-05T20:50:51.556Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/66/71/dba38ee2651f84f7842206adbd2233d8bbdb59fb85e9fa14232486a8c471/pydantic_extra_types-2.11.1.tar.gz", hash = "sha256:46792d2307383859e923d8fcefa82108b1a141f8a9c0198982b3832ab5ef1049", size = 172002, upload-time = "2026-03-16T08:08:03.92Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/92/a4/7b6ab05c18d6c6e682382a0f0235301684452c4131a869f45961d1d032c9/pydantic_extra_types-2.11.2-py3-none-any.whl", hash = "sha256:683b8943252543e49760f89733b1519bc62f31d1a287ebbdc5a7b7959fb4acfd", size = 82851, upload-time = "2026-04-05T20:50:50.036Z" },
+    { url = "https://files.pythonhosted.org/packages/17/c1/3226e6d7f5a4f736f38ac11a6fbb262d701889802595cdb0f53a885ac2e0/pydantic_extra_types-2.11.1-py3-none-any.whl", hash = "sha256:1722ea2bddae5628ace25f2aa685b69978ef533123e5638cfbddb999e0100ec1", size = 79526, upload-time = "2026-03-16T08:08:02.533Z" },
 ]
 
 [package.optional-dependencies]
@@ -5403,6 +5391,22 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/48/47/e761c254f410c023a469284a9bc210933e18588ca87706ae93002c05114c/pynacl-1.6.2-cp38-abi3-win32.whl", hash = "sha256:5811c72b473b2f38f7e2a3dc4f8642e3a3e9b5e7317266e4ced1fba85cae41aa", size = 227421, upload-time = "2026-01-01T17:32:33.076Z" },
     { url = "https://files.pythonhosted.org/packages/41/ad/334600e8cacc7d86587fe5f565480fde569dfb487389c8e1be56ac21d8ac/pynacl-1.6.2-cp38-abi3-win_amd64.whl", hash = "sha256:62985f233210dee6548c223301b6c25440852e13d59a8b81490203c3227c5ba0", size = 239754, upload-time = "2026-01-01T17:32:34.557Z" },
     { url = "https://files.pythonhosted.org/packages/29/7d/5945b5af29534641820d3bd7b00962abbbdfee84ec7e19f0d5b3175f9a31/pynacl-1.6.2-cp38-abi3-win_arm64.whl", hash = "sha256:834a43af110f743a754448463e8fd61259cd4ab5bbedcf70f9dabad1d28a394c", size = 184801, upload-time = "2026-01-01T17:32:36.309Z" },
+]
+
+[[package]]
+name = "pynndescent"
+version = "0.6.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "joblib" },
+    { name = "llvmlite" },
+    { name = "numba" },
+    { name = "scikit-learn" },
+    { name = "scipy" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/4a/fb/7f58c397fb31666756457ee2ac4c0289ef2daad57f4ae4be8dec12f80b03/pynndescent-0.6.0.tar.gz", hash = "sha256:7ffde0fb5b400741e055a9f7d377e3702e02250616834231f6c209e39aac24f5", size = 2992987, upload-time = "2026-01-08T21:29:58.943Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/b2/e6/94145d714402fd5ade00b5661f2d0ab981219e07f7db9bfa16786cdb9c04/pynndescent-0.6.0-py3-none-any.whl", hash = "sha256:dc8c74844e4c7f5cbd1e0cd6909da86fdc789e6ff4997336e344779c3d5538ef", size = 73511, upload-time = "2026-01-08T21:29:57.306Z" },
 ]
 
 [[package]]
@@ -7188,6 +7192,23 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/8b/2e/c14812d3d4d9cd1773c6be938f89e5735a1f11a9f184ac3639b93cef35d5/tzlocal-5.3.1.tar.gz", hash = "sha256:cceffc7edecefea1f595541dbd6e990cb1ea3d19bf01b2809f362a03dd7921fd", size = 30761, upload-time = "2025-03-05T21:17:41.549Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/c2/14/e2a54fabd4f08cd7af1c07030603c3356b74da07f7cc056e600436edfa17/tzlocal-5.3.1-py3-none-any.whl", hash = "sha256:eb1a66c3ef5847adf7a834f1be0800581b683b5608e74f86ecbcef8ab91bb85d", size = 18026, upload-time = "2025-03-05T21:17:39.857Z" },
+]
+
+[[package]]
+name = "umap-learn"
+version = "0.5.12"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "numba" },
+    { name = "numpy" },
+    { name = "pynndescent" },
+    { name = "scikit-learn" },
+    { name = "scipy" },
+    { name = "tqdm" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/02/ee/af4171241117f85c74b5ca6448ea1033cc28d599c13651d67289bacd4083/umap_learn-0.5.12.tar.gz", hash = "sha256:6aff02ecac5f2aad9f3c65ee518d7ae93e1a985ae38721fdcffceee4232c33c7", size = 96672, upload-time = "2026-04-08T20:03:54.012Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/1b/98/f63318ccbe75c810011fe9233884c5d348d94d90005de1b79e5f93bef9c0/umap_learn-0.5.12-py3-none-any.whl", hash = "sha256:f2a85d2a2adcb52b541bed9b27a23ca169b56bb1b23283abeebfb8dfb8a42fe5", size = 91849, upload-time = "2026-04-08T20:03:52.561Z" },
 ]
 
 [[package]]

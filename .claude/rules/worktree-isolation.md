@@ -1,13 +1,8 @@
----
-paths:
-  - ".claude/agents/**"
-  - ".claude/commands/**"
-  - "**/agents/**"
----
-
 # Worktree Isolation Rules
 
-Agents launched with `isolation: "worktree"` run in their own git worktree so parallel compile/test jobs do not fight over the same `target/` (Rust), `.venv/` (Python), or `node_modules/` (JS). The isolation is only real if the agent actually edits files inside its assigned worktree path. When an agent drifts back to the main checkout — because the system prompt didn't pin cwd, because absolute paths were copied from the orchestrator, because the tool defaulted to `process.cwd()` — the isolation silently breaks: two workers overwrite each other's changes, one commits the other's half-done code, and the "parallel" session produces garbage that only surfaces at `/redteam`.
+This rule targets **orchestrator behavior** — the parent session that spawns agents with `isolation: "worktree"`. It governs session-spawn-time decisions (what to pass in the delegation prompt, how to verify deliverables), NOT file-edit-time behavior. It loads universally because orchestration happens in sessions that rarely edit the `agents/`, `commands/`, or rule files it used to be path-scoped to — exactly the sessions where its absence caused the failure mode to recur.
+
+Agents launched with `isolation: "worktree"` run in their own git worktree so parallel jobs do not fight over the same resources. The original motivation was compile-heavy contention (Rust `target/`, Python `.venv/`, JS `node_modules/`) but **the rule applies to every worktree agent regardless of whether it compiles** — prose-drafting, config edits, markdown briefs, one-line pytest.ini fixes all exhibit the same failure mode. When an agent drifts back to the main checkout — because the system prompt didn't pin cwd, because absolute paths were copied from the orchestrator, because the tool defaulted to `process.cwd()` — the isolation silently breaks: two workers overwrite each other's changes, one commits the other's half-done code, and the "parallel" session produces garbage that only surfaces at `/redteam` or (more often) post-hoc when the lost work is noticed missing.
 
 This rule mandates a self-verification step at agent start AND a pre-flight check in the orchestrator's delegation prompt. The verification is cheap (one `git status`) and the failure mode is expensive (a whole session's worth of parallel work corrupted).
 
@@ -103,6 +98,76 @@ result = Agent(isolation="worktree", prompt="...")
 - "Now let me write the file..." followed by no actual write
 
 **Why:** Agents hit their budget mid-message and emit "Now let me write X..." without having written X. Multi-agent sessions have logged repeated occurrences (kaizen-specialist round 6, ml-specialist round 7) where an agent reported success with zero files on disk. An `ls` check is O(1) and converts "silent no-op" into "loud retry".
+
+### 4. Worktree Prompts MUST NOT Reference The Parent-Checkout Path
+
+Any absolute path in an `isolation: "worktree"` prompt MUST be anchored to the pinned worktree path (see Rule 1). Absolute paths pointing to the parent checkout (`/Users/<you>/repos/<project>/<subpath>` with no worktree prefix) are BLOCKED — agents resolve them against the filesystem root, silently bypassing the worktree and writing into the parent. Relative paths are the safer default because they always resolve to the agent's cwd (the worktree).
+
+```python
+# DO — relative paths, resolve to worktree cwd
+Agent(
+    isolation="worktree",
+    prompt="Edit packages/kailash-ml/src/kailash_ml/trainable.py at line 370..."
+)
+
+# DO — absolute paths anchored to the PINNED worktree path (Rule 1 style)
+worktree = "/Users/me/repos/myproject/.claude/worktrees/agent-feature-abc123"
+Agent(
+    isolation="worktree",
+    prompt=f"Edit {worktree}/packages/kailash-ml/src/kailash_ml/trainable.py at line 370..."
+)
+
+# DO NOT — absolute paths pointing to the PARENT checkout
+Agent(
+    isolation="worktree",
+    prompt="Edit /Users/me/repos/myproject/packages/kailash-ml/src/kailash_ml/trainable.py at line 370..."
+)
+# ↑ writes land in the MAIN checkout; the worktree stays empty; auto-cleanup
+#   deletes the empty worktree; agent's work is either silently on main OR lost.
+```
+
+**BLOCKED rationalizations:**
+
+- "Absolute paths are unambiguous"
+- "The agent should figure out its own cwd"
+- "This worked the one time I tested it"
+- "I included 'Repo root: /Users/...' at the top; the agent will use that"
+
+**Why:** `isolation: "worktree"` runs the agent with cwd set to the worktree, but file-write tools accept any absolute path — an absolute path that points to the parent resolves there regardless of cwd. Session 2026-04-19 logged 2 of 3 parallel ml-specialist shards writing to main before self-correcting (Shard B) or losing work entirely (Shard A's 300+ LOC of sklearn array-API impl was lost when its empty worktree auto-cleaned). Only one self-corrected; the failure mode is not agent-detectable by default.
+
+### 5. Worktree Agents MUST Commit Incremental Progress
+
+Every agent launched with `isolation: "worktree"` MUST receive an explicit instruction in its prompt to `git commit` after each major milestone (each file written, each test batch passed, each draft brief completed, each config edit made), NOT only at completion. The orchestrator MUST then verify the branch has ≥1 commit before declaring the agent's work landed. Worktrees with zero commits auto-clean on agent exit and the work is unrecoverable — **this applies equally to compile work, prose/markdown drafting, one-line config edits, and every other agent task; "my agent is just writing markdown, commit discipline is overkill" is BLOCKED.**
+
+```python
+# DO — prompt includes incremental commit discipline
+Agent(
+    isolation="worktree",
+    prompt="""...
+**Commit discipline (MUST):**
+- After each file is complete, run `git add <file> && git commit -m "wip(shard-X): <what>"`.
+- Do NOT hold all work in the worktree's index until the final report.
+- If you exit without committing (budget exhaustion / crash / interruption),
+  the worktree is auto-cleaned and ALL work is lost.
+""",
+)
+
+# DO NOT — trust that the agent commits at completion
+Agent(isolation="worktree", prompt="Implement feature X. Report when done.")
+# ↑ agent writes 4 files, hits budget on file 5, emits truncated message,
+#   never reaches `git commit`, worktree auto-cleaned — all 5 files lost.
+```
+
+**BLOCKED rationalizations:**
+
+- "The agent will commit at the end"
+- "Splitting into commits adds overhead"
+- "The parent can recover from the worktree after the agent exits"
+- "Budget exhaustion is rare"
+- "My agent is just writing markdown / just editing one config line — commit discipline is overkill for that"
+- "The agent's summary in the conversation is enough evidence"
+
+**Why:** Worktree auto-cleanup silently deletes worktrees with zero commits on their branch. An agent that writes perfect code / prose / config but truncates mid-message before committing loses 100% of its output. Post-hoc file-existence verification (Rule 3) catches orphan files in main but CANNOT recover files that were only in a cleaned-up worktree. Sessions 2026-04-19 (compile-heavy: 3 of 3 parallel ml-specialist shards truncated at 250-370k tokens; 2 lost work) AND 2026-04-21 (non-compile: 11 drafted markdown briefs + a verified pytest.ini diagnosis lost when two worktree agents reported "done" without committing) demonstrate the same failure across both task types. The only reliable defense is instructing the agent to commit as it goes regardless of whether the task compiles or not.
 
 ## MUST NOT
 
