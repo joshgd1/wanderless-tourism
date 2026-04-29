@@ -1,27 +1,66 @@
 {
-  "version": "3.5.25",
+  "version": "3.5.29",
   "type": "coc-use-template",
   "description": "COC USE template for Python SDK projects",
-  "released": "2026-04-28",
+  "released": "2026-04-29",
   "upstream": {
     "name": "kailash",
     "type": "coc-source",
-    "version": "2.9.4",
-    "build_version": "2.11.3",
-    "synced_at": "2026-04-28T03:35:00+08:00",
+    "version": "2.10.0",
+    "build_version": "2.12.0",
+    "synced_at": "2026-04-29T12:00:00+08:00",
     "sdk_packages": {
-      "kailash": "2.11.3",
-      "kailash-dataflow": "2.3.2",
+      "kailash": "2.12.0",
+      "kailash-dataflow": "2.4.0",
       "kailash-nexus": "2.3.0",
       "kailash-kaizen": "2.13.1",
       "kailash-pact": "0.11.0",
       "kailash-mcp": "0.2.10",
-      "kailash-ml": "1.5.1",
+      "kailash-ml": "1.6.0",
       "kailash-align": "0.7.0",
       "kaizen-agents": "0.9.4"
     }
   },
   "changelog": [
+    {
+      "version": "3.5.29",
+      "date": "2026-04-29",
+      "summary": "PATCH: Sync loom 2.10.0 — 5 cross-SDK MUST sub-clauses + 3 SDK pin bumps. (1) `.claude/rules/zero-tolerance.md` 189 → 277 lines: § Rule 2 Extended BLOCKED Patterns gains 'Fake dispatch' bullet (kailash-ml `_wrappers.py:474–485` accepted Literal kinds with no dispatch branch — same failure-mode class as fake encryption / fake transaction / fake health; `/redteam` MUST AST-walk every Literal/Enum dispatch parameter); NEW Rule 3c 'Documented Kwargs Accepted But Unused' (every kwarg in the public signature documented in spec MUST be consumed by ≥1 branch — silent drop is BLOCKED); NEW Rule 6a 'Remove Fully — Public-API Removal Requires Deprecation Cycle' (public-API removal MUST land with DeprecationWarning shim covering ≥1 minor cycle + CHANGELOG migration section; cross-SDK applicable to Rust `#[deprecated]` discipline). (2) `.claude/rules/schema-migration.md` 202 → 231 lines: NEW Rule 1a '/redteam MUST Grep For Inline DDL Outside Migrations' inserted after Rule 1 — concrete grep command + path-exclusion clause + 6 BLOCKED rationalizations; origin kailash-ml ModelRegistry three-way drift (#699). (3) `.claude/rules/agents.md` 196 → 236 lines: NEW MUST sub-clause 'Parallel Brief-Claim Verification When Issue Count ≥ 3' inserted in § Parallel Execution — `/analyze` against ≥3-issue brief MUST launch parallel deep-dive verification agents (one per claim cluster); single-agent analysis BLOCKED for ≥3-issue briefs; 7 BLOCKED rationalizations; origin kailash-ml-1.5.x-followup brief had 3 distinct factual inaccuracies caught only because three parallel deep-dive agents independently verified. (4) `.claude/rules/git.md` carried from 2.9.7 — NEW MUST sub-clause `## git reset --hard MUST Verify Clean Working Tree` (already in-flight from prior sync). (5) SDK pins: kailash 2.11.3→2.12.0 (BUILD), kailash-dataflow 2.3.3→2.4.0 (BUILD), kailash-ml 1.5.1→1.6.0 (BUILD). All other pins held at prior PyPI-resolvable tips. (6) CC-only legacy template — no AGENTS.md/GEMINI.md regeneration (multi-CLI baseline regeneration is on the sibling kailash-coc-py template).",
+      "changes": [
+        "GLOBAL: .claude/rules/zero-tolerance.md — Rule 2 'Fake dispatch' bullet + NEW Rule 3c (Documented Kwargs) + NEW Rule 6a (Remove Fully) — 189 → 277 lines.",
+        "GLOBAL: .claude/rules/schema-migration.md — NEW Rule 1a (/redteam grep DDL outside migrations) — 202 → 231 lines.",
+        "GLOBAL: .claude/rules/agents.md — NEW MUST sub-clause (Parallel Brief-Claim Verification ≥3 issues) — 196 → 236 lines.",
+        "GLOBAL: .claude/rules/git.md — (carried from 2.9.7) NEW MUST sub-clause `## git reset --hard MUST Verify Clean Working Tree` — 295 lines.",
+        "DEPENDENCY: pyproject.toml — kailash>=2.11.3 → kailash>=2.12.0; kailash-dataflow>=2.3.3 → kailash-dataflow>=2.4.0; kailash-ml>=1.5.1 → kailash-ml>=1.6.0."
+      ]
+    },
+    {
+      "version": "3.5.28",
+      "date": "2026-04-28",
+      "summary": "PATCH: Sync loom 2.9.7 — new `git reset --hard` discipline rule + kailash-dataflow 2.3.3 pin bump. (1) `.claude/rules/git.md` grew 245 → 295 lines: NEW MUST sub-clause `## git reset --hard MUST Verify Clean Working Tree` inserted before the existing § Rules section. Mandates `git status --porcelain` empty-check before any `--hard` reset; mandates `git reset --keep <ref>` as the structurally-safer preferred form for back-out / branch-reorganization workflows; `--keep` aborts loudly when local changes would be lost, converting silent data-loss into refused-with-actionable-error. DO/DO NOT covers four patterns (--keep / porcelain-verify+hard / stash-then-hard-then-pop / commit-on-main-recovery). 7 BLOCKED rationalizations enumerated. Origin: kailash-py session 2026-04-28 (PR #691 sync-PR rebase) — `.session-notes` modifications wiped by `git reset --hard 7ce2d2eb`. Sibling structural-confirmation pattern of dataflow-identifier-safety.md Rule 4 + schema-migration.md Rule 7. (2) SDK pin: kailash-dataflow 2.3.2 → 2.3.3 (PyPI release 2026-04-28 via PR #692). (3) CC-only legacy template — no AGENTS.md/GEMINI.md regeneration (multi-CLI baseline regeneration is on the sibling kailash-coc-py template).",
+      "changes": [
+        "GLOBAL: .claude/rules/git.md — NEW MUST sub-clause `## git reset --hard MUST Verify Clean Working Tree` (245 → 295 lines).",
+        "DEPENDENCY: pyproject.toml — kailash-dataflow>=2.3.2 → kailash-dataflow>=2.3.3."
+      ]
+    },
+    {
+      "version": "3.5.27",
+      "date": "2026-04-28",
+      "summary": "PATCH: Sync loom 2.9.6 — fixes downstream /sync skipping `.claude/hooks/` and `.claude/bin/`. Symptom: many downstream consumer repos (kaizen-cli-py, kz-engage, etc.) ran /sync, the obsoleted-purge for `.claude/scripts/` and `scripts/hooks/` fired correctly, but the canonical `.claude/hooks/` directory was NEVER copied — settings.json hook entries pointed at non-existent paths and every CC SessionStart failed with MODULE_NOT_FOUND. Fix lands in `.claude/commands/sync.md` Step 4 (Downstream) and Step 3 (Gate 2): expected-state listing now explicitly includes hooks/**, hooks/lib/**, bin/**, .coc-obsoleted, plus a BLOCKED-rationalization clause naming the failure mode. Affected downstream consumers MUST re-run `/sync` from this 3.5.27 template release to receive `.claude/hooks/` on disk. No SDK pin changes; no AGENTS.md/GEMINI.md regeneration required (CC-only legacy template — multi-CLI overlay handled by sibling kailash-coc-py).",
+      "changes": [
+        "GLOBAL: .claude/commands/sync.md — Step 4 (Downstream) and Step 3 (Gate 2) expected-state listings now enumerate hooks/**, hooks/lib/**, bin/**, .coc-obsoleted; BLOCKED-rationalization clause added naming the SessionStart MODULE_NOT_FOUND failure mode."
+      ]
+    },
+    {
+      "version": "3.5.26",
+      "date": "2026-04-28",
+      "summary": "PATCH: Sync loom 2.9.5 — additive command + obsoleted-purge. (1) NEW .claude/commands/sweep.md (117 lines) — generic project-scoped 7-sweep audit (active workspace todos, pending journal entries, GH open issues via `gh repo view`-detected nameWithOwner, open PRs + stale branches, redteam-vs-specs gaps, workspace+worktree hygiene, process hygiene). Distributed via tiers.co per loom 2.9.5 manifest update. (2) PURGED .claude/scripts/ (obsoleted in v2.9.1; canonical migrate.py lives at top-level scripts/migrate.py per variant_only.py.scripts manifest entry). The legacy .claude/scripts/migrate.py was a pre-v2.9.1 sibling layout never reachable by the resolver — purged via the manifest's obsoleted contract. No rule/skill/agent diff vs 2.9.4 (this loom release was a single-command addition).",
+      "changes": [
+        "GLOBAL: NEW .claude/commands/sweep.md — 7-sweep generic project-scoped audit, repo auto-detected via `gh repo view`.",
+        "OBSOLETED-PURGED: .claude/scripts/ (legacy pre-v2.9.1 sibling, never reachable; canonical migrate.py is at top-level scripts/migrate.py).",
+        "No SDK pin changes (all pins already at BUILD-tip in 3.5.25)."
+      ]
+    },
     {
       "version": "3.5.25",
       "date": "2026-04-28",
@@ -275,5 +314,5 @@
       ]
     }
   ],
-  "updated": "2026-04-27T16:00:00Z"
+  "updated": "2026-04-29T04:00:00Z"
 }

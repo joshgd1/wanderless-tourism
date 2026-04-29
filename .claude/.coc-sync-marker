@@ -1,37 +1,43 @@
 # COC Sync Marker — kailash-coc-claude-py
-timestamp: 2026-04-28T12:05:00+08:00
+timestamp: 2026-04-29T12:00:00+08:00
 source: loom/.claude
-loom_version: 2.9.5
+loom_version: 2.10.0
 variant: py
 clis: ["claude"]
 stats:
   artifacts_total: 684
-  composed: 2          # rules/deployment.md, rules/ci-runners.md (slot-keyed py overlays)
-  variant_full_overlays: 174   # py FULL-FILE replacements applied
-  variant_only_added: 18       # py-only files (no global)
+  files_updated_this_sync:
+    - .claude/rules/zero-tolerance.md (189 → 277 lines; Rule 2 'Fake dispatch' bullet + NEW Rule 3c 'Documented Kwargs Accepted But Unused' + NEW Rule 6a 'Remove Fully — Public-API Removal Requires Deprecation Cycle')
+    - .claude/rules/schema-migration.md (202 → 231 lines; NEW Rule 1a '/redteam MUST Grep For Inline DDL Outside Migrations' inserted after Rule 1)
+    - .claude/rules/agents.md (196 → 236 lines; NEW MUST sub-clause 'Parallel Brief-Claim Verification When Issue Count ≥ 3' inserted in § Parallel Execution)
+    - .claude/rules/git.md (carried from 2.9.7 in-flight; identical to source — verified diff -q clean)
+  files_added_this_sync: []
+  files_purged: []
+  composed: 0           # no slot-keyed py overlays touched this cycle (zero-tolerance/agents/schema-migration/git all distributed as-is; no py variant overlay exists for any of them)
+  variant_full_overlays_unchanged: 174
   preserved:
     - CLAUDE.md (template-owned)
-    - settings.json (per-template hook paths)
-    - VERSION (template-owned)
+    - settings.json (per-template hook paths; no rewrites needed)
     - README.md, CONTRIBUTING.md, SECURITY.md, ENTERPRISE_BRIEF.md, LICENSE
-    - pyproject.toml, uv.lock, conftest.py, deploy/, docs/, mcp-configs/, scripts/, tests/, workspaces/
+    - conftest.py, deploy/, docs/, mcp-configs/, scripts/, tests/, workspaces/
   baselines_emitted:
-    cc: 0           # CLAUDE.md preserved, not emitted
+    cc: 0           # CLAUDE.md preserved, not emitted (CC-only template)
     codex: 0        # CC-only template
     gemini: 0       # CC-only template
-files_purged:
-  - .claude/commands/decisive.md (renamed to autonomize.md per .coc-obsoleted v2.9.4)
-files_added_this_sync:
-  - .claude/commands/autonomize.md
-  - .claude/commands/sweep.md
-files_updated_this_sync:
-  - .claude/rules/agents.md (slot:neutral-body wrapped, 196 lines)
-  - .claude/rules/testing.md (slot:neutral-body wrapped, 200 lines, cross-language __all__ AST clause)
-sdk_pin_diffs: none
+sdk_pin_diffs:
+  - "pyproject.toml dependencies: kailash>=2.11.3 → kailash>=2.12.0"
+  - "pyproject.toml dependencies: kailash-dataflow>=2.3.3 → kailash-dataflow>=2.4.0"
+  - "pyproject.toml dependencies: kailash-ml>=1.5.1 → kailash-ml>=1.6.0"
+  - "VERSION upstream.sdk_packages.kailash: 2.11.3 → 2.12.0"
+  - "VERSION upstream.sdk_packages.kailash-dataflow: 2.3.3 → 2.4.0"
+  - "VERSION upstream.sdk_packages.kailash-ml: 1.5.1 → 1.6.0"
+  - "VERSION upstream.version: 2.9.7 → 2.10.0; build_version: 2.11.3 → 2.12.0"
 hooks_resolved: 12/12
 notes: |
-  Gate 2 distribute v2.9.5. Single-CLI legacy template; baseline emission
-  N/A (CLAUDE.md preserved). Slot-keyed py variant overlays composed via
-  compose.mjs (deployment.md, ci-runners.md). 9 "BUILD-leak" matches are
-  legitimate Origin/reference strings + a DO-NOT code example — verified
-  not to be real leakage.
+  Gate 2 distribute v2.10.0. Three rule files updated with new MUST sub-clauses
+  (zero-tolerance, schema-migration, agents) plus git.md carried in-flight from
+  the prior 2.9.7 sync (verified identical to source). All four files are
+  global with no py variant overlay. SDK pins: kailash 2.11.3 → 2.12.0,
+  kailash-dataflow 2.3.3 → 2.4.0, kailash-ml 1.5.1 → 1.6.0; mcp/nexus/kaizen/
+  pact/align/kaizen-agents unchanged. CC-only legacy template, baseline emission
+  N/A (CLAUDE.md preserved). uv sync result captured at end of run.

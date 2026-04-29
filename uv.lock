@@ -2571,7 +2571,7 @@ wheels = [
 
 [[package]]
 name = "kailash"
-version = "2.11.3"
+version = "2.12.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "aiofiles" },
@@ -2610,9 +2610,9 @@ dependencies = [
     { name = "sqlalchemy" },
     { name = "uvicorn", extra = ["standard"] },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/3a/f2/07c6c669b6a3de5bc7e86a2d46c28f5dd9544e5afaf43b82b1cc2872164c/kailash-2.11.3.tar.gz", hash = "sha256:d4bca38f4942d8aca1ff4d13e48faaf8712e6178b5a56b71b8a01bc32f9e5f97", size = 2489384, upload-time = "2026-04-27T07:50:29.75Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/ba/47/3aa75199961b6e9ba36a703d8127cfaf5a2bf9a585d4179e9d7faceaad55/kailash-2.12.0.tar.gz", hash = "sha256:1005d9690ea1455b8051a1b0115ba10738e0d13c71a746aed0c09ffc1d52826a", size = 2498587, upload-time = "2026-04-28T11:36:12.047Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/98/b3/b1910db253325baad0976eda3140e9fa3106a607b399a162a1dd2bafb890/kailash-2.11.3-py3-none-any.whl", hash = "sha256:9974232b9cf853dafce71e71da46c8b7252a213d5bf9580db731bc4a008e3f89", size = 2884440, upload-time = "2026-04-27T07:50:27.63Z" },
+    { url = "https://files.pythonhosted.org/packages/4c/4a/3cac9e00161548e292b900e5d5b6b3a0bc73f63a9cc768cf15ffe69c5516/kailash-2.12.0-py3-none-any.whl", hash = "sha256:0618aba135ecf63fade5e1ed931c8abb85536c061b7c1f7eb4e172e3421365da", size = 2896885, upload-time = "2026-04-28T11:36:09.686Z" },
 ]
 
 [[package]]
@@ -2648,7 +2648,7 @@ all = [
 
 [[package]]
 name = "kailash-dataflow"
-version = "2.3.1"
+version = "2.4.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "aiomysql" },
@@ -2674,7 +2674,7 @@ dependencies = [
     { name = "uvicorn", extra = ["standard"] },
 ]
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/20/c4/3f70d2d143acbca1818075b4a204018fa3eb871a6eddee7a5e6cfe41481e/kailash_dataflow-2.3.1-py3-none-any.whl", hash = "sha256:90e0d541f7928964a12ffc43a26f02c2d5ab3b51e911ca272f46682b7d2070fa", size = 1237558, upload-time = "2026-04-26T04:13:34.584Z" },
+    { url = "https://files.pythonhosted.org/packages/0b/1c/ee1a34e80f885166c91690a2fde07943a72f6a6c2ef64c59312946d8c46d/kailash_dataflow-2.4.0-py3-none-any.whl", hash = "sha256:3b63763cf7b37167c881183c50465ac7a1866b2dbfbfef55a4a5e06130248c06", size = 1244423, upload-time = "2026-04-28T11:51:27.684Z" },
 ]
 
 [[package]]
@@ -2731,7 +2731,7 @@ wheels = [
 
 [[package]]
 name = "kailash-ml"
-version = "1.4.2"
+version = "1.6.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "httpx" },
@@ -2755,7 +2755,7 @@ dependencies = [
     { name = "xgboost" },
 ]
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/30/43/cf2570ce9bb0eef617de5773c6fbbf29de4a9370ad7b7e1dfed9bad94960/kailash_ml-1.4.2-py3-none-any.whl", hash = "sha256:d6e156a64826abcf907a4403dbe2312b07fb1c2b96388fc8095c182a359ed0a7", size = 645930, upload-time = "2026-04-27T07:28:48.884Z" },
+    { url = "https://files.pythonhosted.org/packages/b1/d5/887a8f4d50d1bf71db01dfdf5a255d67a55260d5b670331f85a7ff195f21/kailash_ml-1.6.0-py3-none-any.whl", hash = "sha256:30718ec774df72ab707263958351e5eb2f789cb4cfe1f3106535527fa6d1c95d", size = 666856, upload-time = "2026-04-29T05:48:29.696Z" },
 ]
 
 [package.optional-dependencies]
@@ -3862,13 +3862,13 @@ requires-dist = [
     { name = "black", marker = "extra == 'dev'", specifier = ">=23.0" },
     { name = "detect-secrets", marker = "extra == 'dev'", specifier = ">=1.5.0" },
     { name = "isort", marker = "extra == 'dev'", specifier = ">=5.12.0" },
-    { name = "kailash", specifier = ">=2.11.3" },
+    { name = "kailash", specifier = ">=2.12.0" },
     { name = "kailash-align", marker = "extra == 'align'", specifier = ">=0.7.0" },
     { name = "kailash-align", extras = ["all"], marker = "extra == 'all'", specifier = ">=0.7.0" },
-    { name = "kailash-dataflow", specifier = ">=2.3.1" },
+    { name = "kailash-dataflow", specifier = ">=2.4.0" },
     { name = "kailash-kaizen", specifier = ">=2.13.1" },
     { name = "kailash-mcp", specifier = ">=0.2.10" },
-    { name = "kailash-ml", specifier = ">=1.4.2" },
+    { name = "kailash-ml", specifier = ">=1.6.0" },
     { name = "kailash-nexus", specifier = ">=2.3.0" },
     { name = "kailash-pact", specifier = ">=0.11.0" },
     { name = "kaizen-agents", specifier = ">=0.9.4" },
