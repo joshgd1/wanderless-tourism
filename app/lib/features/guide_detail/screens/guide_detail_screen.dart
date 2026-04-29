@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import '../../../core/api_client.dart';
-import '../../../shared/models/guide.dart';
+import '../../../../core/api_client.dart';
+import '../../../../shared/models/guide.dart';
 
 final guideDetailProvider = FutureProvider.family<Guide, String>((ref, guideId) async {
   final api = ApiClient();

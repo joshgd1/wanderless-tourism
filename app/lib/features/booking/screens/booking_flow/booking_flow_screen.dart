@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
-import '../../../core/api_client.dart';
-import '../../../core/onboarding_provider.dart';
+import '../../../../core/api_client.dart';
+import '../../../../core/onboarding_provider.dart';
 
 final selectedDateProvider = StateProvider<DateTime?>((_) => null);
 final selectedGroupSizeProvider = StateProvider<int>((_) => 1);

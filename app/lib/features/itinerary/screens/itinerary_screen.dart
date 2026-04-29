@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../../core/api_client.dart';
-import '../../../shared/models/booking.dart';
+import '../../../../core/api_client.dart';
+import '../../../../shared/models/booking.dart';
 
 final itineraryProvider = FutureProvider.family<Itinerary, int>((ref, bookingId) async {
   final api = ApiClient();
@@ -19,6 +19,7 @@ class ItineraryScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final itineraryAsync = ref.watch(itineraryProvider(bookingId));
+    final guideId = this.guideId;
 
     return Scaffold(
       appBar: AppBar(title: const Text('Your Itinerary')),
@@ -75,7 +76,7 @@ class ItineraryScreen extends ConsumerWidget {
           padding: const EdgeInsets.all(16),
           child: ElevatedButton(
             onPressed: () {
-              context.go('/rate/$bookingId?guideId=${widget.guideId}');
+              context.go('/rate/$bookingId?guideId=$guideId');
             },
             child: const Text('Rate Experience'),
           ),

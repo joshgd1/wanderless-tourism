@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../../core/api_client.dart';
-import '../../../core/onboarding_provider.dart';
+import '../../../../core/api_client.dart';
+import '../../../../core/onboarding_provider.dart';
 
 final ratingProvider = StateProvider<double>((_) => 4.0);
 

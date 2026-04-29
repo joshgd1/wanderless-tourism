@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../../core/api_client.dart';
-import '../../../core/onboarding_provider.dart';
-import '../../../shared/models/guide.dart';
+import '../../../../core/api_client.dart';
+import '../../../../core/onboarding_provider.dart';
+import '../../../../shared/models/guide.dart';
 import '../widgets/match_card.dart';
 
 final matchesProvider = FutureProvider<List<MatchedGuide>>((ref) async {
