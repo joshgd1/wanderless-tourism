@@ -180,13 +180,39 @@ async def get_matches(tourist_id: str, top_n: int = 5, db: Session = Depends(get
 
 @app.post("/api/bookings")
 async def create_booking(data: dict, db: Session = Depends(get_db)):
+    # Validate required fields
+    if not data.get("tourist_id"):
+        raise HTTPException(status_code=400, detail="tourist_id is required")
+    if not data.get("guide_id"):
+        raise HTTPException(status_code=400, detail="guide_id is required")
+    if not data.get("tour_date"):
+        raise HTTPException(status_code=400, detail="tour_date is required")
+
+    # Validate guide exists
+    guide = db.query(models.Guide).filter_by(id=data["guide_id"]).first()
+    if not guide:
+        raise HTTPException(status_code=404, detail="Guide not found")
+
+    # Validate tourist exists
+    tourist = db.query(models.Tourist).filter_by(id=data["tourist_id"]).first()
+    if not tourist:
+        raise HTTPException(status_code=404, detail="Tourist not found")
+
+    # Validate numeric fields
+    duration = data.get("duration_hours", 4.0)
+    group_size = data.get("group_size", 1)
+    if duration <= 0:
+        raise HTTPException(status_code=400, detail="duration_hours must be positive")
+    if group_size <= 0:
+        raise HTTPException(status_code=400, detail="group_size must be positive")
+
     b = models.Booking(
         tourist_id=data["tourist_id"],
         guide_id=data["guide_id"],
         destination=data.get("destination", "Chiang Mai"),
         tour_date=data["tour_date"],
-        duration_hours=data.get("duration_hours", 4.0),
-        group_size=data.get("group_size", 1),
+        duration_hours=duration,
+        group_size=group_size,
         gross_value=data.get("gross_value", 1500.0),
         status="REQUESTED",
         payment_status="held_escrow",
@@ -285,6 +311,123 @@ async def create_rating(data: dict, db: Session = Depends(get_db)):
     db.refresh(r)
     logger.info(f"rating.created tourist_id={r.tourist_id} guide_id={r.guide_id} rating={r.rating}")
     return {"id": r.id, "rating": r.rating}
+
+
+# ─── TripPlan endpoints (Grab-style tourist-proposes flow) ─────────────────────
+
+
+@app.post("/api/trip-plans")
+async def create_trip_plan(data: dict, db: Session = Depends(get_db)):
+    """Tourist creates a trip plan proposal."""
+    plan = models.TripPlan(
+        tourist_id=data["tourist_id"],
+        destination=data.get("destination", ""),
+        interests=data.get("interests", ""),
+        proposed_stops=data.get("proposed_stops", []),
+        status="OPEN",
+        tour_date=data.get("tour_date"),
+        duration_hours=data.get("duration_hours"),
+        group_size=data.get("group_size"),
+    )
+    db.add(plan)
+    db.commit()
+    db.refresh(plan)
+    logger.info(f"trip_plan.created plan_id={plan.id} tourist_id={plan.tourist_id}")
+    return {"id": plan.id, "status": plan.status}
+
+
+@app.get("/api/trip-plans")
+async def list_trip_plans(
+    tourist_id: str = None,
+    guide_id: str = None,
+    status: str = None,
+    db: Session = Depends(get_db),
+):
+    """List trip plans. Tourists see theirs; guides see OPEN plans."""
+    query = db.query(models.TripPlan)
+    if tourist_id:
+        query = query.filter_by(tourist_id=tourist_id)
+    if guide_id:
+        query = query.filter_by(guide_id=guide_id)
+    if status:
+        query = query.filter_by(status=status)
+    plans = query.order_by(models.TripPlan.created_at.desc()).all()
+
+    results = []
+    for p in plans:
+        results.append({
+            "id": p.id,
+            "tourist_id": p.tourist_id,
+            "destination": p.destination,
+            "interests": p.interests.split("|") if p.interests else [],
+            "proposed_stops": p.proposed_stops,
+            "status": p.status,
+            "guide_id": p.guide_id,
+            "tour_date": p.tour_date,
+            "duration_hours": p.duration_hours,
+            "group_size": p.group_size,
+            "created_at": p.created_at.isoformat() if p.created_at else None,
+        })
+    return results
+
+
+@app.get("/api/trip-plans/{plan_id}")
+async def get_trip_plan(plan_id: int, db: Session = Depends(get_db)):
+    p = db.query(models.TripPlan).filter_by(id=plan_id).first()
+    if not p:
+        raise HTTPException(status_code=404, detail="Trip plan not found")
+    return {
+        "id": p.id,
+        "tourist_id": p.tourist_id,
+        "destination": p.destination,
+        "interests": p.interests.split("|") if p.interests else [],
+        "proposed_stops": p.proposed_stops,
+        "status": p.status,
+        "guide_id": p.guide_id,
+        "tour_date": p.tour_date,
+        "duration_hours": p.duration_hours,
+        "group_size": p.group_size,
+        "created_at": p.created_at.isoformat() if p.created_at else None,
+    }
+
+
+@app.post("/api/trip-plans/{plan_id}/accept")
+async def accept_trip_plan(plan_id: int, data: dict, db: Session = Depends(get_db)):
+    """Guide accepts an OPEN trip plan."""
+    p = db.query(models.TripPlan).filter_by(id=plan_id).first()
+    if not p:
+        raise HTTPException(status_code=404, detail="Trip plan not found")
+    if p.status != "OPEN":
+        raise HTTPException(status_code=400, detail=f"Cannot accept plan with status {p.status}")
+    guide_id = data.get("guide_id")
+    if not guide_id:
+        raise HTTPException(status_code=400, detail="guide_id required")
+    p.status = "ACCEPTED"
+    p.guide_id = guide_id
+    db.commit()
+    logger.info(f"trip_plan.accepted plan_id={plan_id} guide_id={guide_id}")
+    return {"id": p.id, "status": p.status, "guide_id": p.guide_id}
+
+
+@app.put("/api/trip-plans/{plan_id}")
+async def update_trip_plan(plan_id: int, data: dict, db: Session = Depends(get_db)):
+    """Update a trip plan (status, tour_date, etc.)."""
+    p = db.query(models.TripPlan).filter_by(id=plan_id).first()
+    if not p:
+        raise HTTPException(status_code=404, detail="Trip plan not found")
+    if "status" in data:
+        p.status = data["status"]
+    if "tour_date" in data:
+        p.tour_date = data["tour_date"]
+    if "duration_hours" in data:
+        p.duration_hours = data["duration_hours"]
+    if "group_size" in data:
+        p.group_size = data["group_size"]
+    if "destination" in data:
+        p.destination = data["destination"]
+    db.commit()
+    logger.info(f"trip_plan.updated plan_id={plan_id} status={p.status}")
+    return {"id": p.id, "status": p.status}
 
 
 if __name__ == "__main__":

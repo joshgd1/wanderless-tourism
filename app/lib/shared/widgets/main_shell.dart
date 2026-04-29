@@ -42,6 +42,13 @@ class MainShell extends StatelessWidget {
                   onTap: () => context.go('/bookings'),
                 ),
                 _NavItem(
+                  icon: Icons.lightbulb_outline,
+                  activeIcon: Icons.lightbulb,
+                  label: 'My Plans',
+                  isSelected: _isSelected(context, '/trip-plans'),
+                  onTap: () => context.go('/trip-plans'),
+                ),
+                _NavItem(
                   icon: Icons.person_outline,
                   activeIcon: Icons.person,
                   label: 'Profile',

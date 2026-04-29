@@ -97,6 +97,11 @@ class InterestsScreen extends ConsumerWidget {
                 onChanged: notifier.setAdventureInterest,
               ),
               const Spacer(),
+              Text(
+                'Tip: Slide to adjust — tell us what matters most to you!',
+                style: TextStyle(fontSize: 12, color: Colors.grey[500], fontStyle: FontStyle.italic),
+              ),
+              const SizedBox(height: 12),
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(

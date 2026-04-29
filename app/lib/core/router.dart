@@ -11,6 +11,8 @@ import '../features/bookings/screens/bookings_screen.dart';
 import '../features/onboarding/screens/interests_screen.dart';
 import '../features/onboarding/screens/language_screen.dart';
 import '../features/onboarding/screens/travel_style_screen.dart';
+import '../features/trip_plan/screens/create_trip_plan_screen.dart';
+import '../features/trip_plan/screens/trip_plan_list_screen.dart';
 import '../shared/widgets/main_shell.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
@@ -71,6 +73,17 @@ final routerProvider = Provider<GoRouter>((ref) {
           bookingId: int.parse(state.pathParameters['bookingId']!),
           guideId: state.uri.queryParameters['guideId'] ?? '',
         ),
+      ),
+      GoRoute(
+        path: '/trip-plan/create',
+        builder: (context, state) => const CreateTripPlanScreen(),
+      ),
+      GoRoute(
+        path: '/trip-plans',
+        builder: (context, state) {
+          final isGuide = state.uri.queryParameters['guide'] == 'true';
+          return TripPlanListScreen(isGuideView: isGuide);
+        },
       ),
     ],
   );

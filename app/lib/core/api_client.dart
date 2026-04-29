@@ -59,4 +59,35 @@ class ApiClient {
     final resp = await _dio.post('/ratings', data: data);
     return resp.data as Map<String, dynamic>;
   }
+
+  // ─── TripPlan (Grab-style) ───────────────────────────────────────────────
+
+  Future<Map<String, dynamic>> createTripPlan(Map<String, dynamic> data) async {
+    final resp = await _dio.post('/trip-plans', data: data);
+    return resp.data as Map<String, dynamic>;
+  }
+
+  Future<List<dynamic>> getTripPlans({String? touristId, String? guideId, String? status}) async {
+    final params = <String, dynamic>{};
+    if (touristId != null) params['tourist_id'] = touristId;
+    if (guideId != null) params['guide_id'] = guideId;
+    if (status != null) params['status'] = status;
+    final resp = await _dio.get('/trip-plans', queryParameters: params);
+    return resp.data as List;
+  }
+
+  Future<Map<String, dynamic>> getTripPlan(int planId) async {
+    final resp = await _dio.get('/trip-plans/$planId');
+    return resp.data as Map<String, dynamic>;
+  }
+
+  Future<Map<String, dynamic>> acceptTripPlan(int planId, String guideId) async {
+    final resp = await _dio.post('/trip-plans/$planId/accept', data: {'guide_id': guideId});
+    return resp.data as Map<String, dynamic>;
+  }
+
+  Future<Map<String, dynamic>> updateTripPlan(int planId, Map<String, dynamic> data) async {
+    final resp = await _dio.put('/trip-plans/$planId', data: data);
+    return resp.data as Map<String, dynamic>;
+  }
 }

@@ -12,7 +12,7 @@ from typing import Optional
 from sqlalchemy import create_engine, delete
 from sqlalchemy.orm import sessionmaker, Session
 
-from models import Base, Tourist, Guide, Rating
+from models import Base, Tourist, Guide, Rating, TripPlan
 
 DATA_DIR = Path(__file__).parent.parent / "data"
 
@@ -38,6 +38,7 @@ def init_db(db: Session) -> None:
     db.execute(delete(Tourist))
     db.execute(delete(Guide))
     db.execute(delete(Rating))
+    db.execute(delete(TripPlan))
     db.commit()
     _seed_tourists(db)
     _seed_guides(db)

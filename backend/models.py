@@ -101,3 +101,19 @@ class Itinerary(Base):
     stops = Column(JSON)  # [{"name": "...", "order": 1, "duration_hours": 1.5}]
     status = Column(String)  # proposed | approved | in_progress | completed
     created_at = Column(DateTime, default=datetime.utcnow)
+
+
+class TripPlan(Base):
+    __tablename__ = "trip_plans"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    tourist_id = Column(String, ForeignKey("tourists.id"))
+    destination = Column(String)
+    interests = Column(String)  # pipe-delimited e.g. "food|culture|adventure"
+    proposed_stops = Column(JSON)  # [{"name": "...", "duration_hours": 1.5, "notes": "..."}]
+    status = Column(String)  # OPEN | ACCEPTED | COMPLETED | CANCELLED
+    guide_id = Column(String, ForeignKey("guides.id"), nullable=True)
+    tour_date = Column(String, nullable=True)
+    duration_hours = Column(Float, nullable=True)
+    group_size = Column(Integer, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
