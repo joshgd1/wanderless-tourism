@@ -26,6 +26,11 @@ jobs:
           cd app
           flutter create --platforms=android .
 
+      - name: Upgrade Kotlin version
+        run: |
+          cd app/android
+          sed -i 's/id "org.jetbrains.kotlin.android" version "[^"]*"/id "org.jetbrains.kotlin.android" version "1.9.22"/' settings.gradle
+
       - name: Analyze
         run: |
           cd app
