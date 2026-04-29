@@ -20,7 +20,7 @@ class DiscoverScreen extends ConsumerWidget {
   const DiscoverScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final matchesAsync = ref.watch(matchesProvider);
     final selectedFilter = ref.watch(_selectedFilterProvider);
 

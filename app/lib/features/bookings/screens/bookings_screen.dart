@@ -9,7 +9,8 @@ final bookingsListProvider = FutureProvider<List<Booking>>((ref) async {
   final touristId = await ref.watch(touristIdProvider.future);
   if (touristId == null) return [];
   final api = ApiClient();
-  return api.getBookings(touristId);
+  final data = await api.getBookings(touristId);
+  return data.map((e) => Booking.fromJson(e)).toList();
 });
 
 class BookingsScreen extends ConsumerWidget {
@@ -207,7 +208,7 @@ class _BookingCard extends StatelessWidget {
                       color: const Color(0xFF25D366).withOpacity(0.1),
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(Icons.guide, color: Color(0xFF25D366)),
+                    child: const Icon(Icons.tour, color: Color(0xFF25D366)),
                   ),
                   const SizedBox(width: 12),
                   Expanded(

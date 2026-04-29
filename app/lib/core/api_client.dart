@@ -40,7 +40,7 @@ class ApiClient {
     return resp.data as Map<String, dynamic>;
   }
 
-  Future<List<dynamic>> getBookings(String touristId) async {
+  Future<List<Map<String, dynamic>>> getBookings(String touristId) async {
     // Placeholder: backend doesn't have a tourist booking list endpoint yet
     return [];
   }

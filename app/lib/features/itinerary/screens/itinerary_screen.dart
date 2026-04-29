@@ -154,7 +154,7 @@ class ItineraryScreen extends ConsumerWidget {
                                       shape: BoxShape.circle,
                                     ),
                                     child: const Icon(
-                                      Icons.guide,
+                                      Icons.tour,
                                       color: Color(0xFF25D366),
                                     ),
                                   ),
