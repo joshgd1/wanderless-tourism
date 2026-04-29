@@ -1,0 +1,39 @@
+name: Build Flutter APK
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.24.0"
+          channel: "stable"
+
+      - name: Install dependencies
+        run: |
+          cd app
+          flutter pub get
+
+      - name: Analyze
+        run: |
+          cd app
+          flutter analyze || true
+
+      - name: Build debug APK
+        run: |
+          cd app
+          flutter build apk --debug --output=build/wanderless-debug.apk
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        continue-on-error: true
+        with:
+          name: wanderless-debug-apk
+          path: app/build/wanderless-debug.apk

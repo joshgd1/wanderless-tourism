@@ -1,0 +1,178 @@
+"""
+SQLite database setup + CSV seeding from synthetic data.
+"""
+
+import csv
+import math
+import os
+import random
+from pathlib import Path
+from typing import Optional
+
+from sqlalchemy import create_engine, delete
+from sqlalchemy.orm import sessionmaker, Session
+
+from models import Base, Tourist, Guide, Rating
+
+DATA_DIR = Path(__file__).parent.parent / "data"
+
+engine = create_engine(
+    f"sqlite:///{Path(__file__).parent}/wanderless.db",
+    connect_args={"check_same_thread": False},
+)
+SessionLocal = sessionmaker(bind=engine)
+
+
+def get_db() -> Session:
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
+
+def init_db(db: Session) -> None:
+    """Create tables and seed from CSV."""
+    Base.metadata.drop_all(bind=engine)
+    Base.metadata.create_all(bind=engine)
+    db.execute(delete(Tourist))
+    db.execute(delete(Guide))
+    db.execute(delete(Rating))
+    db.commit()
+    _seed_tourists(db)
+    _seed_guides(db)
+    _seed_ratings(db)
+    db.commit()
+
+
+def _seed_tourists(db: Session) -> None:
+    path = DATA_DIR / "tourist_profiles.csv"
+    seen_ids = set()
+    with open(path) as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            if row["tourist_id"] in seen_ids:
+                continue
+            seen_ids.add(row["tourist_id"])
+            tourist = Tourist(
+                id=row["tourist_id"],
+                food_interest=float(row["food_interest"]),
+                culture_interest=float(row["culture_interest"]),
+                adventure_interest=float(row["adventure_interest"]),
+                pace_preference=float(row["pace_preference"]),
+                budget_level=float(row["budget_level"]),
+                language=row["language"],
+                age_group=row["age_group"],
+                travel_style=row["travel_style"],
+                energy_curve=row["energy_curve"],
+            )
+            db.add(tourist)
+
+
+def _seed_guides(db: Session) -> None:
+    path = DATA_DIR / "guide_profiles.csv"
+    seen_ids = set()
+    with open(path) as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            if row["guide_id"] in seen_ids:
+                continue
+            seen_ids.add(row["guide_id"])
+            guide = Guide(
+                id=row["guide_id"],
+                name=f"Guide {row['guide_id']}",
+                bio="Experienced local guide with deep knowledge of the region.",
+                photo_url=f"https://picsum.photos/seed/{row['guide_id']}/200/200",
+                expertise_tags=row["expertise_tags"],
+                personality_vector=row["personality_vector"],
+                language_pairs=row["language_pairs"],
+                pace_style=float(row["pace_style"]),
+                group_size_preferred=int(row["group_size_preferred"]),
+                budget_tier=row["budget_tier"],
+                location_coverage=row["location_coverage"],
+                availability=row["availability"],
+                rating_history=float(row["rating_history"]),
+                rating_count=int(row["rating_count"]),
+                specialties=row["specialties"],
+            )
+            db.add(guide)
+
+
+def _seed_ratings(db: Session) -> None:
+    path = DATA_DIR / "synthetic_ratings.csv"
+    with open(path) as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            rating = Rating(
+                tourist_id=row["tourist_id"],
+                guide_id=row["guide_id"],
+                booking_id=None,
+                rating=float(row["rating"]),
+                is_poor_experience=row["is_poor_experience"] == "True",
+                norm_dot_product=float(row["norm_dot_product"]),
+                language_match=float(row["language_match"]),
+                budget_alignment=float(row["budget_alignment"]),
+                pace_alignment=float(row["pace_alignment"]),
+                predicted_rating=float(row["predicted_rating"]),
+                rating_source=row["rating_source"],
+            )
+            db.add(rating)
+
+
+# Global dot range for matching (computed once from all tourist-guide pairs)
+_dot_range: Optional[tuple[float, float]] = None
+
+
+def compute_dot_range(db: Session) -> tuple[float, float]:
+    """Compute actual dot product range across all tourist-guide pairs."""
+    global _dot_range
+    if _dot_range is not None:
+        return _dot_range
+
+    tourists = db.query(Tourist).all()
+    guides = db.query(Guide).all()
+
+    def interest_vec(t: Tourist) -> list[float]:
+        return [t.food_interest, t.culture_interest, t.adventure_interest]
+
+    def unit_vector(v: list[float]) -> list[float]:
+        norm = math.sqrt(sum(x * x for x in v))
+        return [x / norm for x in v] if norm else v
+
+    def expertise_vec(g: Guide) -> list[float]:
+        tags = g.expertise_tags.split("|")
+        expertise_map = {
+            "food": (1.0, 0.0, 0.0),
+            "culture": (0.0, 1.0, 0.0),
+            "adventure": (0.0, 0.0, 1.0),
+            "history": (0.1, 0.9, 0.0),
+            "temples": (0.0, 0.8, 0.2),
+            "nature": (0.0, 0.1, 0.9),
+            "trekking": (0.0, 0.1, 0.9),
+            "photography": (0.1, 0.5, 0.4),
+            "art": (0.1, 0.7, 0.2),
+            "nightlife": (0.3, 0.1, 0.1),
+            "shopping": (0.4, 0.1, 0.1),
+            "wellness": (0.2, 0.3, 0.2),
+            "cooking": (0.8, 0.1, 0.1),
+            "markets": (0.5, 0.2, 0.1),
+            "rural": (0.0, 0.2, 0.7),
+            "river": (0.0, 0.1, 0.8),
+        }
+        ev = [0.0, 0.0, 0.0]
+        for tag in tags:
+            if tag in expertise_map:
+                for i, v in enumerate(expertise_map[tag]):
+                    ev[i] = max(ev[i], v)
+        return unit_vector(ev) if any(ev) else ev
+
+    dots = []
+    for t in tourists:
+        t_vec = interest_vec(t)
+        for g in guides:
+            g_vec = expertise_vec(g)
+            dot = sum(a * b for a, b in zip(t_vec, g_vec))
+            dots.append(dot)
+
+    _dot_range = (min(dots), max(dots))
+    return _dot_range

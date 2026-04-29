@@ -1,0 +1,45 @@
+# Flutter build container for WanderLess
+# Multi-stage: build on x86_64 only
+# Usage: docker build -f app/Dockerfile.flutter-build -t wanderless-builder .
+#        docker run --rm -v $(pwd)/app:/app wanderless-builder
+
+FROM ubuntu:24.04
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update && apt-get install -y \
+    curl \
+    git \
+    unzip \
+    xz-utils \
+    zip \
+    libglu1-mesa \
+    clang \
+    cmake \
+    ninja-build \
+    pkg-config \
+    libgtk-3-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Download Flutter SDK (x86_64 only)
+ENV FLUTTER_VERSION=3.24.0
+ENV FLUTTER_DIR=/opt/flutter
+
+RUN curl -fsSL "https://storage.googleapis.com/flutter_infra_release/releases/stable/linux/flutter_linux_${FLUTTER_VERSION}-stable.tar.xz" | \
+    tar xJ -C /opt
+
+ENV PATH="${FLUTTER_DIR}/bin:${PATH}"
+
+WORKDIR /app
+
+COPY pubspec.yaml .
+RUN flutter pub get
+
+COPY . .
+
+RUN flutter analyze || true
+
+RUN flutter build apk --debug --output=/output/wanderless-debug.apk
+
+FROM scratch
+COPY --from=0 /output/wanderless-debug.apk /wanderless-debug.apk

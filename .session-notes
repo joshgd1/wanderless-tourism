@@ -1,0 +1,42 @@
+# Session Notes — 2026-04-28
+
+## Where we are
+
+Phase 1 MVP complete. 10 commits. Backend on localhost:8000. Flutter build infrastructure added.
+
+## Read first
+
+1. `backend/main.py` — FastAPI app
+2. `.github/workflows/flutter-build.yml` — GitHub Actions APK build
+3. `app/build.sh` — local x86_64 build script
+
+## Commits (10 total)
+
+8f43b78 Initial commit
+c33963b feat: initial backend + Flutter app + synthetic data
+cd925b7 feat: add Flutter app source files
+34538c7 fix: missing api_client import and refresh callback
+8bbdbb1 fix: remove unused flutter_svg dep
+ee05b55 fix: remove unused dart:math import and random_suffix
+3207b1f fix: generate unique tourist ID using uuid on create
+802f7d2 fix: pass guideId directly through booking flow
+4eb3d16 fix: add missing booking.dart import to itinerary_screen
+cee9778 feat: add build tooling for x86_64
+
+## Flutter build
+
+- **GitHub Actions**: push to main or manual trigger → builds APK at `app/build/wanderless-debug.apk`
+- **Local script**: `app/build.sh` on any x86_64 Linux with Flutter SDK
+- **Docker**: `app/Dockerfile.flutter-build` for containerized builds
+- **analysis_options.yaml** added for `flutter analyze`
+
+## Traps
+
+- Root `.gitignore` has `lib/` which blocks `app/lib/` — use `git add -f`
+- ARM64 Linux — cannot run Flutter locally, use GitHub Actions
+- Backend: `cd backend && uv run uvicorn main:app --port 8000`
+- No `GET /api/bookings` list endpoint
+
+## Open questions for the human
+
+None.
