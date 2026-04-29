@@ -54,7 +54,16 @@ class _BookingFlowScreenState extends ConsumerState<BookingFlowScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Book Guide')),
+      backgroundColor: const Color(0xFFF5F5F5),
+      appBar: AppBar(
+        backgroundColor: const Color(0xFF1A2E1A),
+        foregroundColor: Colors.white,
+        title: const Text('Book Guide'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () => context.pop(),
+        ),
+      ),
       body: _step == 0
           ? _DateSelectStep(onNext: () => setState(() => _step = 1))
           : _ConfirmStep(
@@ -80,21 +89,37 @@ class _DateSelectStep extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Select a Date', style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold)),
-          const SizedBox(height: 24),
-          CalendarDatePicker(
-            initialDate: selectedDate ?? DateTime.now().add(const Duration(days: 1)),
-            firstDate: DateTime.now(),
-            lastDate: DateTime.now().add(const Duration(days: 90)),
-            onDateChanged: (date) {
-              ref.read(selectedDateProvider.notifier).state = date;
-            },
+          Text(
+            'Select a Date',
+            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: const Color(0xFF1A2E1A),
+                ),
           ),
-          const Spacer(),
+          const SizedBox(height: 24),
+          Expanded(
+            child: CalendarDatePicker(
+              initialDate: selectedDate ?? DateTime.now().add(const Duration(days: 1)),
+              firstDate: DateTime.now(),
+              lastDate: DateTime.now().add(const Duration(days: 90)),
+              onDateChanged: (date) {
+                ref.read(selectedDateProvider.notifier).state = date;
+              },
+            ),
+          ),
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
               onPressed: selectedDate != null ? onNext : null,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF25D366),
+                foregroundColor: Colors.white,
+                minimumSize: const Size.fromHeight(52),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                elevation: 0,
+              ),
               child: const Text('Continue'),
             ),
           ),
@@ -127,20 +152,36 @@ class _ConfirmStep extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Confirm Booking', style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold)),
+          Text(
+            'Confirm Booking',
+            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: const Color(0xFF1A2E1A),
+                ),
+          ),
           const SizedBox(height: 24),
           Card(
+            elevation: 0,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: Column(
                 children: [
-                  _InfoRow(label: 'Date', value: date != null ? DateFormat('MMM d, yyyy').format(date) : 'Not selected'),
+                  _InfoRow(
+                    label: 'Date',
+                    value: date != null
+                        ? DateFormat('MMM d, yyyy').format(date)
+                        : 'Not selected',
+                  ),
                   const Divider(),
-                  _InfoRow(label: 'Group Size', value: '$groupSize ${groupSize == 1 ? 'person' : 'people'}'),
+                  _InfoRow(
+                    label: 'Group Size',
+                    value: '$groupSize ${groupSize == 1 ? 'person' : 'people'}',
+                  ),
                   const Divider(),
-                  _InfoRow(label: 'Duration', value: '4 hours'),
+                  const _InfoRow(label: 'Duration', value: '4 hours'),
                   const Divider(),
-                  _InfoRow(label: 'Price', value: '฿1,500'),
+                  const _InfoRow(label: 'Price', value: '฿1,500'),
                 ],
               ),
             ),
@@ -151,10 +192,22 @@ class _ConfirmStep extends ConsumerWidget {
           else ...[
             Row(
               children: [
-                TextButton(onPressed: onBack, child: const Text('Back')),
+                TextButton(
+                  onPressed: onBack,
+                  child: const Text('Back'),
+                ),
                 const Spacer(),
                 ElevatedButton(
                   onPressed: onSubmit,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF25D366),
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    elevation: 0,
+                  ),
                   child: const Text('Confirm Booking'),
                 ),
               ],

@@ -10,7 +10,11 @@ class RateExperienceScreen extends ConsumerStatefulWidget {
   final int bookingId;
   final String guideId;
 
-  const RateExperienceScreen({super.key, required this.bookingId, required this.guideId});
+  const RateExperienceScreen({
+    super.key,
+    required this.bookingId,
+    required this.guideId,
+  });
 
   @override
   ConsumerState<RateExperienceScreen> createState() => _RateExperienceScreenState();
@@ -33,7 +37,10 @@ class _RateExperienceScreenState extends ConsumerState<RateExperienceScreen> {
       });
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Thank you for your rating!')),
+          const SnackBar(
+            content: Text('Thank you for your rating!'),
+            backgroundColor: Color(0xFF25D366),
+          ),
         );
         context.go('/discover');
       }
@@ -53,17 +60,30 @@ class _RateExperienceScreenState extends ConsumerState<RateExperienceScreen> {
     final rating = ref.watch(ratingProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Rate Your Experience')),
-      body: Padding(
+      backgroundColor: const Color(0xFFF5F5F5),
+      appBar: AppBar(
+        backgroundColor: const Color(0xFF1A2E1A),
+        foregroundColor: Colors.white,
+        title: const Text('Rate Your Experience'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () => context.pop(),
+        ),
+      ),
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
         child: Column(
           children: [
-            const SizedBox(height: 20),
+            const SizedBox(height: 12),
             Text(
               'How was your tour?',
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: const Color(0xFF1A2E1A),
+                  ),
             ),
             const SizedBox(height: 32),
+            // Main star rating
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: List.generate(5, (i) {
@@ -72,9 +92,10 @@ class _RateExperienceScreenState extends ConsumerState<RateExperienceScreen> {
                   iconSize: 48,
                   icon: Icon(
                     rating >= starValue ? Icons.star : Icons.star_border,
-                    color: Colors.amber[700],
+                    color: const Color(0xFF25D366),
                   ),
-                  onPressed: () => ref.read(ratingProvider.notifier).state = starValue.toDouble(),
+                  onPressed: () =>
+                      ref.read(ratingProvider.notifier).state = starValue.toDouble(),
                 );
               }),
             ),
@@ -86,7 +107,10 @@ class _RateExperienceScreenState extends ConsumerState<RateExperienceScreen> {
                   ),
             ),
             const SizedBox(height: 40),
+            // Dimension ratings card
             Card(
+              elevation: 0,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
               child: Padding(
                 padding: const EdgeInsets.all(16),
                 child: Column(
@@ -102,16 +126,33 @@ class _RateExperienceScreenState extends ConsumerState<RateExperienceScreen> {
                 ),
               ),
             ),
-            const Spacer(),
+            const SizedBox(height: 40),
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
                 onPressed: _loading ? null : _submitRating,
-                child: _loading ? const SizedBox(
-                  height: 20,
-                  width: 20,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                ) : const Text('Submit Rating'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF25D366),
+                  foregroundColor: Colors.white,
+                  minimumSize: const Size.fromHeight(52),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  elevation: 0,
+                ),
+                child: _loading
+                    ? const SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      )
+                    : const Text(
+                        'Submit Rating',
+                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                      ),
               ),
             ),
           ],
@@ -121,8 +162,8 @@ class _RateExperienceScreenState extends ConsumerState<RateExperienceScreen> {
   }
 
   String _ratingLabel(double r) {
-    if (r >= 5) return 'Excellent! 🌟';
-    if (r >= 4) return 'Great 👍';
+    if (r >= 5) return 'Excellent!';
+    if (r >= 4) return 'Great';
     if (r >= 3) return 'Good';
     if (r >= 2) return 'Fair';
     return 'Poor';
@@ -147,7 +188,7 @@ class _RatingDimension extends StatelessWidget {
             constraints: const BoxConstraints(),
             icon: Icon(
               i < initial ? Icons.star : Icons.star_border,
-              color: Colors.amber[700],
+              color: const Color(0xFF25D366),
             ),
             onPressed: () {},
           );

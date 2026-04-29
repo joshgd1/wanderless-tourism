@@ -48,7 +48,7 @@ def init_db(db: Session) -> None:
 def _seed_tourists(db: Session) -> None:
     path = DATA_DIR / "tourist_profiles.csv"
     seen_ids = set()
-    with open(path) as f:
+    with open(path, encoding="utf-8") as f:
         reader = csv.DictReader(f)
         for row in reader:
             if row["tourist_id"] in seen_ids:
@@ -72,7 +72,7 @@ def _seed_tourists(db: Session) -> None:
 def _seed_guides(db: Session) -> None:
     path = DATA_DIR / "guide_profiles.csv"
     seen_ids = set()
-    with open(path) as f:
+    with open(path, encoding="utf-8") as f:
         reader = csv.DictReader(f)
         for row in reader:
             if row["guide_id"] in seen_ids:
@@ -100,7 +100,7 @@ def _seed_guides(db: Session) -> None:
 
 def _seed_ratings(db: Session) -> None:
     path = DATA_DIR / "synthetic_ratings.csv"
-    with open(path) as f:
+    with open(path, encoding="utf-8") as f:
         reader = csv.DictReader(f)
         for row in reader:
             rating = Rating(

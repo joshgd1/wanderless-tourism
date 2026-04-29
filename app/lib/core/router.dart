@@ -11,6 +11,7 @@ import '../features/bookings/screens/bookings_screen.dart';
 import '../features/onboarding/screens/interests_screen.dart';
 import '../features/onboarding/screens/language_screen.dart';
 import '../features/onboarding/screens/travel_style_screen.dart';
+import '../shared/widgets/main_shell.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
   return GoRouter(
@@ -28,9 +29,22 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/onboarding/travel-style',
         builder: (context, state) => const TravelStyleScreen(),
       ),
-      GoRoute(
-        path: '/discover',
-        builder: (context, state) => const DiscoverScreen(),
+      ShellRoute(
+        builder: (context, state, child) => MainShell(child: child),
+        routes: [
+          GoRoute(
+            path: '/discover',
+            builder: (context, state) => const DiscoverScreen(),
+          ),
+          GoRoute(
+            path: '/bookings',
+            builder: (context, state) => const BookingsScreen(),
+          ),
+          GoRoute(
+            path: '/profile',
+            builder: (context, state) => const ProfileScreen(),
+          ),
+        ],
       ),
       GoRoute(
         path: '/guide/:guideId',
@@ -57,14 +71,6 @@ final routerProvider = Provider<GoRouter>((ref) {
           bookingId: int.parse(state.pathParameters['bookingId']!),
           guideId: state.uri.queryParameters['guideId'] ?? '',
         ),
-      ),
-      GoRoute(
-        path: '/bookings',
-        builder: (context, state) => const BookingsScreen(),
-      ),
-      GoRoute(
-        path: '/profile',
-        builder: (context, state) => const ProfileScreen(),
       ),
     ],
   );

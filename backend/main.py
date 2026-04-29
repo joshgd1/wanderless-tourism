@@ -45,6 +45,17 @@ async def health():
     return {"status": "ok"}
 
 
+@app.post("/api/admin/reseed")
+async def reseed_database(db: Session = Depends(get_db)):
+    """Delete and re-seed the database. Use after CSV encoding fixes."""
+    import os
+    init_db(db)
+    db.commit()
+    db_path = os.path.join(os.path.dirname(__file__), "wanderless.db")
+    logger.info(f"database.reseed complete")
+    return {"status": "reseeded"}
+
+
 @app.get("/api/tourists/{tourist_id}")
 async def get_tourist(tourist_id: str, db: Session = Depends(get_db)):
     t = db.query(models.Tourist).filter_by(id=tourist_id).first()

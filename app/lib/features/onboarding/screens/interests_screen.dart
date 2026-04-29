@@ -12,17 +12,62 @@ class InterestsScreen extends ConsumerWidget {
     final notifier = ref.read(onboardingProvider.notifier);
 
     return Scaffold(
+      backgroundColor: Colors.white,
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(24.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              const SizedBox(height: 20),
+              // Logo + step indicator
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF25D366).withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Icon(
+                      Icons.explore,
+                      color: Color(0xFF25D366),
+                      size: 28,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  const Text(
+                    'WanderLess',
+                    style: TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF1A2E1A),
+                    ),
+                  ),
+                  const Spacer(),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF25D366).withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: const Text(
+                      '1 / 3',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Color(0xFF25D366),
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
               const SizedBox(height: 40),
               Text(
                 'What do you love?',
                 style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                       fontWeight: FontWeight.bold,
+                      color: const Color(0xFF1A2E1A),
                     ),
               ),
               const SizedBox(height: 8),
@@ -56,6 +101,15 @@ class InterestsScreen extends ConsumerWidget {
                 width: double.infinity,
                 child: ElevatedButton(
                   onPressed: () => context.go('/onboarding/language'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF25D366),
+                    foregroundColor: Colors.white,
+                    minimumSize: const Size.fromHeight(52),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    elevation: 0,
+                  ),
                   child: const Text('Continue'),
                 ),
               ),
@@ -90,20 +144,37 @@ class _InterestSlider extends StatelessWidget {
         children: [
           Row(
             children: [
-              Icon(icon, size: 20, color: Theme.of(context).colorScheme.primary),
+              Icon(icon, size: 20, color: const Color(0xFF25D366)),
               const SizedBox(width: 8),
-              Text(label, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
+              Text(
+                label,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
               const Spacer(),
               Text(
                 '${(value * 100).round()}%',
-                style: TextStyle(color: Colors.grey[600], fontWeight: FontWeight.w500),
+                style: TextStyle(
+                  color: Colors.grey[600],
+                  fontWeight: FontWeight.w500,
+                ),
               ),
             ],
           ),
-          Slider(
-            value: value,
-            onChanged: onChanged,
-            divisions: 20,
+          SliderTheme(
+            data: SliderTheme.of(context).copyWith(
+              activeTrackColor: const Color(0xFF25D366),
+              thumbColor: const Color(0xFF25D366),
+              overlayColor: const Color(0xFF25D366).withOpacity(0.2),
+              inactiveTrackColor: Colors.grey[200],
+            ),
+            child: Slider(
+              value: value,
+              onChanged: onChanged,
+              divisions: 20,
+            ),
           ),
         ],
       ),

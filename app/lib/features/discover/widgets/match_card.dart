@@ -11,7 +11,8 @@ class MatchCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
-      margin: const EdgeInsets.only(bottom: 16),
+      elevation: 0,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(16),
@@ -21,21 +22,35 @@ class MatchCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(12),
-                    child: CachedNetworkImage(
-                      imageUrl: guide.photoUrl,
-                      width: 72,
-                      height: 72,
-                      fit: BoxFit.cover,
-                      placeholder: (_, __) => Container(
-                        color: Colors.grey[200],
-                        child: const Icon(Icons.person, size: 36),
-                      ),
-                      errorWidget: (_, __, ___) => Container(
-                        color: Colors.grey[200],
-                        child: const Icon(Icons.person, size: 36),
+                  // Circular profile photo
+                  Container(
+                    width: 80,
+                    height: 80,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(color: const Color(0xFF25D366), width: 2),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFF25D366).withOpacity(0.2),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: ClipOval(
+                      child: CachedNetworkImage(
+                        imageUrl: guide.photoUrl,
+                        fit: BoxFit.cover,
+                        placeholder: (_, __) => Container(
+                          color: Colors.grey[200],
+                          child: const Icon(Icons.person, size: 40, color: Colors.grey),
+                        ),
+                        errorWidget: (_, __, ___) => Container(
+                          color: Colors.grey[200],
+                          child: const Icon(Icons.person, size: 40, color: Colors.grey),
+                        ),
                       ),
                     ),
                   ),
@@ -44,69 +59,46 @@ class MatchCard extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Row(
-                          children: [
-                            Text(
-                              guide.name,
-                              style: const TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            if (guide.langMatch) ...[
-                              const SizedBox(width: 8),
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                decoration: BoxDecoration(
-                                  color: Colors.green[50],
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Icon(Icons.check, size: 12, color: Colors.green[700]),
-                                    const SizedBox(width: 2),
-                                    Text(
-                                      'Speaks your language',
-                                      style: TextStyle(fontSize: 10, color: Colors.green[700]),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ],
+                        Text(
+                          guide.name,
+                          style: const TextStyle(
+                            fontSize: 17,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                         const SizedBox(height: 4),
+                        // 5 Stars
+                        Row(
+                          children: List.generate(5, (i) {
+                            return Icon(
+                              Icons.star,
+                              size: 16,
+                              color: Colors.amber[700],
+                            );
+                          }),
+                        ),
+                        const SizedBox(height: 6),
+                        // Language pairs
                         Row(
                           children: [
-                            Icon(Icons.star, size: 16, color: Colors.amber[700]),
+                            Icon(Icons.translate, size: 14, color: Colors.grey[500]),
                             const SizedBox(width: 4),
                             Text(
-                              '${guide.ratingHistory.toStringAsFixed(1)} (${guide.ratingCount} reviews)',
-                              style: TextStyle(color: Colors.grey[600], fontSize: 13),
+                              'En → Th, Ch → Th',
+                              style: TextStyle(fontSize: 12, color: Colors.grey[600]),
                             ),
                           ],
                         ),
                         const SizedBox(height: 4),
-                        Wrap(
-                          spacing: 4,
-                          runSpacing: 4,
-                          children: guide.expertiseTags.take(3).map((tag) {
-                            return Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                              decoration: BoxDecoration(
-                                color: Theme.of(context).colorScheme.primaryContainer,
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: Text(
-                                tag,
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  color: Theme.of(context).colorScheme.onPrimaryContainer,
-                                ),
-                              ),
-                            );
-                          }).toList(),
+                        Row(
+                          children: [
+                            Icon(Icons.location_on, size: 14, color: Colors.grey[500]),
+                            const SizedBox(width: 4),
+                            Text(
+                              'From: Chiang Mai',
+                              style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                            ),
+                          ],
                         ),
                       ],
                     ),
@@ -114,18 +106,70 @@ class MatchCard extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 12),
+              // Bio
+              Text(
+                guide.bio,
+                style: TextStyle(
+                  fontSize: 13,
+                  color: Colors.grey[700],
+                  height: 1.4,
+                ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+              const SizedBox(height: 12),
+              // Tags
+              Wrap(
+                spacing: 6,
+                runSpacing: 6,
+                children: (guide.expertiseTags.isNotEmpty
+                        ? guide.expertiseTags
+                        : ['Cultural', 'History', 'Nature'])
+                    .take(3)
+                    .map((tag) {
+                  return Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF25D366).withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(
+                      tag,
+                      style: const TextStyle(
+                        fontSize: 11,
+                        color: Color(0xFF25D366),
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  );
+                }).toList(),
+              ),
+              const SizedBox(height: 16),
+              // Bottom row: score badge + View Profile button
               Row(
                 children: [
                   _ScoreBadge(score: guide.score),
                   const SizedBox(width: 12),
                   _BudgetBadge(tier: guide.budgetTier),
                   const Spacer(),
-                  ElevatedButton(
-                    onPressed: onTap,
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                  SizedBox(
+                    height: 38,
+                    child: ElevatedButton(
+                      onPressed: onTap,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF25D366),
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        elevation: 0,
+                      ),
+                      child: const Text(
+                        'View Profile',
+                        style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
+                      ),
                     ),
-                    child: const Text('View Guide'),
                   ),
                 ],
               ),
@@ -146,18 +190,18 @@ class _ScoreBadge extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: const Color(0xFF00695C),
+        color: const Color(0xFF25D366).withOpacity(0.1),
         borderRadius: BorderRadius.circular(20),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(Icons.favorite, size: 14, color: Colors.white),
+          const Icon(Icons.favorite, size: 14, color: Color(0xFF25D366)),
           const SizedBox(width: 4),
           Text(
             score.toStringAsFixed(1),
             style: const TextStyle(
-              color: Colors.white,
+              color: Color(0xFF25D366),
               fontWeight: FontWeight.bold,
               fontSize: 13,
             ),
@@ -175,11 +219,11 @@ class _BudgetBadge extends StatelessWidget {
   String get label {
     switch (tier) {
       case 'budget':
-        return '💰 Budget';
+        return 'Budget';
       case 'mid':
-        return '💰💰 Mid-range';
+        return 'Mid-range';
       case 'premium':
-        return '💰💰💰 Premium';
+        return 'Premium';
       default:
         return tier;
     }
@@ -188,12 +232,15 @@ class _BudgetBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
         color: Colors.grey[100],
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(20),
       ),
-      child: Text(label, style: const TextStyle(fontSize: 12)),
+      child: Text(
+        label,
+        style: TextStyle(fontSize: 12, color: Colors.grey[700]),
+      ),
     );
   }
 }
