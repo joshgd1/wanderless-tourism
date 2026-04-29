@@ -21,6 +21,11 @@ jobs:
           cd app
           flutter pub get
 
+      - name: Create Android project
+        run: |
+          cd app
+          flutter create --platforms=android .
+
       - name: Analyze
         run: |
           cd app
