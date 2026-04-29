@@ -1,43 +1,33 @@
 # COC Sync Marker — kailash-coc-claude-py
-timestamp: 2026-04-29T12:00:00+08:00
+timestamp: 2026-04-29T11:17:46Z
 source: loom/.claude
-loom_version: 2.10.0
+loom_version: 2.10.2
 variant: py
 clis: ["claude"]
+template_version: 3.5.30
 stats:
-  artifacts_total: 684
   files_updated_this_sync:
-    - .claude/rules/zero-tolerance.md (189 → 277 lines; Rule 2 'Fake dispatch' bullet + NEW Rule 3c 'Documented Kwargs Accepted But Unused' + NEW Rule 6a 'Remove Fully — Public-API Removal Requires Deprecation Cycle')
-    - .claude/rules/schema-migration.md (202 → 231 lines; NEW Rule 1a '/redteam MUST Grep For Inline DDL Outside Migrations' inserted after Rule 1)
-    - .claude/rules/agents.md (196 → 236 lines; NEW MUST sub-clause 'Parallel Brief-Claim Verification When Issue Count ≥ 3' inserted in § Parallel Execution)
-    - .claude/rules/git.md (carried from 2.9.7 in-flight; identical to source — verified diff -q clean)
+    - .claude/commands/codify.md (cc-architect rename completion; loom 2.10.2 source fix)
   files_added_this_sync: []
-  files_purged: []
-  composed: 0           # no slot-keyed py overlays touched this cycle (zero-tolerance/agents/schema-migration/git all distributed as-is; no py variant overlay exists for any of them)
-  variant_full_overlays_unchanged: 174
-  preserved:
-    - CLAUDE.md (template-owned)
-    - settings.json (per-template hook paths; no rewrites needed)
-    - README.md, CONTRIBUTING.md, SECURITY.md, ENTERPRISE_BRIEF.md, LICENSE
-    - conftest.py, deploy/, docs/, mcp-configs/, scripts/, tests/, workspaces/
-  baselines_emitted:
-    cc: 0           # CLAUDE.md preserved, not emitted (CC-only template)
-    codex: 0        # CC-only template
-    gemini: 0       # CC-only template
-sdk_pin_diffs:
-  - "pyproject.toml dependencies: kailash>=2.11.3 → kailash>=2.12.0"
-  - "pyproject.toml dependencies: kailash-dataflow>=2.3.3 → kailash-dataflow>=2.4.0"
-  - "pyproject.toml dependencies: kailash-ml>=1.5.1 → kailash-ml>=1.6.0"
-  - "VERSION upstream.sdk_packages.kailash: 2.11.3 → 2.12.0"
-  - "VERSION upstream.sdk_packages.kailash-dataflow: 2.3.3 → 2.4.0"
-  - "VERSION upstream.sdk_packages.kailash-ml: 1.5.1 → 1.6.0"
-  - "VERSION upstream.version: 2.9.7 → 2.10.0; build_version: 2.11.3 → 2.12.0"
-hooks_resolved: 12/12
+  files_purged:
+    - .claude/agents/claude-code-architect.md (obsoleted)
+    - .claude/projects/ (obsoleted)
+    - .claude/scheduled_tasks.lock (obsoleted)
+    - .claude/test-harness/ (obsoleted)
+    - .claude/learning/ (one-shot; loom-leaked, manifest-excluded but no auto-purge mechanism)
+  manifest_changes:
+    obsoleted_added:
+      - .claude/agents/claude-code-architect.md
+      - .claude/projects/
+      - .claude/scheduled_tasks.lock
+      - .claude/test-harness/
+    exclude_added:
+      - "projects/**"
+      - "scheduled_tasks.lock"
+      - "test-harness/**"
+  coc_obsoleted_emitted: 13 paths (16-line file with header)
 notes: |
-  Gate 2 distribute v2.10.0. Three rule files updated with new MUST sub-clauses
-  (zero-tolerance, schema-migration, agents) plus git.md carried in-flight from
-  the prior 2.9.7 sync (verified identical to source). All four files are
-  global with no py variant overlay. SDK pins: kailash 2.11.3 → 2.12.0,
-  kailash-dataflow 2.3.3 → 2.4.0, kailash-ml 1.5.1 → 1.6.0; mcp/nexus/kaizen/
-  pact/align/kaizen-agents unchanged. CC-only legacy template, baseline emission
-  N/A (CLAUDE.md preserved). uv sync result captured at end of run.
+  Surgical sync-hygiene patch (loom 2.10.2). Only modified artifact is
+  commands/codify.md (cc-architect rename completion). Stale state purged
+  across all 8 BUILD/USE consumers via new .coc-obsoleted entries.
+  No SDK pin updates this cycle (pure metadata + sync-hygiene patch).
