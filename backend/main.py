@@ -154,13 +154,8 @@ app = FastAPI(title="WanderLess API", version="0.2.0", lifespan=lifespan)
 # CORS — explicit origins only (no wildcard in production)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:3000",
-        "http://127.0.0.1:3000",
-        "http://localhost:8080",
-        "http://10.0.2.2:8080",  # Android emulator to host
-    ],
-    allow_credentials=True,
+    allow_origins=["*"],
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
