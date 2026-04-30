@@ -320,7 +320,7 @@ class _TripPlanCard extends ConsumerWidget {
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(color: const Color(0xFF25D366).withOpacity(0.2)),
                   ),
-                  child: const Row(
+                  child: Row(
                     children: [
                       SizedBox(
                         width: 18,
@@ -398,7 +398,7 @@ class _TripPlanCard extends ConsumerWidget {
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(color: Colors.amber[200]!),
                   ),
-                  child: const Row(
+                  child: Row(
                     children: [
                       Icon(Icons.info_outline, color: Colors.amber[800], size: 18),
                       SizedBox(width: 8),
@@ -578,7 +578,7 @@ class _TripPlanCard extends ConsumerWidget {
     List<Map<String, dynamic>> guides = [];
     try {
       final api = ApiClient();
-      guides = await api.getGuides();
+      guides = (await api.getGuides()).cast<Map<String, dynamic>>();
     } catch (_) {
       guides = [];
     }
