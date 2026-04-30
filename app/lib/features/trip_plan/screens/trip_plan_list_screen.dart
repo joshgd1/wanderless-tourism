@@ -549,21 +549,25 @@ class _TripPlanCard extends ConsumerWidget {
   }
 
   Future<void> _acceptPlan(BuildContext context, WidgetRef ref, BuildContext sheetCtx) async {
-    // Demo: show guide picker to simulate guide selection
-    // In production, guide_id comes from authenticated guide session
-    final selectedGuideId = await _showGuidePickerDialog(context);
-    if (selectedGuideId == null) return; // Cancelled
+    // Guide must be logged in via guide JWT (guide_id is read from token on backend)
+    final authState = ref.read(authProvider);
+    if (authState.token == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please log in as a guide to accept plans')),
+      );
+      return;
+    }
 
     try {
       final api = ApiClient();
-      await api.acceptTripPlan(plan.id, selectedGuideId);
+      await api.acceptTripPlan(plan.id);
       ref.invalidate(openTripPlansProvider);
       if (context.mounted) {
         Navigator.pop(sheetCtx);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Trip accepted by guide $selectedGuideId! The tourist will be notified.'),
-            backgroundColor: const Color(0xFF25D366),
+          const SnackBar(
+            content: Text('Trip plan accepted! The tourist will be notified.'),
+            backgroundColor: Color(0xFF25D366),
           ),
         );
       }

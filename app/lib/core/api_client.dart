@@ -69,10 +69,14 @@ class ApiClient {
     return resp.data as Map<String, dynamic>;
   }
 
-  Future<List<dynamic>> getMatches(String touristId, {int topN = 5}) async {
+  Future<List<dynamic>> getMatches(String touristId, {int topN = 5, String? destination}) async {
+    final params = <String, dynamic>{'top_n': topN};
+    if (destination != null && destination.isNotEmpty) {
+      params['destination'] = destination;
+    }
     final resp = await _dio.get(
       '/matches/$touristId',
-      queryParameters: {'top_n': topN},
+      queryParameters: params,
       options: Options(headers: _authHeaders),
     );
     return resp.data as List;
@@ -172,10 +176,9 @@ class ApiClient {
     return resp.data as Map<String, dynamic>;
   }
 
-  Future<Map<String, dynamic>> acceptTripPlan(int planId, String guideId) async {
+  Future<Map<String, dynamic>> acceptTripPlan(int planId) async {
     final resp = await _dio.post(
       '/trip-plans/$planId/accept',
-      data: {'guide_id': guideId},
       options: Options(headers: _authHeaders),
     );
     return resp.data as Map<String, dynamic>;

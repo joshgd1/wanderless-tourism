@@ -6,12 +6,23 @@ import '../../../../core/auth_provider.dart';
 import '../../../../shared/models/guide.dart';
 import '../widgets/match_card.dart';
 
+final _filterDestinationMap = {
+  'Recommended': null,
+  'All': null,
+  'Cultural': 'Old City',
+  'Nature': 'Doi Suthep',
+  'Adventure': 'Mae Sa Valley',
+  'Wellness': 'Nimman',
+};
+
 final matchesProvider = FutureProvider<List<MatchedGuide>>((ref) async {
   final authState = ref.watch(authProvider);
   final touristId = authState.touristId;
   if (touristId == null) return [];
+  final selectedFilter = ref.watch(_selectedFilterProvider);
+  final destination = _filterDestinationMap[selectedFilter];
   final api = ApiClient();
-  final data = await api.getMatches(touristId, topN: 5);
+  final data = await api.getMatches(touristId, topN: 5, destination: destination);
   return data.map((e) => MatchedGuide.fromJson(e as Map<String, dynamic>)).toList();
 });
 
@@ -109,8 +120,10 @@ class DiscoverScreen extends ConsumerWidget {
                       child: FilterChip(
                         label: Text(filter),
                         selected: isSelected,
-                        onSelected: (_) =>
-                            ref.read(_selectedFilterProvider.notifier).state = filter,
+                        onSelected: (_) {
+                          ref.read(_selectedFilterProvider.notifier).state = filter;
+                          ref.invalidate(matchesProvider);
+                        },
                         backgroundColor: Colors.white,
                         selectedColor: const Color(0xFF25D366).withOpacity(0.15),
                         checkmarkColor: const Color(0xFF25D366),
