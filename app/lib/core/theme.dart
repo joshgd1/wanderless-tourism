@@ -1,6 +1,11 @@
 import 'package:flutter/material.dart';
 
+// WanderLess brand colors
 const _wanderGreen = Color(0xFF25D366);
+const _deepForest = Color(0xFF1A2E1A);
+const _warmAmber = Color(0xFFFFB347);
+const _softPurple = Color(0xFF6B4EFF);
+const _cardShadowColor = Color(0x0D000000);
 
 final appTheme = ThemeData(
   useMaterial3: true,
@@ -9,13 +14,14 @@ final appTheme = ThemeData(
     brightness: Brightness.light,
     primary: _wanderGreen,
     secondary: const Color(0xFF128C7E),
+    tertiary: _softPurple,
     surface: Colors.white,
   ),
   scaffoldBackgroundColor: const Color(0xFFF5F5F5),
   appBarTheme: const AppBarTheme(
     centerTitle: false,
     elevation: 0,
-    backgroundColor: Color(0xFF1A2E1A),
+    backgroundColor: _deepForest,
     foregroundColor: Colors.white,
     titleTextStyle: TextStyle(
       color: Colors.white,
@@ -27,6 +33,7 @@ final appTheme = ThemeData(
   cardTheme: CardTheme(
     elevation: 0,
     color: Colors.white,
+    shadowColor: _cardShadowColor,
     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
   ),
   elevatedButtonTheme: ElevatedButtonThemeData(
@@ -34,8 +41,22 @@ final appTheme = ThemeData(
       backgroundColor: _wanderGreen,
       foregroundColor: Colors.white,
       padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
       elevation: 0,
+    ),
+  ),
+  outlinedButtonTheme: OutlinedButtonThemeData(
+    style: OutlinedButton.styleFrom(
+      foregroundColor: _wanderGreen,
+      side: const BorderSide(color: _wanderGreen, width: 1.5),
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+    ),
+  ),
+  textButtonTheme: TextButtonThemeData(
+    style: TextButton.styleFrom(
+      foregroundColor: _wanderGreen,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
     ),
   ),
   inputDecorationTheme: InputDecorationTheme(
@@ -52,6 +73,9 @@ final appTheme = ThemeData(
     activeTrackColor: _wanderGreen,
     thumbColor: _wanderGreen,
     overlayColor: _wanderGreen.withOpacity(0.2),
+    inactiveTrackColor: Colors.grey[200],
+    trackHeight: 4,
+    thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 8),
   ),
   chipTheme: ChipThemeData(
     backgroundColor: Colors.grey[100]!,
@@ -66,5 +90,9 @@ final appTheme = ThemeData(
     unselectedItemColor: Colors.grey[400],
     type: BottomNavigationBarType.fixed,
     elevation: 8,
+  ),
+  dividerTheme: DividerThemeData(
+    color: Colors.grey[200],
+    thickness: 1,
   ),
 );

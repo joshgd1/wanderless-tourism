@@ -36,15 +36,13 @@ class GuideDetailScreen extends ConsumerWidget {
         error: (e, _) => Center(child: Text('Error: $e')),
         data: (guide) => CustomScrollView(
           slivers: [
-            // Dark App Bar with hero photo
+            // Hero App Bar with floating back button
             SliverAppBar(
-              expandedHeight: 280,
+              expandedHeight: 300,
               pinned: true,
               backgroundColor: const Color(0xFF1A2E1A),
-              leading: IconButton(
-                icon: const Icon(Icons.arrow_back, color: Colors.white),
-                onPressed: () => context.pop(),
-              ),
+              leadingWidth: 0,
+              leading: const SizedBox.shrink(),
               flexibleSpace: FlexibleSpaceBar(
                 background: Stack(
                   fit: StackFit.expand,
@@ -55,17 +53,27 @@ class GuideDetailScreen extends ConsumerWidget {
                       placeholder: (_, __) => Container(color: Colors.grey[800]),
                       errorWidget: (_, __, ___) => Container(color: Colors.grey[800]),
                     ),
-                    // Gradient overlay for readability
+                    // Gradient overlays
                     Container(
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
                           begin: Alignment.topCenter,
                           end: Alignment.bottomCenter,
                           colors: [
+                            Colors.black.withOpacity(0.3),
                             Colors.transparent,
-                            Colors.black.withOpacity(0.6),
+                            Colors.black.withOpacity(0.5),
                           ],
+                          stops: const [0.0, 0.4, 1.0],
                         ),
+                      ),
+                    ),
+                    // Floating back button
+                    Positioned(
+                      top: MediaQuery.of(context).padding.top + 8,
+                      left: 16,
+                      child: _FloatingBackButton(
+                        onTap: () => context.pop(),
                       ),
                     ),
                     // Name overlay at bottom
@@ -83,16 +91,20 @@ class GuideDetailScreen extends ConsumerWidget {
                                   guide.name,
                                   style: const TextStyle(
                                     color: Colors.white,
-                                    fontSize: 26,
+                                    fontSize: 28,
                                     fontWeight: FontWeight.bold,
+                                    letterSpacing: 0.3,
                                   ),
                                 ),
                               ),
-                              if (guide.licenseVerified)
+                              if (guide.licenseVerified) ...[
+                                const SizedBox(width: 8),
                                 Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                                   decoration: BoxDecoration(
-                                    color: const Color(0xFF25D366),
+                                    gradient: const LinearGradient(
+                                      colors: [Color(0xFF25D366), Color(0xFF128C7E)],
+                                    ),
                                     borderRadius: BorderRadius.circular(20),
                                   ),
                                   child: const Row(
@@ -105,15 +117,16 @@ class GuideDetailScreen extends ConsumerWidget {
                                         style: TextStyle(
                                           color: Colors.white,
                                           fontSize: 12,
-                                          fontWeight: FontWeight.w600,
+                                          fontWeight: FontWeight.bold,
                                         ),
                                       ),
                                     ],
                                   ),
                                 ),
+                              ],
                             ],
                           ),
-                          const SizedBox(height: 8),
+                          const SizedBox(height: 10),
                           Row(
                             children: [
                               ...List.generate(guide.ratingHistory.floor(), (i) {
@@ -150,58 +163,68 @@ class GuideDetailScreen extends ConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Quick info row
+                    // Quick info cards row
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _PremiumInfoCard(
+                            icon: Icons.translate,
+                            iconColor: const Color(0xFF25D366),
+                            title: 'Languages',
+                            value: guide.languagePairs.isNotEmpty
+                                ? '${_uniqueLanguages(guide.languagePairs)}'
+                                : '1',
+                            subtitle: 'languages',
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: _PremiumInfoCard(
+                            icon: Icons.group,
+                            iconColor: const Color(0xFF6B4EFF),
+                            title: 'Max Group',
+                            value: '${guide.groupSizePreferred}',
+                            subtitle: 'people',
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: _PremiumInfoCard(
+                            icon: Icons.account_balance_wallet,
+                            iconColor: const Color(0xFFFFB347),
+                            title: 'Budget',
+                            value: guide.budgetTier[0].toUpperCase(),
+                            subtitle: guide.budgetTier.substring(1),
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: 24),
+
+                    // About section
+                    _SectionHeader(label: 'About', icon: Icons.person_outline),
+                    const SizedBox(height: 12),
                     Container(
-                      padding: const EdgeInsets.all(16),
+                      padding: const EdgeInsets.all(18),
                       decoration: BoxDecoration(
                         color: Colors.white,
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceAround,
-                        children: [
-                          _InfoTile(
-                            icon: Icons.translate,
-                            label: 'Languages',
-                            value: guide.languagePairs.isNotEmpty
-                                ? '${_uniqueLanguages(guide.languagePairs)} languages'
-                                : 'En',
-                          ),
-                          Container(width: 1, height: 40, color: Colors.grey[200]),
-                          _InfoTile(
-                            icon: Icons.group,
-                            label: 'Max Group',
-                            value: '${guide.groupSizePreferred}',
-                          ),
-                          Container(width: 1, height: 40, color: Colors.grey[200]),
-                          _InfoTile(
-                            icon: Icons.attach_money,
-                            label: 'Budget',
-                            value: guide.budgetTier[0].toUpperCase() +
-                                guide.budgetTier.substring(1),
+                        borderRadius: BorderRadius.circular(18),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.04),
+                            blurRadius: 12,
+                            offset: const Offset(0, 2),
                           ),
                         ],
                       ),
-                    ),
-
-                    const SizedBox(height: 20),
-
-                    // About
-                    Text(
-                      'About',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.grey[800],
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      guide.bio,
-                      style: TextStyle(
-                        fontSize: 15,
-                        color: Colors.grey[700],
-                        height: 1.6,
+                      child: Text(
+                        guide.bio,
+                        style: TextStyle(
+                          fontSize: 15,
+                          color: Colors.grey[700],
+                          height: 1.7,
+                        ),
                       ),
                     ),
 
@@ -209,14 +232,7 @@ class GuideDetailScreen extends ConsumerWidget {
 
                     // Expertise Tags
                     if (guide.expertiseTags.isNotEmpty) ...[
-                      Text(
-                        'Expertise',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.grey[800],
-                        ),
-                      ),
+                      _SectionHeader(label: 'Expertise', icon: Icons.star_outline),
                       const SizedBox(height: 12),
                       Wrap(
                         spacing: 8,
@@ -224,18 +240,28 @@ class GuideDetailScreen extends ConsumerWidget {
                         children: guide.expertiseTags.map((tag) {
                           return Container(
                             padding: const EdgeInsets.symmetric(
-                              horizontal: 14,
-                              vertical: 8,
+                              horizontal: 16,
+                              vertical: 10,
                             ),
                             decoration: BoxDecoration(
-                              color: const Color(0xFF25D366).withOpacity(0.1),
+                              gradient: const LinearGradient(
+                                colors: [Color(0xFF25D366), Color(0xFF128C7E)],
+                              ),
                               borderRadius: BorderRadius.circular(20),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: const Color(0xFF25D366).withOpacity(0.25),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
                             ),
                             child: Text(
                               tag,
                               style: const TextStyle(
-                                color: Color(0xFF25D366),
-                                fontWeight: FontWeight.w500,
+                                color: Colors.white,
+                                fontWeight: FontWeight.w600,
+                                fontSize: 13,
                               ),
                             ),
                           );
@@ -246,14 +272,7 @@ class GuideDetailScreen extends ConsumerWidget {
 
                     // Locations
                     if (guide.locationCoverage.isNotEmpty) ...[
-                      Text(
-                        'Locations',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.grey[800],
-                        ),
-                      ),
+                      _SectionHeader(label: 'Locations', icon: Icons.place_outlined),
                       const SizedBox(height: 12),
                       Wrap(
                         spacing: 8,
@@ -261,24 +280,32 @@ class GuideDetailScreen extends ConsumerWidget {
                         children: guide.locationCoverage.map((loc) {
                           return Container(
                             padding: const EdgeInsets.symmetric(
-                              horizontal: 14,
-                              vertical: 8,
+                              horizontal: 16,
+                              vertical: 10,
                             ),
                             decoration: BoxDecoration(
                               color: Colors.white,
                               borderRadius: BorderRadius.circular(20),
-                              border: Border.all(color: Colors.grey[300]!),
+                              border: Border.all(color: Colors.grey[200]!),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.04),
+                                  blurRadius: 6,
+                                  offset: const Offset(0, 1),
+                                ),
+                              ],
                             ),
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                Icon(Icons.location_on, size: 14, color: Colors.grey[500]),
-                                const SizedBox(width: 4),
+                                Icon(Icons.location_on, size: 15, color: Colors.grey[500]),
+                                const SizedBox(width: 5),
                                 Text(
                                   loc,
                                   style: TextStyle(
                                     fontSize: 13,
                                     color: Colors.grey[700],
+                                    fontWeight: FontWeight.w500,
                                   ),
                                 ),
                               ],
@@ -291,14 +318,7 @@ class GuideDetailScreen extends ConsumerWidget {
 
                     // Languages
                     if (guide.languagePairs.isNotEmpty) ...[
-                      Text(
-                        'Languages',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.grey[800],
-                        ),
-                      ),
+                      _SectionHeader(label: 'Languages Offered', icon: Icons.translate),
                       const SizedBox(height: 12),
                       Wrap(
                         spacing: 8,
@@ -307,24 +327,42 @@ class GuideDetailScreen extends ConsumerWidget {
                           final langs = lp.split('→');
                           return Container(
                             padding: const EdgeInsets.symmetric(
-                              horizontal: 14,
-                              vertical: 8,
+                              horizontal: 16,
+                              vertical: 10,
                             ),
                             decoration: BoxDecoration(
                               color: Colors.white,
                               borderRadius: BorderRadius.circular(20),
-                              border: Border.all(color: Colors.grey[300]!),
+                              border: Border.all(color: Colors.grey[200]!),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.04),
+                                  blurRadius: 6,
+                                  offset: const Offset(0, 1),
+                                ),
+                              ],
                             ),
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                Icon(Icons.translate, size: 14, color: Colors.grey[500]),
-                                const SizedBox(width: 6),
+                                Container(
+                                  padding: const EdgeInsets.all(6),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFF25D366).withOpacity(0.1),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: Icon(Icons.translate, size: 14, color: const Color(0xFF25D366)),
+                                ),
+                                const SizedBox(width: 8),
                                 Text(
                                   langs.length >= 2
                                       ? '${langs[0].trim()} → ${langs[1].trim()}'
                                       : lp,
-                                  style: TextStyle(fontSize: 13, color: Colors.grey[700]),
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    color: Colors.grey[700],
+                                    fontWeight: FontWeight.w500,
+                                  ),
                                 ),
                               ],
                             ),
@@ -342,14 +380,14 @@ class GuideDetailScreen extends ConsumerWidget {
       ),
       bottomNavigationBar: SafeArea(
         child: Container(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
           decoration: BoxDecoration(
             color: Colors.white,
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.05),
-                blurRadius: 10,
-                offset: const Offset(0, -2),
+                color: Colors.black.withOpacity(0.08),
+                blurRadius: 16,
+                offset: const Offset(0, -4),
               ),
             ],
           ),
@@ -361,15 +399,22 @@ class GuideDetailScreen extends ConsumerWidget {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF25D366),
                     foregroundColor: Colors.white,
-                    minimumSize: const Size.fromHeight(52),
+                    minimumSize: const Size.fromHeight(54),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
+                      borderRadius: BorderRadius.circular(16),
                     ),
                     elevation: 0,
                   ),
-                  child: const Text(
-                    'Book This Guide',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                  child: const Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        'Book This Guide',
+                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                      ),
+                      SizedBox(width: 8),
+                      Icon(Icons.arrow_forward, size: 18),
+                    ],
                   ),
                 ),
               ),
@@ -381,32 +426,123 @@ class GuideDetailScreen extends ConsumerWidget {
   }
 }
 
-class _InfoTile extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final String value;
+class _FloatingBackButton extends StatelessWidget {
+  final VoidCallback onTap;
 
-  const _InfoTile({
+  const _FloatingBackButton({required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 40,
+        height: 40,
+        decoration: BoxDecoration(
+          color: Colors.black.withOpacity(0.3),
+          shape: BoxShape.circle,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.2),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: const Icon(
+          Icons.arrow_back,
+          color: Colors.white,
+          size: 20,
+        ),
+      ),
+    );
+  }
+}
+
+class _SectionHeader extends StatelessWidget {
+  final String label;
+  final IconData icon;
+
+  const _SectionHeader({required this.label, required this.icon});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Icon(icon, size: 20, color: const Color(0xFF25D366)),
+        const SizedBox(width: 6),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 17,
+            fontWeight: FontWeight.bold,
+            color: Colors.grey[800],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _PremiumInfoCard extends StatelessWidget {
+  final IconData icon;
+  final Color iconColor;
+  final String title;
+  final String value;
+  final String subtitle;
+
+  const _PremiumInfoCard({
     required this.icon,
-    required this.label,
+    required this.iconColor,
+    required this.title,
     required this.value,
+    required this.subtitle,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Icon(icon, size: 22, color: const Color(0xFF25D366)),
-        const SizedBox(height: 6),
-        Text(
-          value,
-          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-        ),
-        Text(
-          label,
-          style: TextStyle(fontSize: 11, color: Colors.grey[500]),
-        ),
-      ],
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 12,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: iconColor.withOpacity(0.1),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(icon, size: 20, color: iconColor),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            value,
+            style: const TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 18,
+              color: Color(0xFF1A2E1A),
+            ),
+          ),
+          Text(
+            subtitle,
+            style: TextStyle(
+              fontSize: 11,
+              color: Colors.grey[500],
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

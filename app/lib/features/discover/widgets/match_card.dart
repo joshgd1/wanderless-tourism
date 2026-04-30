@@ -31,226 +31,294 @@ class MatchCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       elevation: 0,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
+        borderRadius: BorderRadius.circular(20),
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.06),
+                blurRadius: 16,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(20),
+            child: Container(
+              color: Colors.white,
+              child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Container(
-                    width: 80,
-                    height: 80,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: _isMl ? const Color(0xFF6B4EFF) : const Color(0xFF25D366),
-                        width: 2,
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: (_isMl ? const Color(0xFF6B4EFF) : const Color(0xFF25D366))
-                              .withOpacity(0.2),
-                          blurRadius: 8,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: ClipOval(
-                      child: CachedNetworkImage(
-                        imageUrl: guide.photoUrl,
-                        fit: BoxFit.cover,
-                        placeholder: (_, __) => _InitialsAvatar(
-                          name: guide.name,
-                          color: _avatarColor(guide.name),
-                        ),
-                        errorWidget: (_, __, ___) => _InitialsAvatar(
-                          name: guide.name,
-                          color: _avatarColor(guide.name),
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
+                  // Top section with photo and info
+                  Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Row(
-                          children: [
-                            Expanded(
-                              child: Text(
-                                guide.name,
-                                style: const TextStyle(
-                                  fontSize: 17,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
+                        // Large avatar with gradient ring
+                        Container(
+                          width: 90,
+                          height: 90,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: _isMl ? const Color(0xFF6B4EFF) : const Color(0xFF25D366),
+                              width: 3,
                             ),
-                            if (guide.licenseVerified) ...[
-                              const SizedBox(width: 6),
-                              Tooltip(
-                                message: 'License verified',
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFF25D366).withOpacity(0.12),
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  child: const Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Icon(Icons.verified, size: 13, color: Color(0xFF25D366)),
-                                      SizedBox(width: 3),
-                                      Text(
-                                        'Verified',
-                                        style: TextStyle(
-                                          fontSize: 11,
-                                          color: Color(0xFF25D366),
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: (_isMl ? const Color(0xFF6B4EFF) : const Color(0xFF25D366))
+                                    .withOpacity(0.25),
+                                blurRadius: 12,
+                                offset: const Offset(0, 4),
                               ),
                             ],
-                          ],
-                        ),
-                        const SizedBox(height: 4),
-                        Row(
-                          children: [
-                            ...List.generate(guide.ratingHistory.floor(), (i) {
-                              return Icon(Icons.star, size: 16, color: Colors.amber[700]);
-                            }),
-                            if (guide.ratingHistory % 1 >= 0.5)
-                              Icon(Icons.star_half, size: 16, color: Colors.amber[700]),
-                            ...List.generate(5 - guide.ratingHistory.ceil(), (i) {
-                              return Icon(Icons.star_border, size: 16, color: Colors.grey[400]);
-                            }),
-                            const SizedBox(width: 4),
-                            Text(
-                              '${guide.ratingHistory.toStringAsFixed(1)} (${guide.ratingCount})',
-                              style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.all(3),
+                            child: ClipOval(
+                              child: CachedNetworkImage(
+                                imageUrl: guide.photoUrl,
+                                fit: BoxFit.cover,
+                                placeholder: (_, __) => _InitialsAvatar(
+                                  name: guide.name,
+                                  color: _avatarColor(guide.name),
+                                ),
+                                errorWidget: (_, __, ___) => _InitialsAvatar(
+                                  name: guide.name,
+                                  color: _avatarColor(guide.name),
+                                ),
+                              ),
                             ),
-                          ],
+                          ),
                         ),
-                        const SizedBox(height: 6),
-                        Row(
-                          children: [
-                            Icon(Icons.translate, size: 14, color: Colors.grey[500]),
-                            const SizedBox(width: 4),
-                            Expanded(
-                              child: Text(
-                                guide.languagePairs.take(2).map((l) {
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      guide.name,
+                                      style: const TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
+                                        color: Color(0xFF1A2E1A),
+                                      ),
+                                    ),
+                                  ),
+                                  if (guide.licenseVerified) ...[
+                                    const SizedBox(width: 6),
+                                    _VerifiedBadge(),
+                                  ],
+                                ],
+                              ),
+                              const SizedBox(height: 6),
+                              // Rating row
+                              Row(
+                                children: [
+                                  ...List.generate(guide.ratingHistory.floor(), (i) {
+                                    return Icon(Icons.star, size: 16, color: Colors.amber[700]);
+                                  }),
+                                  if (guide.ratingHistory % 1 >= 0.5)
+                                    Icon(Icons.star_half, size: 16, color: Colors.amber[700]),
+                                  ...List.generate(5 - guide.ratingHistory.ceil(), (i) {
+                                    return Icon(Icons.star_border, size: 16, color: Colors.grey[300]);
+                                  }),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    '${guide.ratingHistory.toStringAsFixed(1)} (${guide.ratingCount})',
+                                    style: TextStyle(fontSize: 12, color: Colors.grey[600], fontWeight: FontWeight.w500),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 8),
+                              // Language row
+                              _InfoRow(
+                                icon: Icons.translate,
+                                text: guide.languagePairs.take(2).map((l) {
                                   final parts = l.split('→');
                                   return parts.length >= 2
                                       ? '${parts[0].trim()} → ${parts[1].trim()}'
                                       : l;
                                 }).join(', '),
-                                style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-                                overflow: TextOverflow.ellipsis,
                               ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 4),
-                        Row(
-                          children: [
-                            Icon(Icons.location_on, size: 14, color: Colors.grey[500]),
-                            const SizedBox(width: 4),
-                            Expanded(
-                              child: Text(
-                                guide.locationCoverage.isNotEmpty
+                              const SizedBox(height: 4),
+                              // Location row
+                              _InfoRow(
+                                icon: Icons.location_on,
+                                text: guide.locationCoverage.isNotEmpty
                                     ? guide.locationCoverage.first
                                     : 'Chiang Mai',
-                                style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-                                overflow: TextOverflow.ellipsis,
                               ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  // Bio
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Text(
+                      guide.bio,
+                      style: TextStyle(fontSize: 13, color: Colors.grey[600], height: 1.5),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+
+                  const SizedBox(height: 14),
+
+                  // Tags
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Wrap(
+                      spacing: 6,
+                      runSpacing: 6,
+                      children: (guide.expertiseTags.isNotEmpty
+                              ? guide.expertiseTags
+                              : ['Cultural', 'History', 'Nature'])
+                          .take(3)
+                          .map((tag) {
+                        return Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF25D366).withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Text(
+                            tag,
+                            style: const TextStyle(
+                              fontSize: 11,
+                              color: Color(0xFF25D366),
+                              fontWeight: FontWeight.w600,
                             ),
-                          ],
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  // Bottom action bar
+                  Container(
+                    padding: const EdgeInsets.fromLTRB(16, 12, 8, 12),
+                    decoration: BoxDecoration(
+                      color: Colors.grey[50],
+                      border: Border(
+                        top: BorderSide(color: Colors.grey[200]!),
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        _ScoreBadge(
+                          score: guide.score,
+                          isMl: _isMl,
+                          scoreContent: guide.scoreContent,
+                          scoreCollab: guide.scoreCollab,
+                          scoreDest: guide.scoreDest,
+                          mlExplanation: guide.mlExplanation,
+                        ),
+                        const SizedBox(width: 10),
+                        _BudgetBadge(tier: guide.budgetTier),
+                        const Spacer(),
+                        SizedBox(
+                          height: 40,
+                          child: ElevatedButton(
+                            onPressed: onTap,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF25D366),
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(horizontal: 22),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              elevation: 0,
+                            ),
+                            child: const Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  'View Profile',
+                                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                                ),
+                                SizedBox(width: 4),
+                                Icon(Icons.arrow_forward, size: 16),
+                              ],
+                            ),
+                          ),
                         ),
                       ],
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 12),
-              Text(
-                guide.bio,
-                style: TextStyle(fontSize: 13, color: Colors.grey[700], height: 1.4),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-              const SizedBox(height: 12),
-              Wrap(
-                spacing: 6,
-                runSpacing: 6,
-                children: (guide.expertiseTags.isNotEmpty
-                        ? guide.expertiseTags
-                        : ['Cultural', 'History', 'Nature'])
-                    .take(3)
-                    .map((tag) {
-                  return Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF25D366).withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Text(
-                      tag,
-                      style: const TextStyle(
-                        fontSize: 11,
-                        color: Color(0xFF25D366),
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  );
-                }).toList(),
-              ),
-              const SizedBox(height: 16),
-              Row(
-                children: [
-                  _ScoreBadge(
-                    score: guide.score,
-                    isMl: _isMl,
-                    scoreContent: guide.scoreContent,
-                    scoreCollab: guide.scoreCollab,
-                    scoreDest: guide.scoreDest,
-                    mlExplanation: guide.mlExplanation,
-                  ),
-                  const SizedBox(width: 12),
-                  _BudgetBadge(tier: guide.budgetTier),
-                  const Spacer(),
-                  SizedBox(
-                    height: 38,
-                    child: ElevatedButton(
-                      onPressed: onTap,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF25D366),
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(horizontal: 20),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        elevation: 0,
-                      ),
-                      child: const Text(
-                        'View Profile',
-                        style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ],
+            ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _InfoRow extends StatelessWidget {
+  final IconData icon;
+  final String text;
+
+  const _InfoRow({required this.icon, required this.text});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Icon(icon, size: 14, color: Colors.grey[500]),
+        const SizedBox(width: 4),
+        Expanded(
+          child: Text(
+            text,
+            style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _VerifiedBadge extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Color(0xFF25D366), Color(0xFF128C7E)],
+        ),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: const Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.verified, size: 12, color: Colors.white),
+          SizedBox(width: 3),
+          Text(
+            'Verified',
+            style: TextStyle(
+              fontSize: 10,
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ],
       ),
     );
   }
