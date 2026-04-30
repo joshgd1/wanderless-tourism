@@ -104,7 +104,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           errorBuilder: (_, __, ___) => const Icon(
                             Icons.explore,
                             size: 40,
-                            color: appTheme.primary,
+                            color: appTheme.colorScheme.primary,
                           ),
                         ),
                       ),
@@ -201,7 +201,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             child: ElevatedButton(
                               onPressed: authState.isLoading ? null : _login,
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: appTheme.primary,
+                                backgroundColor: appTheme.colorScheme.primary,
                                 foregroundColor: Colors.white,
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(16),
@@ -376,7 +376,7 @@ class _PremiumTextField extends StatelessWidget {
         labelText: label,
         hintText: hint,
         labelStyle: TextStyle(color: Colors.grey[600]),
-        prefixIcon: Icon(prefixIcon, color: appTheme.primary),
+        prefixIcon: Icon(prefixIcon, color: appTheme.colorScheme.primary),
         suffixIcon: suffixIcon,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
@@ -388,7 +388,7 @@ class _PremiumTextField extends StatelessWidget {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
-          borderSide: BorderSide(color: appTheme.primary, width: 2),
+          borderSide: BorderSide(color: appTheme.colorScheme.primary, width: 2),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
