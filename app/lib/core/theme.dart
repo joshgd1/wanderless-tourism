@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
-// WanderLess brand colors
-const _wanderGreen = Color(0xFF25D366);
-const _deepForest = Color(0xFF1A2E1A);
-const _warmAmber = Color(0xFFFFB347);
+// WanderLess brand colors — emerald green + orange (per logo)
+const _wanderGreen = Color(0xFF00A86B); // emerald from logo
+const _deepForest = Color(0xFF006B3C);   // darker emerald for headers
+const _warmOrange = Color(0xFFFF8C00);   // orange from logo location icon
 const _softPurple = Color(0xFF6B4EFF);
 const _cardShadowColor = Color(0x0D000000);
 
@@ -13,11 +13,11 @@ final appTheme = ThemeData(
     seedColor: _wanderGreen,
     brightness: Brightness.light,
     primary: _wanderGreen,
-    secondary: const Color(0xFF128C7E),
+    secondary: _warmOrange,
     tertiary: _softPurple,
     surface: Colors.white,
   ),
-  scaffoldBackgroundColor: const Color(0xFFF5F5F5),
+  scaffoldBackgroundColor: const Color(0xFFF0F7F4), // subtle emerald tint
   appBarTheme: const AppBarTheme(
     centerTitle: false,
     elevation: 0,
@@ -30,7 +30,7 @@ final appTheme = ThemeData(
     ),
     iconTheme: IconThemeData(color: Colors.white),
   ),
-  cardTheme: CardTheme(
+  cardTheme: CardThemeData(
     elevation: 0,
     color: Colors.white,
     shadowColor: _cardShadowColor,
@@ -72,14 +72,14 @@ final appTheme = ThemeData(
   sliderTheme: SliderThemeData(
     activeTrackColor: _wanderGreen,
     thumbColor: _wanderGreen,
-    overlayColor: _wanderGreen.withOpacity(0.2),
+    overlayColor: const Color(0x3300A86B), // 20% of 00A86B
     inactiveTrackColor: Colors.grey[200],
     trackHeight: 4,
     thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 8),
   ),
   chipTheme: ChipThemeData(
     backgroundColor: Colors.grey[100]!,
-    selectedColor: _wanderGreen.withOpacity(0.15),
+    selectedColor: const Color(0x2600A86B), // 15% of 00A86B
     labelStyle: const TextStyle(fontSize: 13),
     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
@@ -90,6 +90,10 @@ final appTheme = ThemeData(
     unselectedItemColor: Colors.grey[400],
     type: BottomNavigationBarType.fixed,
     elevation: 8,
+  ),
+  floatingActionButtonTheme: FloatingActionButtonThemeData(
+    backgroundColor: _warmOrange,
+    foregroundColor: Colors.white,
   ),
   dividerTheme: DividerThemeData(
     color: Colors.grey[200],
