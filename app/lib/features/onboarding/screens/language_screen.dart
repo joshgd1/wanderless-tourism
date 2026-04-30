@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/onboarding_provider.dart';
-import '../../widgets/onboarding_shell.dart';
+import '../widgets/onboarding_shell.dart';
 
 class LanguageScreen extends ConsumerWidget {
   const LanguageScreen({super.key});

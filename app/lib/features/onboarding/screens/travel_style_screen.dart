@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/onboarding_provider.dart';
 import '../../../../core/auth_provider.dart';
-import '../../widgets/onboarding_shell.dart';
+import '../widgets/onboarding_shell.dart';
 
 class TravelStyleScreen extends ConsumerWidget {
   const TravelStyleScreen({super.key});
