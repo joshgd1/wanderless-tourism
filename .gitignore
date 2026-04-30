@@ -12,6 +12,8 @@ eggs/
 .eggs/
 lib/
 !.claude/hooks/lib/
+# Flutter app lib directory (un-ignored above)
+!app/lib/
 lib64/
 parts/
 sdist/
