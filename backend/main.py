@@ -717,18 +717,19 @@ async def get_matches(
     tid: str,
     top_n: int = 5,
     destination: str | None = None,
-    tourist_id: str = Depends(_get_tourist_id),
+    tourist_id: str | None = Depends(_get_tourist_id_optional),
     db: Session = Depends(get_db),
 ):
     """
     Get top-N matched guides for a tourist.
-    Requires JWT auth — only the authenticated tourist can get their matches.
+    Auth optional — anonymous users can access their own matches via URL tourist_id.
     """
     t0 = time.monotonic()
-    logger.info(f"matches.start tourist_id={tourist_id} top_n={top_n} destination={destination}")
+    effective_id = tourist_id if tourist_id is not None else tid
+    logger.info(f"matches.start tourist_id={effective_id} top_n={top_n} destination={destination}")
 
-    # Verify the requesting tourist matches the URL param
-    if tid != tourist_id:
+    # Authenticated users can only access their own matches
+    if tourist_id is not None and tid != tourist_id:
         raise HTTPException(status_code=403, detail="Cannot access another tourist's matches")
 
     tourist = db.query(models.Tourist).filter_by(id=tid).first()
