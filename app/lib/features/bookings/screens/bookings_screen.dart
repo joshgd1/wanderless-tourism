@@ -258,9 +258,54 @@ class _BookingCard extends StatelessWidget {
                     style: TextStyle(fontSize: 13, color: Colors.grey[600]),
                   ),
                   const Spacer(),
+                  if (booking.status.toUpperCase() == 'IN_PROGRESS')
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF2196F3).withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.location_on, size: 14, color: Color(0xFF2196F3)),
+                          SizedBox(width: 4),
+                          Text(
+                            'Live',
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                              color: Color(0xFF2196F3),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  const SizedBox(width: 8),
                   Icon(Icons.arrow_forward_ios, size: 14, color: Colors.grey[400]),
                 ],
               ),
+              if (booking.status.toUpperCase() == 'IN_PROGRESS') ...[
+                const SizedBox(height: 12),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    onPressed: () {
+                      context.push('/track/${booking.id}');
+                    },
+                    icon: const Icon(Icons.location_on, size: 18),
+                    label: const Text('Track Tour'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF2196F3),
+                      foregroundColor: Colors.white,
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ],
           ),
         ),

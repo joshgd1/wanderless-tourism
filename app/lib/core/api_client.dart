@@ -263,6 +263,36 @@ class ApiClient {
     return resp.data as Map<String, dynamic>;
   }
 
+  // ─── Location tracking ─────────────────────────────────────────────────────
+
+  /// Update GPS location for the current user (guide or tourist)
+  Future<Map<String, dynamic>> updateLocation({
+    required int bookingId,
+    required String role, // 'guide' or 'tourist'
+    required double lat,
+    required double lng,
+  }) async {
+    final resp = await _dioInstance.put(
+      '/bookings/$bookingId/location',
+      data: {
+        'role': role,
+        'lat': lat,
+        'lng': lng,
+      },
+      options: Options(headers: _authHeaders),
+    );
+    return resp.data as Map<String, dynamic>;
+  }
+
+  /// Get current location of both guide and tourist for a booking
+  Future<Map<String, dynamic>> getLocation(int bookingId) async {
+    final resp = await _dioInstance.get(
+      '/bookings/$bookingId/location',
+      options: Options(headers: _authHeaders),
+    );
+    return resp.data as Map<String, dynamic>;
+  }
+
   // ─── Business Owner ───────────────────────────────────────────────────────
 
   Future<Map<String, dynamic>> businessLogin({

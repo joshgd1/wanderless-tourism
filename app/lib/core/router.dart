@@ -21,6 +21,7 @@ import '../features/trip_plan/screens/trip_plan_list_screen.dart';
 import '../features/settings/screens/settings_screen.dart';
 import '../features/guide/screens/guide_login_screen.dart';
 import '../features/guide/screens/guide_dashboard_screen.dart';
+import '../features/tracking/screens/tour_tracking_screen.dart';
 import '../shared/widgets/main_shell.dart';
 import 'auth_provider.dart';
 import 'guide_auth_provider.dart';
@@ -179,6 +180,12 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => ItineraryScreen(
           bookingId: int.parse(state.pathParameters['bookingId']!),
           guideId: state.uri.queryParameters['guideId'] ?? '',
+        ),
+      ),
+      GoRoute(
+        path: '/track/:bookingId',
+        builder: (context, state) => TourTrackingScreen(
+          bookingId: int.parse(state.pathParameters['bookingId']!),
         ),
       ),
       GoRoute(

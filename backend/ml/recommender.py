@@ -183,9 +183,11 @@ class ContentBasedRecommender:
 
         logger.info(
             "content_recommender.fitted",
-            n_tourists=len(tourists),
-            n_guides=len(guides),
-            n_destinations=len(DESTINATIONS),
+            extra={
+                "n_tourists": len(tourists),
+                "n_guides": len(guides),
+                "n_destinations": len(DESTINATIONS),
+            },
         )
         return self
 
@@ -319,10 +321,12 @@ class CollaborativeRecommender:
 
         logger.info(
             "collaborative_recommender.fitted",
-            n_ratings=len(ratings),
-            n_tourists=m,
-            n_guides=n,
-            n_factors=k_factors,
+            extra={
+                "n_ratings": len(ratings),
+                "n_tourists": m,
+                "n_guides": n,
+                "n_factors": k_factors,
+            },
         )
         return self
 

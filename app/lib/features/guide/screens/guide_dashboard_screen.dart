@@ -465,6 +465,30 @@ class _GuideBookingCard extends StatelessWidget {
               ],
             ),
 
+            // Track Tour button for IN_PROGRESS status
+            if (status == 'IN_PROGRESS' && !isHistory) ...[
+              const SizedBox(height: 16),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: () {
+                    context.push('/track/${booking['id']}');
+                  },
+                  icon: const Icon(Icons.location_on, size: 18),
+                  label: const Text('Track Tour'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF2196F3),
+                    foregroundColor: Colors.white,
+                    elevation: 0,
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+
             // Action buttons for REQUESTED status
             if (isRequested && !isHistory) ...[
               const SizedBox(height: 16),

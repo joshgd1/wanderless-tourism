@@ -307,29 +307,66 @@ class ItineraryScreen extends ConsumerWidget {
               ),
             ],
           ),
-          child: Row(
-            children: [
-              Expanded(
-                child: ElevatedButton(
-                  onPressed: () {
-                    context.go('/rate/$bookingId?guideId=$guideId');
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF25D366),
-                    foregroundColor: Colors.white,
-                    minimumSize: const Size.fromHeight(52),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
+          child: itineraryAsync.when(
+            loading: () => const SizedBox(height: 52),
+            error: (_, __) => const SizedBox(height: 52),
+            data: (itinerary) {
+              final isInProgress = itinerary.status.toUpperCase() == 'IN_PROGRESS';
+              return Row(
+                children: [
+                  if (isInProgress) ...[
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: () {
+                          context.go('/track/$bookingId');
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF2196F3),
+                          foregroundColor: Colors.white,
+                          minimumSize: const Size.fromHeight(52),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                          elevation: 0,
+                        ),
+                        child: const Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.location_on, size: 20),
+                            SizedBox(width: 6),
+                            Text(
+                              'Track Tour',
+                              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
-                    elevation: 0,
+                    const SizedBox(width: 12),
+                  ],
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () {
+                        context.go('/rate/$bookingId?guideId=$guideId');
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF25D366),
+                        foregroundColor: Colors.white,
+                        minimumSize: const Size.fromHeight(52),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        elevation: 0,
+                      ),
+                      child: const Text(
+                        'Rate Experience',
+                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                      ),
+                    ),
                   ),
-                  child: const Text(
-                    'Rate Experience',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-                  ),
-                ),
-              ),
-            ],
+                ],
+              );
+            },
           ),
         ),
       ),

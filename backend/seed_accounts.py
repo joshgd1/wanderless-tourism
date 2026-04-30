@@ -81,6 +81,7 @@ def seed_test_guide(db: SessionLocal):
         return guide
     guide.email = "guide@wanderless.com"
     guide.password_hash = TEST_PASSWORD_HASH
+    guide.license_verified = True
     db.commit()
     print(f"  Guide: guide@wanderless.com / wanderless123  (id={guide.id}, name={guide.name})")
     return guide

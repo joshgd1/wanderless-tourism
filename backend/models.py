@@ -140,3 +140,16 @@ class TripPlan(Base):
     group_size = Column(Integer, nullable=True)
     booking_id = Column(Integer, ForeignKey("bookings.id"), nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
+
+
+class LocationTracking(Base):
+    """Real-time GPS location for guide and tourist during active tour."""
+    __tablename__ = "location_tracking"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    booking_id = Column(Integer, ForeignKey("bookings.id"), unique=True)
+    guide_lat = Column(Float, nullable=True)
+    guide_lng = Column(Float, nullable=True)
+    tourist_lat = Column(Float, nullable=True)
+    tourist_lng = Column(Float, nullable=True)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)

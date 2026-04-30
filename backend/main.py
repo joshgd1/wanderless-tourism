@@ -1051,6 +1051,22 @@ async def update_booking_status(
     if not is_tourist and not is_guide:
         raise HTTPException(status_code=403, detail="Not your booking")
 
+    new_status = data.get("status")
+
+    # Guide qualification guard: prevent unqualified guides from confirming bookings
+    if is_guide and new_status == "CONFIRMED" and b.status == "REQUESTED":
+        guide = db.query(models.Guide).filter_by(id=guide_id).first()
+        if guide:
+            if not guide.license_verified:
+                raise HTTPException(status_code=400, detail="Guide license not verified")
+            if (guide.rating_count or 0) < 5:
+                raise HTTPException(status_code=400, detail="Guide rating below minimum (5 required)")
+        logger.info(
+            f"booking.guide_qualified booking_id={booking_id} "
+            f"guide_id={guide_id} license_verified={guide.license_verified} "
+            f"rating_count={guide.rating_count}"
+        )
+
     valid_transitions = {
         "REQUESTED": ["CONFIRMED", "CANCELLED"],
         "CONFIRMED": ["PAID", "CANCELLED"],
@@ -1059,7 +1075,6 @@ async def update_booking_status(
         "COMPLETED": [],
         "CANCELLED": [],
     }
-    new_status = data.get("status")
     cancelled_by = data.get("cancelled_by")  # 'tourist' or 'guide'
 
     if new_status:
@@ -1344,6 +1359,115 @@ async def update_trip_plan(
     db.commit()
     logger.info(f"trip_plan.updated plan_id={plan_id} status={p.status}")
     return {"id": p.id, "status": p.status}
+
+
+# ─── Location tracking endpoints ─────────────────────────────────────────────────
+
+@app.put("/api/bookings/{booking_id}/location")
+async def update_location(
+    booking_id: int,
+    data: dict,
+    authorization: str | None = Header(None),
+    db: Session = Depends(get_db),
+):
+    """
+    Update GPS location for the authenticated user (guide or tourist).
+    Requires JWT auth. Only the guide or tourist assigned to the booking can update.
+    Accepts: { "role": "guide" | "tourist", "lat": float, "lng": float }
+    """
+    # Authenticate — accept either tourist or guide JWT
+    tourist_id = _get_tourist_id_optional(authorization)
+    guide_id = _get_guide_id_optional(authorization)
+
+    if not tourist_id and not guide_id:
+        raise HTTPException(status_code=401, detail="Authorization required")
+
+    role = data.get("role")
+    lat = data.get("lat")
+    lng = data.get("lng")
+
+    if role not in ("guide", "tourist") or lat is None or lng is None:
+        raise HTTPException(status_code=400, detail="role (guide|tourist), lat, and lng are required")
+
+    # Verify the booking exists and the user is assigned to it
+    booking = db.query(models.Booking).filter_by(id=booking_id).first()
+    if not booking:
+        raise HTTPException(status_code=404, detail="Booking not found")
+
+    if role == "guide":
+        if guide_id != booking.guide_id:
+            raise HTTPException(status_code=403, detail="You are not the guide for this booking")
+    else:
+        if tourist_id != booking.tourist_id:
+            raise HTTPException(status_code=403, detail="You are not the tourist for this booking")
+
+    # Get or create location tracking record
+    loc = db.query(models.LocationTracking).filter_by(booking_id=booking_id).first()
+    if not loc:
+        loc = models.LocationTracking(booking_id=booking_id)
+        db.add(loc)
+
+    if role == "guide":
+        loc.guide_lat = lat
+        loc.guide_lng = lng
+    else:
+        loc.tourist_lat = lat
+        loc.tourist_lng = lng
+
+    loc.updated_at = datetime.utcnow()
+    db.commit()
+
+    logger.info(
+        f"location.updated booking_id={booking_id} role={role} "
+        f"lat={lat} lng={lng}"
+    )
+    return {
+        "booking_id": booking_id,
+        "guide_lat": loc.guide_lat,
+        "guide_lng": loc.guide_lng,
+        "tourist_lat": loc.tourist_lat,
+        "tourist_lng": loc.tourist_lng,
+        "updated_at": loc.updated_at.isoformat() if loc.updated_at else None,
+    }
+
+
+@app.get("/api/bookings/{booking_id}/location")
+async def get_location(
+    booking_id: int,
+    authorization: str | None = Header(None),
+    db: Session = Depends(get_db),
+):
+    """
+    Get current GPS locations for guide and tourist on an active booking.
+    Requires JWT auth. Either party on the booking can read locations.
+    """
+    tourist_id = _get_tourist_id_optional(authorization)
+    guide_id = _get_guide_id_optional(authorization)
+
+    if not tourist_id and not guide_id:
+        raise HTTPException(status_code=401, detail="Authorization required")
+
+    booking = db.query(models.Booking).filter_by(id=booking_id).first()
+    if not booking:
+        raise HTTPException(status_code=404, detail="Booking not found")
+
+    # Either the guide or tourist of this booking can read locations
+    is_guide = guide_id == booking.guide_id
+    is_tourist = tourist_id == booking.tourist_id
+    if not is_guide and not is_tourist:
+        raise HTTPException(status_code=403, detail="Not a participant of this booking")
+
+    loc = db.query(models.LocationTracking).filter_by(booking_id=booking_id).first()
+
+    logger.info(f"location.read booking_id={booking_id} guide_id={guide_id} tourist_id={tourist_id}")
+    return {
+        "booking_id": booking_id,
+        "guide_lat": loc.guide_lat if loc else None,
+        "guide_lng": loc.guide_lng if loc else None,
+        "tourist_lat": loc.tourist_lat if loc else None,
+        "tourist_lng": loc.tourist_lng if loc else None,
+        "updated_at": loc.updated_at.isoformat() if loc and loc.updated_at else None,
+    }
 
 
 # ─── Admin ─────────────────────────────────────────────────────────────────────
