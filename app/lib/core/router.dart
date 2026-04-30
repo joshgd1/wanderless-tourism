@@ -9,6 +9,7 @@ import '../features/ratings/screens/rate_experience_screen.dart';
 import '../features/profile/screens/profile_screen.dart';
 import '../features/bookings/screens/bookings_screen.dart';
 import '../features/onboarding/screens/interests_screen.dart';
+import '../features/onboarding/screens/experience_type_screen.dart';
 import '../features/onboarding/screens/language_screen.dart';
 import '../features/onboarding/screens/travel_style_screen.dart';
 import '../features/trip_plan/screens/create_trip_plan_screen.dart';
@@ -22,6 +23,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/onboarding',
         builder: (context, state) => const InterestsScreen(),
+      ),
+      GoRoute(
+        path: '/onboarding/experience-type',
+        builder: (context, state) => const ExperienceTypeScreen(),
       ),
       GoRoute(
         path: '/onboarding/language',

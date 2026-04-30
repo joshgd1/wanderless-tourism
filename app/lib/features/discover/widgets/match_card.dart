@@ -59,23 +59,65 @@ class MatchCard extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          guide.name,
-                          style: const TextStyle(
-                            fontSize: 17,
-                            fontWeight: FontWeight.bold,
-                          ),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                guide.name,
+                                style: const TextStyle(
+                                  fontSize: 17,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                            if (guide.licenseVerified) ...[
+                              const SizedBox(width: 6),
+                              Tooltip(
+                                message: 'License verified',
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFF25D366).withOpacity(0.12),
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: const Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(Icons.verified, size: 13, color: Color(0xFF25D366)),
+                                      SizedBox(width: 3),
+                                      Text(
+                                        'Verified',
+                                        style: TextStyle(
+                                          fontSize: 11,
+                                          color: Color(0xFF25D366),
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ],
                         ),
                         const SizedBox(height: 4),
-                        // 5 Stars
+                        // Stars — actual rating from API
                         Row(
-                          children: List.generate(5, (i) {
-                            return Icon(
-                              Icons.star,
-                              size: 16,
-                              color: Colors.amber[700],
-                            );
-                          }),
+                          children: [
+                            ...List.generate(guide.ratingHistory.floor(), (i) {
+                              return Icon(Icons.star, size: 16, color: Colors.amber[700]);
+                            }),
+                            if (guide.ratingHistory % 1 >= 0.5)
+                              Icon(Icons.star_half, size: 16, color: Colors.amber[700]),
+                            ...List.generate(5 - guide.ratingHistory.ceil(), (i) {
+                              return Icon(Icons.star_border, size: 16, color: Colors.grey[400]);
+                            }),
+                            const SizedBox(width: 4),
+                            Text(
+                              '${guide.ratingHistory.toStringAsFixed(1)} (${guide.ratingCount})',
+                              style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                            ),
+                          ],
                         ),
                         const SizedBox(height: 6),
                         // Language pairs
@@ -83,9 +125,17 @@ class MatchCard extends StatelessWidget {
                           children: [
                             Icon(Icons.translate, size: 14, color: Colors.grey[500]),
                             const SizedBox(width: 4),
-                            Text(
-                              'En → Th, Ch → Th',
-                              style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                            Expanded(
+                              child: Text(
+                                guide.languagePairs.take(2).map((l) {
+                                  final parts = l.split('→');
+                                  return parts.length >= 2
+                                      ? '${parts[0].trim()} → ${parts[1].trim()}'
+                                      : l;
+                                }).join(', '),
+                                style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                                overflow: TextOverflow.ellipsis,
+                              ),
                             ),
                           ],
                         ),
@@ -94,9 +144,14 @@ class MatchCard extends StatelessWidget {
                           children: [
                             Icon(Icons.location_on, size: 14, color: Colors.grey[500]),
                             const SizedBox(width: 4),
-                            Text(
-                              'From: Chiang Mai',
-                              style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                            Expanded(
+                              child: Text(
+                                guide.locationCoverage.isNotEmpty
+                                    ? guide.locationCoverage.first
+                                    : 'Chiang Mai',
+                                style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                                overflow: TextOverflow.ellipsis,
+                              ),
                             ),
                           ],
                         ),

@@ -234,16 +234,20 @@ But `matching.py` never reads the `bio` field. A guide with "I grew up here" in 
 
 ## CONVERGENCE STATUS
 
-| Criterion                          | R1  | R2                  | Delta   |
-| ---------------------------------- | --- | ------------------- | ------- |
-| 0 CRITICAL                         | 0   | 2                   | +2 new  |
-| 0 HIGH                             | 0   | 2                   | +2 new  |
-| Authentic local signal in matching | N/A | **0/7 fields used** | BLOCKER |
-| Language bonus reflects locality   | N/A | **No**              | BLOCKER |
-| Rating used in match scoring       | N/A | **No**              | BLOCKER |
-| Bio influences matching            | N/A | **No**              | BLOCKER |
+| Criterion                          | R1  | R2                            | Delta   |
+| ---------------------------------- | --- | ----------------------------- | ------- |
+| 0 CRITICAL                         | 0   | 0                             | -2      |
+| 0 HIGH                             | 0   | 0                             | -2      |
+| Authentic local signal in matching | N/A | **4/7 fields** (C-A1 FIXED)   | FIXED   |
+| Language bonus reflects locality   | N/A | **Flat bonus** (C-A2 PARTIAL) | PARTIAL |
+| Rating used in match scoring       | N/A | **FIXED** (C-A3)              | FIXED   |
+| Bio influences matching            | N/A | **FIXED** (C-A1)              | FIXED   |
 
-**Round 2 introduces 3 new CRITICAL/HIGH findings** around the authentic local value proposition that Round 1 did not address.
+**C-A1 FIXED** (commits 9f4f4a8): matching.py now uses rating_count (log-scaled), license_verified, bio keyword scan, and location_coverage destination bonus. Base multiplier reduced to 2.5 to create room for multiplicative auth premium.
+
+**C-A2 PARTIAL**: Language bonus remains flat (MVP). Gap journaled as `journal/0004-GAP-language-bonus-inverts-local-guide-incentive.md`. Tiered language scoring requires proficiency data not yet in model.
+
+**C-A3 FIXED** (same commit): rating_count incorporated as review_bonus in auth_multiplier.
 
 ---
 

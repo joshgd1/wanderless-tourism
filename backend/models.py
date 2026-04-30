@@ -34,6 +34,7 @@ class Tourist(Base):
     language = Column(String)
     age_group = Column(String)
     travel_style = Column(String)
+    experience_type = Column(String, default="authentic_local")  # 'authentic_local' | 'tourist_friendly'
     energy_curve = Column(String)  # pipe-delimited
     created_at = Column(DateTime, default=datetime.utcnow)
 

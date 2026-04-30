@@ -51,7 +51,7 @@ class TravelStyleScreen extends ConsumerWidget {
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: const Text(
-                      '3 / 3',
+                      '4 / 4',
                       style: TextStyle(
                         fontSize: 12,
                         color: Color(0xFF25D366),
@@ -167,7 +167,7 @@ class TravelStyleScreen extends ConsumerWidget {
               Row(
                 children: [
                   TextButton(
-                    onPressed: () => context.go('/onboarding/language'),
+                    onPressed: () => context.go('/onboarding/experience-type'),
                     child: const Text('Back'),
                   ),
                   const Spacer(),

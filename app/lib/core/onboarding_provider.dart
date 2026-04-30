@@ -12,6 +12,8 @@ class OnboardingState {
   final String language;
   final String ageGroup;
   final String travelStyle;
+  /// Experience type: 'authentic_local' or 'tourist_friendly'
+  final String experienceType;
 
   OnboardingState({
     this.foodInterest = 0.5,
@@ -22,6 +24,7 @@ class OnboardingState {
     this.language = 'en',
     this.ageGroup = '26-35',
     this.travelStyle = 'solo',
+    this.experienceType = 'authentic_local',
   });
 
   OnboardingState copyWith({
@@ -33,6 +36,7 @@ class OnboardingState {
     String? language,
     String? ageGroup,
     String? travelStyle,
+    String? experienceType,
   }) {
     return OnboardingState(
       foodInterest: foodInterest ?? this.foodInterest,
@@ -43,6 +47,7 @@ class OnboardingState {
       language: language ?? this.language,
       ageGroup: ageGroup ?? this.ageGroup,
       travelStyle: travelStyle ?? this.travelStyle,
+      experienceType: experienceType ?? this.experienceType,
     );
   }
 
@@ -56,6 +61,7 @@ class OnboardingState {
       'language': language,
       'age_group': ageGroup,
       'travel_style': travelStyle,
+      'experience_type': experienceType,
     };
   }
 }
@@ -71,6 +77,7 @@ class OnboardingNotifier extends StateNotifier<OnboardingState> {
   void setLanguage(String v) => state = state.copyWith(language: v);
   void setAgeGroup(String v) => state = state.copyWith(ageGroup: v);
   void setTravelStyle(String v) => state = state.copyWith(travelStyle: v);
+  void setExperienceType(String v) => state = state.copyWith(experienceType: v);
 
   Future<String> createTourist() async {
     final api = ApiClient();

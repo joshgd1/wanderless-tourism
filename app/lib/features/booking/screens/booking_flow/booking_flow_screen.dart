@@ -8,6 +8,15 @@ import '../../../../core/onboarding_provider.dart';
 final selectedDateProvider = StateProvider<DateTime?>((_) => null);
 final selectedGroupSizeProvider = StateProvider<int>((_) => 1);
 
+final _guideBudgetProvider = FutureProvider.family<String, String>((ref, guideId) async {
+  final api = ApiClient();
+  final guide = await api.getGuide(guideId);
+  return guide['budget_tier'] as String? ?? 'mid';
+});
+
+// Server-side pricing by budget tier (matches backend _TIER_HOURLY_RATE)
+final _tierPrices = {'budget': 1000.0, 'mid': 2000.0, 'premium': 4000.0};
+
 class BookingFlowScreen extends ConsumerStatefulWidget {
   final String guideId;
 
@@ -28,13 +37,13 @@ class _BookingFlowScreenState extends ConsumerState<BookingFlowScreen> {
       final date = ref.read(selectedDateProvider)!;
       final groupSize = ref.read(selectedGroupSizeProvider);
       final api = ApiClient();
+      // Server calculates price — client no longer sets gross_value
       final result = await api.createBooking({
         'tourist_id': touristId,
         'guide_id': widget.guideId,
         'tour_date': DateFormat('yyyy-MM-dd').format(date),
         'duration_hours': 4.0,
         'group_size': groupSize,
-        'gross_value': 1500.0,
       });
       if (mounted) {
         final bookingId = result['id'] as int;
@@ -142,10 +151,18 @@ class _ConfirmStep extends ConsumerWidget {
     required this.onBack,
   });
 
+  String _formatPrice(double price) {
+    return '฿${price.toStringAsFixed(0).replaceAllMapped(
+        RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+        (Match m) => '${m[1]},',
+      )}';
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final date = ref.watch(selectedDateProvider);
     final groupSize = ref.watch(selectedGroupSizeProvider);
+    final budgetAsync = ref.watch(_guideBudgetProvider(guideId));
 
     return Padding(
       padding: const EdgeInsets.all(24),
@@ -181,7 +198,18 @@ class _ConfirmStep extends ConsumerWidget {
                   const Divider(),
                   const _InfoRow(label: 'Duration', value: '4 hours'),
                   const Divider(),
-                  const _InfoRow(label: 'Price', value: '฿1,500'),
+                  budgetAsync.when(
+                    data: (budget) {
+                      final price = _tierPrices[budget] ?? 2000.0;
+                      return _InfoRow(
+                        label: 'Est. Price',
+                        value: '$_formatPrice(price)',
+                        valueColor: const Color(0xFF25D366),
+                      );
+                    },
+                    loading: () => const _InfoRow(label: 'Est. Price', value: 'Loading...'),
+                    error: (_, __) => const _InfoRow(label: 'Est. Price', value: '—'),
+                  ),
                 ],
               ),
             ),
@@ -222,7 +250,8 @@ class _ConfirmStep extends ConsumerWidget {
 class _InfoRow extends StatelessWidget {
   final String label;
   final String value;
-  const _InfoRow({required this.label, required this.value});
+  final Color? valueColor;
+  const _InfoRow({required this.label, required this.value, this.valueColor});
 
   @override
   Widget build(BuildContext context) {
@@ -232,7 +261,13 @@ class _InfoRow extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(label, style: TextStyle(color: Colors.grey[600])),
-          Text(value, style: const TextStyle(fontWeight: FontWeight.w600)),
+          Text(
+            value,
+            style: TextStyle(
+              fontWeight: FontWeight.w600,
+              color: valueColor,
+            ),
+          ),
         ],
       ),
     );

@@ -67,23 +67,53 @@ class GuideDetailScreen extends ConsumerWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            guide.name,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 26,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
                           Row(
                             children: [
-                              ...List.generate(5, (i) {
-                                return Icon(
-                                  Icons.star,
-                                  size: 18,
-                                  color: Colors.amber,
-                                );
+                              Expanded(
+                                child: Text(
+                                  guide.name,
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 26,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                              if (guide.licenseVerified)
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFF25D366),
+                                    borderRadius: BorderRadius.circular(20),
+                                  ),
+                                  child: const Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(Icons.verified, size: 14, color: Colors.white),
+                                      SizedBox(width: 4),
+                                      Text(
+                                        'Verified',
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          Row(
+                            children: [
+                              ...List.generate(guide.ratingHistory.floor(), (i) {
+                                return const Icon(Icons.star, size: 18, color: Colors.amber);
+                              }),
+                              if (guide.ratingHistory % 1 >= 0.5)
+                                const Icon(Icons.star_half, size: 18, color: Colors.amber),
+                              ...List.generate(5 - guide.ratingHistory.ceil(), (i) {
+                                return Icon(Icons.star_border, size: 18, color: Colors.white54);
                               }),
                               const SizedBox(width: 8),
                               Text(

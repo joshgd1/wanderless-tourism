@@ -71,6 +71,7 @@ async def get_tourist(tourist_id: str, db: Session = Depends(get_db)):
         "language": t.language,
         "age_group": t.age_group,
         "travel_style": t.travel_style,
+        "experience_type": t.experience_type,
     }
 
 
@@ -88,6 +89,7 @@ async def create_tourist(data: dict, db: Session = Depends(get_db)):
         language=data["language"],
         age_group=data.get("age_group", "26-35"),
         travel_style=data.get("travel_style", "solo"),
+        experience_type=data.get("experience_type", "authentic_local"),
         energy_curve="|".join(["0.5"] * 24),
     )
     db.add(t)
@@ -140,6 +142,7 @@ async def get_guide(guide_id: str, db: Session = Depends(get_db)):
         "rating_history": g.rating_history,
         "rating_count": g.rating_count,
         "specialties": g.specialties.split("|"),
+        "license_verified": g.license_verified,
     }
 
 
@@ -172,15 +175,22 @@ async def get_matches(
             "photo_url": g.photo_url,
             "bio": g.bio,
             "expertise_tags": g.expertise_tags.split("|"),
+            "language_pairs": g.language_pairs.split("|"),
+            "location_coverage": g.location_coverage.split("|"),
             "rating_history": g.rating_history,
             "rating_count": g.rating_count,
             "budget_tier": g.budget_tier,
+            "license_verified": g.license_verified,
             "score": item["score"],
             "lang_match": item["lang_match"],
         })
 
     logger.info(f"matches.ok tourist_id={tourist_id} count={len(results)} latency_ms={(time.monotonic() - t0) * 1000:.1f}")
     return results
+
+
+# Price lookup by budget tier (server-side, not client-controlled)
+_TIER_HOURLY_RATE = {"budget": 250.0, "mid": 500.0, "premium": 1000.0}
 
 
 @app.post("/api/bookings")
@@ -211,6 +221,10 @@ async def create_booking(data: dict, db: Session = Depends(get_db)):
     if group_size <= 0:
         raise HTTPException(status_code=400, detail="group_size must be positive")
 
+    # Server-side pricing — derive from guide's budget tier, not client value
+    hourly_rate = _TIER_HOURLY_RATE.get(guide.budget_tier, 500.0)
+    gross_value = hourly_rate * duration
+
     b = models.Booking(
         tourist_id=data["tourist_id"],
         guide_id=data["guide_id"],
@@ -218,22 +232,25 @@ async def create_booking(data: dict, db: Session = Depends(get_db)):
         tour_date=data["tour_date"],
         duration_hours=duration,
         group_size=group_size,
-        gross_value=data.get("gross_value", 1500.0),
+        gross_value=gross_value,
         status="REQUESTED",
         payment_status="held_escrow",
     )
     db.add(b)
     db.commit()
     db.refresh(b)
-    logger.info(f"booking.created booking_id={b.id} tourist_id={b.tourist_id} guide_id={b.guide_id}")
-    return {"id": b.id, "status": b.status}
+    logger.info(f"booking.created booking_id={b.id} tourist_id={b.tourist_id} guide_id={b.guide_id} gross_value={gross_value}")
+    return {"id": b.id, "status": b.status, "gross_value": gross_value}
 
 
 @app.get("/api/bookings/{booking_id}")
-async def get_booking(booking_id: int, db: Session = Depends(get_db)):
+async def get_booking(booking_id: int, tourist_id: str | None = None, db: Session = Depends(get_db)):
     b = db.query(models.Booking).filter_by(id=booking_id).first()
     if not b:
         raise HTTPException(status_code=404, detail="Booking not found")
+    # Ownership check — tourist_id must match unless admin
+    if tourist_id and b.tourist_id != tourist_id:
+        raise HTTPException(status_code=403, detail="Not your booking")
     return {
         "id": b.id,
         "tourist_id": b.tourist_id,
@@ -249,11 +266,30 @@ async def get_booking(booking_id: int, db: Session = Depends(get_db)):
 
 
 @app.put("/api/bookings/{booking_id}/status")
-async def update_booking_status(booking_id: int, data: dict, db: Session = Depends(get_db)):
+async def update_booking_status(booking_id: int, tourist_id: str | None = None, data: dict | None = None, db: Session = Depends(get_db)):
+    if data is None:
+        data = {}
     b = db.query(models.Booking).filter_by(id=booking_id).first()
     if not b:
         raise HTTPException(status_code=404, detail="Booking not found")
-    b.status = data["status"]
+    # Ownership check
+    if tourist_id and b.tourist_id != tourist_id:
+        raise HTTPException(status_code=403, detail="Not your booking")
+    # Status transition guard — only valid transitions allowed
+    valid_transitions = {
+        "REQUESTED": ["CONFIRMED", "CANCELLED"],
+        "CONFIRMED": ["PAID", "CANCELLED"],
+        "PAID": ["IN_PROGRESS", "CANCELLED"],
+        "IN_PROGRESS": ["COMPLETED"],
+        "COMPLETED": [],
+        "CANCELLED": [],
+    }
+    new_status = data.get("status")
+    if new_status:
+        allowed = valid_transitions.get(b.status, [])
+        if new_status not in allowed:
+            raise HTTPException(status_code=400, detail=f"Cannot transition from {b.status} to {new_status}")
+        b.status = new_status
     db.commit()
     logger.info(f"booking.status_updated booking_id={booking_id} status={b.status}")
     return {"id": b.id, "status": b.status}
@@ -407,6 +443,16 @@ async def accept_trip_plan(plan_id: int, data: dict, db: Session = Depends(get_d
     guide_id = data.get("guide_id")
     if not guide_id:
         raise HTTPException(status_code=400, detail="guide_id required")
+
+    # Verify guide authenticity credentials before accepting
+    guide = db.query(models.Guide).filter_by(id=guide_id).first()
+    if not guide:
+        raise HTTPException(status_code=404, detail="Guide not found")
+    if not guide.license_verified:
+        raise HTTPException(status_code=400, detail="Guide is not license verified")
+    if (guide.rating_count or 0) < 5:
+        raise HTTPException(status_code=400, detail="Guide does not meet minimum rating threshold")
+
     p.status = "ACCEPTED"
     p.guide_id = guide_id
     db.commit()

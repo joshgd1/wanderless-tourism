@@ -13,6 +13,7 @@ class Guide {
   final int ratingCount;
   final List<String> specialties;
   final List<double>? personalityVector;
+  final bool licenseVerified;
 
   Guide({
     required this.id,
@@ -29,6 +30,7 @@ class Guide {
     required this.ratingCount,
     required this.specialties,
     this.personalityVector,
+    this.licenseVerified = false,
   });
 
   factory Guide.fromJson(Map<String, dynamic> json) {
@@ -49,6 +51,7 @@ class Guide {
       personalityVector: json['personality_vector'] != null
           ? List<double>.from((json['personality_vector'] as List).map((e) => (e as num).toDouble()))
           : null,
+      licenseVerified: json['license_verified'] as bool? ?? false,
     );
   }
 }
@@ -59,9 +62,12 @@ class MatchedGuide {
   final String photoUrl;
   final String bio;
   final List<String> expertiseTags;
+  final List<String> languagePairs;
+  final List<String> locationCoverage;
   final double ratingHistory;
   final int ratingCount;
   final String budgetTier;
+  final bool licenseVerified;
   final double score;
   final bool langMatch;
 
@@ -71,9 +77,12 @@ class MatchedGuide {
     required this.photoUrl,
     required this.bio,
     required this.expertiseTags,
+    required this.languagePairs,
+    required this.locationCoverage,
     required this.ratingHistory,
     required this.ratingCount,
     required this.budgetTier,
+    required this.licenseVerified,
     required this.score,
     required this.langMatch,
   });
@@ -85,9 +94,12 @@ class MatchedGuide {
       photoUrl: json['photo_url'] as String,
       bio: json['bio'] as String,
       expertiseTags: List<String>.from(json['expertise_tags'] ?? []),
+      languagePairs: List<String>.from(json['language_pairs'] ?? []),
+      locationCoverage: List<String>.from(json['location_coverage'] ?? []),
       ratingHistory: (json['rating_history'] as num).toDouble(),
       ratingCount: json['rating_count'] as int,
       budgetTier: json['budget_tier'] as String,
+      licenseVerified: json['license_verified'] as bool? ?? false,
       score: (json['score'] as num).toDouble(),
       langMatch: json['lang_match'] as bool,
     );

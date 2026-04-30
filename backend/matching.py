@@ -124,6 +124,10 @@ def compatibility_score(
       verified_bonus  = 0.20 if license_verified else 0
       bio_bonus       = keyword matches for "grew up", "born", "local family", etc. [max 0.30]
       locality_bonus  = 0.25 if guide covers tourist's destination
+
+    When tourist.experience_type == 'authentic_local', authenticity signals are
+    boosted (×1.5) to prioritize genuinely local guides. When 'tourist_friendly',
+    authenticity signals are reduced and language bonus is boosted (×1.3).
     """
     dot_min, dot_max = dot_range
     nd = (raw_dot(tourist, guide) - dot_min) / (dot_max - dot_min)
@@ -137,7 +141,19 @@ def compatibility_score(
     pace_compat = clamp(1.0 - pace_diff * 0.35, 0.6, 1.0)
 
     compat = budget_compat * pace_compat
-    bonus = lang_match * 0.30 + (compat - 0.8) * 0.15
+
+    # Adjust bonuses based on experience type preference
+    experience_type = getattr(tourist, 'experience_type', None) or 'authentic_local'
+    if experience_type == 'authentic_local':
+        # Boost authenticity signals, reduce language weighting
+        auth_scale = 1.5
+        lang_scale = 0.7
+    else:
+        # Boost language match for tourist-friendly guides
+        auth_scale = 0.5
+        lang_scale = 1.3
+
+    bonus = (lang_match * 0.30 * lang_scale) + (compat - 0.8) * 0.15
 
     # Authenticity signals as multiplicative premium on the interest-match core only
     review_bonus = min(math.log1p(guide.rating_count or 1) / 10, MAX_REVIEW_BONUS)
@@ -145,7 +161,7 @@ def compatibility_score(
     bio_bonus = _bio_authenticity(guide.bio)
     locality_bonus = _location_match(guide, destination)
 
-    auth_multiplier = 1.0 + review_bonus + verified_bonus + bio_bonus + locality_bonus
+    auth_multiplier = 1.0 + (review_bonus + verified_bonus + bio_bonus + locality_bonus) * auth_scale
 
     # Core interest match × BASE (2.5) × auth multiplier, then fixed offsets and lang/pace bonus
     core = nd * 2.5 * auth_multiplier
