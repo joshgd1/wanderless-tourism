@@ -15,6 +15,7 @@ final _filterDestinationMap = {
   'Wellness': 'Nimman',
 };
 
+/// Rules-based match provider
 final matchesProvider = FutureProvider<List<MatchedGuide>>((ref) async {
   final authState = ref.watch(authProvider);
   final touristId = authState.touristId;
@@ -26,14 +27,59 @@ final matchesProvider = FutureProvider<List<MatchedGuide>>((ref) async {
   return data.map((e) => MatchedGuide.fromJson(e as Map<String, dynamic>)).toList();
 });
 
+/// ML-powered recommendation provider
+final mlMatchesProvider = FutureProvider<List<MatchedGuide>>((ref) async {
+  final authState = ref.watch(authProvider);
+  final touristId = authState.touristId;
+  if (touristId == null) return [];
+  final selectedFilter = ref.watch(_selectedFilterProvider);
+  final destination = _filterDestinationMap[selectedFilter];
+  final api = ApiClient();
+  final data = await api.getMlGuideRecommendations(touristId, topN: 5, destination: destination);
+  return data.map((e) => MatchedGuide.fromJson(e as Map<String, dynamic>)).toList();
+});
+
 final _selectedFilterProvider = StateProvider<String>((_) => 'Recommended');
+final _mlModeProvider = StateProvider<bool>((_) => false);
+
+class _ModeTab extends StatelessWidget {
+  final String label;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  const _ModeTab({required this.label, required this.isSelected, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+        decoration: BoxDecoration(
+          color: isSelected ? Colors.white : Colors.transparent,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            color: isSelected ? const Color(0xFF6B4EFF) : Colors.grey[600],
+          ),
+        ),
+      ),
+    );
+  }
+}
 
 class DiscoverScreen extends ConsumerWidget {
   const DiscoverScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final matchesAsync = ref.watch(matchesProvider);
+    final isMl = ref.watch(_mlModeProvider);
+    final matchesAsync = isMl ? ref.watch(mlMatchesProvider) : ref.watch(matchesProvider);
     final selectedFilter = ref.watch(_selectedFilterProvider);
 
     return Scaffold(
@@ -109,8 +155,59 @@ class DiscoverScreen extends ConsumerWidget {
           SliverToBoxAdapter(
             child: Container(
               color: const Color(0xFFF5F5F5),
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-              child: SingleChildScrollView(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // ML Toggle Row
+                  Row(
+                    children: [
+                      const Text(
+                        'Recommendation Mode',
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF1A2E1A),
+                        ),
+                      ),
+                      const Spacer(),
+                      Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(20),
+                          gradient: isMl
+                              ? const LinearGradient(
+                                  colors: [Color(0xFF6B4EFF), Color(0xFF25D366)],
+                                )
+                              : null,
+                          color: isMl ? null : const Color(0xFFF0F0F0),
+                        ),
+                        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            _ModeTab(
+                              label: 'Rules',
+                              isSelected: !isMl,
+                              onTap: () {
+                                ref.read(_mlModeProvider.notifier).state = false;
+                                ref.invalidate(matchesProvider);
+                              },
+                            ),
+                            _ModeTab(
+                              label: 'ML-Powered',
+                              isSelected: isMl,
+                              onTap: () {
+                                ref.read(_mlModeProvider.notifier).state = true;
+                                ref.invalidate(mlMatchesProvider);
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
                 child: Row(
                   children: ['Recommended', 'All', 'Cultural', 'Nature', 'Adventure', 'Wellness'].map((filter) {
@@ -122,7 +219,11 @@ class DiscoverScreen extends ConsumerWidget {
                         selected: isSelected,
                         onSelected: (_) {
                           ref.read(_selectedFilterProvider.notifier).state = filter;
-                          ref.invalidate(matchesProvider);
+                          if (isMl) {
+                            ref.invalidate(mlMatchesProvider);
+                          } else {
+                            ref.invalidate(matchesProvider);
+                          }
                         },
                         backgroundColor: Colors.white,
                         selectedColor: const Color(0xFF25D366).withOpacity(0.15),
@@ -172,7 +273,9 @@ class DiscoverScreen extends ConsumerWidget {
                     Text('Failed to load matches', style: TextStyle(color: Colors.grey[600])),
                     const SizedBox(height: 12),
                     ElevatedButton(
-                      onPressed: () => ref.refresh(matchesProvider),
+                      onPressed: () => isMl
+                          ? ref.refresh(mlMatchesProvider)
+                          : ref.refresh(matchesProvider),
                       child: const Text('Retry'),
                     ),
                   ],

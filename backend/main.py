@@ -15,6 +15,7 @@ from sqlalchemy.orm import Session
 
 from database import init_db, get_db, compute_dot_range
 from matching import compatibility_score, top_matches
+from ml import fit_recommender
 import models  # noqa: F401 — models registered with Base.metadata
 
 logger = logging.getLogger("wanderless")
@@ -135,8 +136,15 @@ async def lifespan(app: FastAPI):
     # Startup: seed DB from CSV
     db = next(get_db())
     init_db(db)
+
+    # Fit ML recommender on seeded data
+    tourists = db.query(models.Tourist).all()
+    guides = db.query(models.Guide).all()
+    ratings = db.query(models.Rating).all()
+    fit_recommender(tourists, guides, ratings)
+
     db.close()
-    logger.info("wanderless.startup database_seeded")
+    logger.info("wanderless.startup database_seeded ml_recommender_fitted")
     yield
     logger.info("wanderless.shutdown server_shutdown")
 
@@ -757,6 +765,99 @@ async def get_matches(
         })
 
     logger.info(f"matches.ok tourist_id={tourist_id} count={len(results)} latency_ms={(time.monotonic() - t0) * 1000:.1f}")
+    return results
+
+
+# ─── ML Recommendations ────────────────────────────────────────────────────────
+
+from ml import get_recommender
+
+
+@app.get("/api/recommendations/{tourist_id}/guides")
+async def get_ml_guide_recommendations(
+    tourist_id: str,
+    destination: str | None = None,
+    top_n: int = 5,
+    auth_tourist_id: str = Depends(_get_tourist_id),
+    db: Session = Depends(get_db),
+):
+    """
+    ML-powered guide recommendations combining content-based + collaborative filtering.
+
+    Returns top-N guides ranked by hybrid score with per-score breakdown:
+      - score: overall hybrid score (0–1)
+      - score_content: content-based similarity (0–1)
+      - score_collab: collaborative-filter rating prediction (0–1)
+      - score_dest: destination affinity bonus (0–1)
+    Requires JWT auth — tourist can only get their own recommendations.
+    """
+    if tourist_id != auth_tourist_id:
+        raise HTTPException(status_code=403, detail="Cannot access another tourist's recommendations")
+
+    tourist = db.query(models.Tourist).filter_by(id=tourist_id).first()
+    if not tourist:
+        raise HTTPException(status_code=404, detail="Tourist not found")
+
+    recommender = get_recommender()
+    scored = recommender.recommend_guides(tourist_id, destination=destination, top_n=top_n)
+
+    guide_map = {g.id: g for g in db.query(models.Guide).all()}
+    results = []
+    for item in scored:
+        gid = item["guide_id"]
+        g = guide_map.get(gid)
+        if not g:
+            continue
+        results.append({
+            "guide_id": gid,
+            "name": g.name,
+            "photo_url": g.photo_url,
+            "bio": g.bio,
+            "expertise_tags": g.expertise_tags.split("|"),
+            "location_coverage": g.location_coverage.split("|"),
+            "rating_history": g.rating_history,
+            "rating_count": g.rating_count,
+            "budget_tier": g.budget_tier,
+            "license_verified": g.license_verified,
+            "score": item["score"],
+            "score_content": item["score_content"],
+            "score_collab": item["score_collab"],
+            "score_dest": item["score_dest"],
+            "ml_explanation": (
+                f"Content match={item['score_content']:.0%}, "
+                f"Collaborative={item['score_collab']:.0%}, "
+                f"Overall={item['score']:.0%}"
+            ),
+        })
+
+    logger.info(f"ml_guide_recommendations.ok tourist_id={tourist_id} count={len(results)}")
+    return results
+
+
+@app.get("/api/recommendations/{tourist_id}/destinations")
+async def get_ml_destination_recommendations(
+    tourist_id: str,
+    auth_tourist_id: str = Depends(_get_tourist_id),
+    db: Session = Depends(get_db),
+):
+    """
+    ML-powered destination recommendations for a tourist.
+
+    Returns all destinations ranked by content-based similarity to tourist's
+    preference profile, with ML-generated explanation per destination.
+    Requires JWT auth.
+    """
+    if tourist_id != auth_tourist_id:
+        raise HTTPException(status_code=403, detail="Cannot access another tourist's recommendations")
+
+    tourist = db.query(models.Tourist).filter_by(id=tourist_id).first()
+    if not tourist:
+        raise HTTPException(status_code=404, detail="Tourist not found")
+
+    recommender = get_recommender()
+    results = recommender.recommend_destinations(tourist_id)
+
+    logger.info(f"ml_dest_recommendations.ok tourist_id={tourist_id} count={len(results)}")
     return results
 
 

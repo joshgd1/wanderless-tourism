@@ -25,6 +25,8 @@ class MatchCard extends StatelessWidget {
     return name.isNotEmpty ? name[0].toUpperCase() : '?';
   }
 
+  bool get _isMl => guide.mlExplanation != null;
+
   @override
   Widget build(BuildContext context) {
     return Card(
@@ -41,16 +43,19 @@ class MatchCard extends StatelessWidget {
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Circular profile photo with initials fallback
                   Container(
                     width: 80,
                     height: 80,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      border: Border.all(color: const Color(0xFF25D366), width: 2),
+                      border: Border.all(
+                        color: _isMl ? const Color(0xFF6B4EFF) : const Color(0xFF25D366),
+                        width: 2,
+                      ),
                       boxShadow: [
                         BoxShadow(
-                          color: const Color(0xFF25D366).withOpacity(0.2),
+                          color: (_isMl ? const Color(0xFF6B4EFF) : const Color(0xFF25D366))
+                              .withOpacity(0.2),
                           blurRadius: 8,
                           offset: const Offset(0, 2),
                         ),
@@ -118,7 +123,6 @@ class MatchCard extends StatelessWidget {
                           ],
                         ),
                         const SizedBox(height: 4),
-                        // Stars — actual rating from API
                         Row(
                           children: [
                             ...List.generate(guide.ratingHistory.floor(), (i) {
@@ -137,7 +141,6 @@ class MatchCard extends StatelessWidget {
                           ],
                         ),
                         const SizedBox(height: 6),
-                        // Language pairs
                         Row(
                           children: [
                             Icon(Icons.translate, size: 14, color: Colors.grey[500]),
@@ -178,19 +181,13 @@ class MatchCard extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 12),
-              // Bio
               Text(
                 guide.bio,
-                style: TextStyle(
-                  fontSize: 13,
-                  color: Colors.grey[700],
-                  height: 1.4,
-                ),
+                style: TextStyle(fontSize: 13, color: Colors.grey[700], height: 1.4),
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
               ),
               const SizedBox(height: 12),
-              // Tags
               Wrap(
                 spacing: 6,
                 runSpacing: 6,
@@ -217,10 +214,15 @@ class MatchCard extends StatelessWidget {
                 }).toList(),
               ),
               const SizedBox(height: 16),
-              // Bottom row: score badge + View Profile button
               Row(
                 children: [
-                  _ScoreBadge(score: guide.score),
+                  _ScoreBadge(
+                    score: guide.score,
+                    isMl: _isMl,
+                    scoreContent: guide.scoreContent,
+                    scoreCollab: guide.scoreCollab,
+                    scoreDest: guide.scoreDest,
+                  ),
                   const SizedBox(width: 12),
                   _BudgetBadge(tier: guide.budgetTier),
                   const Spacer(),
@@ -255,10 +257,51 @@ class MatchCard extends StatelessWidget {
 
 class _ScoreBadge extends StatelessWidget {
   final double score;
-  const _ScoreBadge({required this.score});
+  final bool isMl;
+  final double? scoreContent;
+  final double? scoreCollab;
+  final double? scoreDest;
+
+  const _ScoreBadge({
+    required this.score,
+    this.isMl = false,
+    this.scoreContent,
+    this.scoreCollab,
+    this.scoreDest,
+  });
 
   @override
   Widget build(BuildContext context) {
+    if (isMl) {
+      return GestureDetector(
+        onTap: () => _showMlBreakdown(context),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              colors: [Color(0xFF6B4EFF), Color(0xFF25D366)],
+            ),
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.auto_awesome, size: 13, color: Colors.white),
+              const SizedBox(width: 4),
+              Text(
+                'ML ${(score * 100).toInt()}%',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 12,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
@@ -276,6 +319,96 @@ class _ScoreBadge extends StatelessWidget {
               color: Color(0xFF25D366),
               fontWeight: FontWeight.bold,
               fontSize: 13,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showMlBreakdown(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (_) => Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Row(
+              children: [
+                Icon(Icons.auto_awesome, color: Color(0xFF6B4EFF), size: 20),
+                SizedBox(width: 8),
+                Text(
+                  'ML Score Breakdown',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            _ScoreRow('Overall Score', '${(score * 100).toInt()}%', isBold: true),
+            if (scoreContent != null)
+              _ScoreRow('Content Match', '${(scoreContent! * 100).toInt()}%',
+                  subtitle: 'Preference similarity'),
+            if (scoreCollab != null)
+              _ScoreRow('Collaborative', '${(scoreCollab! * 100).toInt()}%',
+                  subtitle: 'Rating pattern learning'),
+            if (scoreDest != null && scoreDest! > 0)
+              _ScoreRow('Destination Fit', '${(scoreDest! * 100).toInt()}%',
+                  subtitle: 'Location bonus'),
+            if (guide.mlExplanation != null) ...[
+              const Divider(height: 24),
+              Text(
+                guide.mlExplanation!,
+                style: TextStyle(fontSize: 13, color: Colors.grey[700], height: 1.4),
+              ),
+            ],
+            const SizedBox(height: 8),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ScoreRow extends StatelessWidget {
+  final String label;
+  final String value;
+  final String? subtitle;
+  final bool isBold;
+
+  const _ScoreRow(this.label, this.value, {this.subtitle, this.isBold = false});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: isBold ? FontWeight.bold : FontWeight.w500,
+                ),
+              ),
+              if (subtitle != null)
+                Text(subtitle!, style: TextStyle(fontSize: 12, color: Colors.grey[600])),
+            ],
+          ),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: isBold ? FontWeight.bold : FontWeight.w600,
+              color: isBold ? const Color(0xFF6B4EFF) : Colors.black87,
             ),
           ),
         ],
@@ -309,10 +442,7 @@ class _BudgetBadge extends StatelessWidget {
         color: Colors.grey[100],
         borderRadius: BorderRadius.circular(20),
       ),
-      child: Text(
-        label,
-        style: TextStyle(fontSize: 12, color: Colors.grey[700]),
-      ),
+      child: Text(label, style: TextStyle(fontSize: 12, color: Colors.grey[700])),
     );
   }
 }
@@ -338,11 +468,7 @@ class _InitialsAvatar extends StatelessWidget {
       alignment: Alignment.center,
       child: Text(
         initials,
-        style: TextStyle(
-          color: color,
-          fontSize: 24,
-          fontWeight: FontWeight.bold,
-        ),
+        style: TextStyle(color: color, fontSize: 24, fontWeight: FontWeight.bold),
       ),
     );
   }

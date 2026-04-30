@@ -176,7 +176,12 @@ class TravelStyleScreen extends ConsumerWidget {
                     onPressed: () async {
                       final authState = ref.read(authProvider);
                       final touristId = authState.touristId;
-                      await notifier.savePreferences(touristId);
+                      final savedTouristId = await notifier.savePreferences(touristId);
+                      // For anonymous onboarding, store the new touristId in auth state
+                      // so the discover screen can use it
+                      if (savedTouristId != null && touristId == null) {
+                        ref.read(authProvider.notifier).setTouristId(savedTouristId);
+                      }
                       if (context.mounted) {
                         context.go('/discover');
                       }

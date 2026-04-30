@@ -90,6 +90,35 @@ class ApiClient {
     return resp.data as List;
   }
 
+  // ─── ML Recommendations ──────────────────────────────────────────────────
+
+  /// ML-powered guide recommendations (content-based + collaborative filtering)
+  Future<List<dynamic>> getMlGuideRecommendations(
+    String touristId, {
+    int topN = 5,
+    String? destination,
+  }) async {
+    final params = <String, dynamic>{'top_n': topN};
+    if (destination != null && destination.isNotEmpty) {
+      params['destination'] = destination;
+    }
+    final resp = await _dio.get(
+      '/recommendations/$touristId/guides',
+      queryParameters: params,
+      options: Options(headers: _authHeaders),
+    );
+    return resp.data as List;
+  }
+
+  /// ML-powered destination recommendations
+  Future<List<dynamic>> getMlDestinationRecommendations(String touristId) async {
+    final resp = await _dio.get(
+      '/recommendations/$touristId/destinations',
+      options: Options(headers: _authHeaders),
+    );
+    return resp.data as List;
+  }
+
   // ─── Tourist ───────────────────────────────────────────────────────────────
 
   Future<Map<String, dynamic>> getTourist(String touristId) async {

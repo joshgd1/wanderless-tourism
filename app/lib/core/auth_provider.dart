@@ -144,6 +144,12 @@ class AuthNotifier extends StateNotifier<AuthState> {
   void clearError() {
     state = state.copyWith(error: null);
   }
+
+  /// Called after anonymous onboarding creates a tourist, to store the ID.
+  void setTouristId(String touristId) {
+    state = state.copyWith(touristId: touristId);
+    _saveToStorage();
+  }
 }
 
 final authProvider = StateNotifierProvider<AuthNotifier, AuthState>((ref) {

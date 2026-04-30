@@ -71,6 +71,12 @@ class MatchedGuide {
   final double score;
   final bool langMatch;
 
+  // ML-specific fields (present when using /api/recommendations/{tid}/guides)
+  final double? scoreContent;
+  final double? scoreCollab;
+  final double? scoreDest;
+  final String? mlExplanation;
+
   MatchedGuide({
     required this.guideId,
     required this.name,
@@ -85,6 +91,10 @@ class MatchedGuide {
     required this.licenseVerified,
     required this.score,
     required this.langMatch,
+    this.scoreContent,
+    this.scoreCollab,
+    this.scoreDest,
+    this.mlExplanation,
   });
 
   factory MatchedGuide.fromJson(Map<String, dynamic> json) {
@@ -101,7 +111,17 @@ class MatchedGuide {
       budgetTier: json['budget_tier'] as String,
       licenseVerified: json['license_verified'] as bool? ?? false,
       score: (json['score'] as num).toDouble(),
-      langMatch: json['lang_match'] as bool,
+      langMatch: json['lang_match'] as bool? ?? false,
+      scoreContent: json['score_content'] != null
+          ? (json['score_content'] as num).toDouble()
+          : null,
+      scoreCollab: json['score_collab'] != null
+          ? (json['score_collab'] as num).toDouble()
+          : null,
+      scoreDest: json['score_dest'] != null
+          ? (json['score_dest'] as num).toDouble()
+          : null,
+      mlExplanation: json['ml_explanation'] as String?,
     );
   }
 }
