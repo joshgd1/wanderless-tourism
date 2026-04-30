@@ -9,6 +9,7 @@ Guide auth fix committed (f1d7f2a).
 
 - `888419e` — fix: resolve red team critical findings — security, trust signals, and UX
 - `f1d7f2a` — fix(auth): add guide JWT auth — close guide impersonation on accept
+- `0bcb7a1` — fix(matching): replace keyword-only bio auth with weighted multi-signal
 
 ## Round 2 Red Team Findings
 
@@ -35,15 +36,15 @@ Guide auth fix committed (f1d7f2a).
 ### Security — Outstanding
 | Severity | Finding | File | Notes |
 |----------|---------|------|-------|
-| MEDIUM | Bio keyword gaming | matching.py:80 | _bio_authenticity still keyword-based, gameable |
+| ~~MEDIUM~~ | ~~Bio keyword gaming~~ | ~~matching.py:80~~ | ~~FIXED (0bcb7a1) — weighted multi-signal~~ |
 | LOW | Filter UX | frontend | Filter chips don't trigger API calls |
 
 ## What's Fixed
 
 - **Trust**: Real stars, verification badges on cards + detail screen
-- **Security**: IDOR closed, server pricing, credential checks on accept, guide JWT auth
+- **Security**: IDOR closed, server pricing, credential checks on accept, guide JWT auth, bio auth multi-signal
 - **UX**: Experience type onboarding, dynamic pricing, real language/location on cards
-- **Matching**: auth_scale by experience_type (authentic_local ×1.5, tourist_friendly ×0.5)
+- **Matching**: auth_scale by experience_type (authentic_local ×1.5, tourist_friendly ×0.5), neighborhood cross-ref for bio authenticity
 - **CORS**: Explicit origins (not wildcard)
 - **Rate limiting**: In-memory per-IP rate limiter middleware
 
@@ -52,7 +53,7 @@ Guide auth fix committed (f1d7f2a).
 1. ~~Guide auth~~ — FIXED (f1d7f2a)
 2. ~~CORS wildcard~~ — already fixed in code
 3. ~~Rate limiting~~ — already in place
-4. **Bio keyword gaming** — `_bio_authenticity` still keyword-based, gameable
+4. ~~Bio keyword gaming~~ — FIXED (0bcb7a1) — weighted multi-signal, neighborhood cross-ref
 5. **Filter UX** — filter chips don't trigger API calls (frontend)
 
 ## Traps
