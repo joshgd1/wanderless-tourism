@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/onboarding_provider.dart';
+import '../../../../core/auth_provider.dart';
 
 class TravelStyleScreen extends ConsumerWidget {
   const TravelStyleScreen({super.key});
@@ -173,7 +174,9 @@ class TravelStyleScreen extends ConsumerWidget {
                   const Spacer(),
                   ElevatedButton(
                     onPressed: () async {
-                      final touristId = await notifier.createTourist();
+                      final authState = ref.read(authProvider);
+                      final touristId = authState.touristId;
+                      await notifier.savePreferences(touristId);
                       if (context.mounted) {
                         context.go('/discover');
                       }

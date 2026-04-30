@@ -2,11 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/api_client.dart';
-import '../../../../core/onboarding_provider.dart';
+import '../../../../core/auth_provider.dart';
 import '../../../../shared/models/trip_plan.dart';
 
 final myTripPlansProvider = FutureProvider<List<TripPlan>>((ref) async {
-  final touristId = await ref.watch(touristIdProvider.future);
+  final authState = ref.watch(authProvider);
+  final touristId = authState.touristId;
   if (touristId == null) return [];
   final api = ApiClient();
   final data = await api.getTripPlans(touristId: touristId);
@@ -628,12 +629,16 @@ class _TripPlanCard extends ConsumerWidget {
   Future<void> _cancelPlan(BuildContext context, WidgetRef ref, BuildContext sheetCtx) async {
     try {
       final api = ApiClient();
+      // Cancel the TripPlan — backend will also cancel linked booking + auto-refund
       await api.updateTripPlan(plan.id, {'status': 'CANCELLED'});
       ref.invalidate(myTripPlansProvider);
       if (context.mounted) {
         Navigator.pop(sheetCtx);
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Trip plan cancelled.')),
+          const SnackBar(
+            content: Text('Trip plan cancelled. Any payment has been refunded.'),
+            backgroundColor: Color(0xFF25D366),
+          ),
         );
       }
     } catch (e) {
@@ -646,10 +651,19 @@ class _TripPlanCard extends ConsumerWidget {
   Future<void> _confirmAndPay(BuildContext context, WidgetRef ref, BuildContext sheetCtx) async {
     if (plan.guideId == null) return;
     try {
+      final authState = ref.read(authProvider);
+      final touristId = authState.touristId;
+      if (touristId == null) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Please sign in to confirm booking')),
+          );
+        }
+        return;
+      }
       final api = ApiClient();
-      // Create actual booking from accepted trip plan
       final result = await api.createBooking({
-        'tourist_id': (await ref.read(touristIdProvider.future))!,
+        'tourist_id': touristId,
         'guide_id': plan.guideId,
         'tour_date': plan.tourDate ?? DateTime.now().toString().split(' ')[0],
         'duration_hours': plan.durationHours ?? 4.0,

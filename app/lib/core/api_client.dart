@@ -10,6 +10,55 @@ final dio = Dio(BaseOptions(
 class ApiClient {
   final Dio _dio = dio;
 
+  String? _authToken;
+
+  void setAuthToken(String token) {
+    _authToken = token;
+    _dio.options.headers['Authorization'] = 'Bearer $token';
+  }
+
+  void clearAuthToken() {
+    _authToken = null;
+    _dio.options.headers.remove('Authorization');
+  }
+
+  Map<String, String> get _authHeaders {
+    if (_authToken == null) return {};
+    return {'Authorization': 'Bearer $_authToken'};
+  }
+
+  // ─── Auth ─────────────────────────────────────────────────────────────────
+
+  Future<Map<String, dynamic>> register({
+    required String email,
+    required String password,
+    required String name,
+  }) async {
+    final resp = await _dio.post(
+      '/auth/register',
+      data: {'email': email, 'password': password, 'name': name},
+    );
+    return resp.data as Map<String, dynamic>;
+  }
+
+  Future<Map<String, dynamic>> login({
+    required String email,
+    required String password,
+  }) async {
+    final resp = await _dio.post(
+      '/auth/login',
+      data: {'email': email, 'password': password},
+    );
+    return resp.data as Map<String, dynamic>;
+  }
+
+  Future<Map<String, dynamic>> getMe() async {
+    final resp = await _dio.get('/auth/me', options: Options(headers: _authHeaders));
+    return resp.data as Map<String, dynamic>;
+  }
+
+  // ─── Guides ────────────────────────────────────────────────────────────────
+
   Future<List<dynamic>> getGuides() async {
     final resp = await _dio.get('/guides');
     return resp.data as List;
@@ -21,9 +70,15 @@ class ApiClient {
   }
 
   Future<List<dynamic>> getMatches(String touristId, {int topN = 5}) async {
-    final resp = await _dio.get('/matches/$touristId', queryParameters: {'top_n': topN});
+    final resp = await _dio.get(
+      '/matches/$touristId',
+      queryParameters: {'top_n': topN},
+      options: Options(headers: _authHeaders),
+    );
     return resp.data as List;
   }
+
+  // ─── Tourist ───────────────────────────────────────────────────────────────
 
   Future<Map<String, dynamic>> getTourist(String touristId) async {
     final resp = await _dio.get('/tourists/$touristId');
@@ -35,18 +90,42 @@ class ApiClient {
     return resp.data as Map<String, dynamic>;
   }
 
-  Future<Map<String, dynamic>> createBooking(Map<String, dynamic> data) async {
-    final resp = await _dio.post('/bookings', data: data);
+  Future<Map<String, dynamic>> updatePreferences(
+    String touristId,
+    Map<String, dynamic> data,
+  ) async {
+    final resp = await _dio.put(
+      '/tourists/$touristId/preferences',
+      data: data,
+      options: Options(headers: _authHeaders),
+    );
     return resp.data as Map<String, dynamic>;
   }
 
-  Future<List<Map<String, dynamic>>> getBookings(String touristId) async {
-    // Placeholder: backend doesn't have a tourist booking list endpoint yet
-    return [];
+  // ─── Bookings ─────────────────────────────────────────────────────────────
+
+  Future<Map<String, dynamic>> createBooking(Map<String, dynamic> data) async {
+    final resp = await _dio.post(
+      '/bookings',
+      data: data,
+      options: Options(headers: _authHeaders),
+    );
+    return resp.data as Map<String, dynamic>;
+  }
+
+  Future<List<Map<String, dynamic>>> getBookings() async {
+    final resp = await _dio.get(
+      '/bookings',
+      options: Options(headers: _authHeaders),
+    );
+    return (resp.data as List).cast<Map<String, dynamic>>();
   }
 
   Future<Map<String, dynamic>> getBooking(int bookingId) async {
-    final resp = await _dio.get('/bookings/$bookingId');
+    final resp = await _dio.get(
+      '/bookings/$bookingId',
+      options: Options(headers: _authHeaders),
+    );
     return resp.data as Map<String, dynamic>;
   }
 
@@ -56,14 +135,22 @@ class ApiClient {
   }
 
   Future<Map<String, dynamic>> createRating(Map<String, dynamic> data) async {
-    final resp = await _dio.post('/ratings', data: data);
+    final resp = await _dio.post(
+      '/ratings',
+      data: data,
+      options: Options(headers: _authHeaders),
+    );
     return resp.data as Map<String, dynamic>;
   }
 
-  // ─── TripPlan (Grab-style) ───────────────────────────────────────────────
+  // ─── TripPlan ─────────────────────────────────────────────────────────────
 
   Future<Map<String, dynamic>> createTripPlan(Map<String, dynamic> data) async {
-    final resp = await _dio.post('/trip-plans', data: data);
+    final resp = await _dio.post(
+      '/trip-plans',
+      data: data,
+      options: Options(headers: _authHeaders),
+    );
     return resp.data as Map<String, dynamic>;
   }
 
@@ -72,7 +159,11 @@ class ApiClient {
     if (touristId != null) params['tourist_id'] = touristId;
     if (guideId != null) params['guide_id'] = guideId;
     if (status != null) params['status'] = status;
-    final resp = await _dio.get('/trip-plans', queryParameters: params);
+    final resp = await _dio.get(
+      '/trip-plans',
+      queryParameters: params,
+      options: Options(headers: _authHeaders),
+    );
     return resp.data as List;
   }
 
@@ -82,12 +173,31 @@ class ApiClient {
   }
 
   Future<Map<String, dynamic>> acceptTripPlan(int planId, String guideId) async {
-    final resp = await _dio.post('/trip-plans/$planId/accept', data: {'guide_id': guideId});
+    final resp = await _dio.post(
+      '/trip-plans/$planId/accept',
+      data: {'guide_id': guideId},
+      options: Options(headers: _authHeaders),
+    );
     return resp.data as Map<String, dynamic>;
   }
 
   Future<Map<String, dynamic>> updateTripPlan(int planId, Map<String, dynamic> data) async {
-    final resp = await _dio.put('/trip-plans/$planId', data: data);
+    final resp = await _dio.put(
+      '/trip-plans/$planId',
+      data: data,
+      options: Options(headers: _authHeaders),
+    );
+    return resp.data as Map<String, dynamic>;
+  }
+
+  Future<Map<String, dynamic>> updateBookingStatus(int bookingId, String status, {String? cancelledBy}) async {
+    final data = <String, dynamic>{'status': status};
+    if (cancelledBy != null) data['cancelled_by'] = cancelledBy;
+    final resp = await _dio.put(
+      '/bookings/$bookingId/status',
+      data: data,
+      options: Options(headers: _authHeaders),
+    );
     return resp.data as Map<String, dynamic>;
   }
 }

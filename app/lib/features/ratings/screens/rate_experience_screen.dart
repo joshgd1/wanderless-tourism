@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/api_client.dart';
-import '../../../../core/onboarding_provider.dart';
+import '../../../../core/auth_provider.dart';
 
 final ratingProvider = StateProvider<double>((_) => 4.0);
 
@@ -26,7 +26,16 @@ class _RateExperienceScreenState extends ConsumerState<RateExperienceScreen> {
   Future<void> _submitRating() async {
     setState(() => _loading = true);
     try {
-      final touristId = (await ref.read(touristIdProvider.future))!;
+      final authState = ref.read(authProvider);
+      final touristId = authState.touristId;
+      if (touristId == null) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Please sign in to rate')),
+          );
+        }
+        return;
+      }
       final rating = ref.read(ratingProvider);
       final api = ApiClient();
       await api.createRating({

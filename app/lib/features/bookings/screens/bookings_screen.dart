@@ -2,14 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/api_client.dart';
-import '../../../../core/onboarding_provider.dart';
+import '../../../../core/auth_provider.dart';
 import '../../../../shared/models/booking.dart';
 
 final bookingsListProvider = FutureProvider<List<Booking>>((ref) async {
-  final touristId = await ref.watch(touristIdProvider.future);
+  final authState = ref.watch(authProvider);
+  final touristId = authState.touristId;
   if (touristId == null) return [];
   final api = ApiClient();
-  final data = await api.getBookings(touristId);
+  final data = await api.getBookings();
   return data.map((e) => Booking.fromJson(e)).toList();
 });
 

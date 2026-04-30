@@ -2,11 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/api_client.dart';
-import '../../../../core/onboarding_provider.dart';
+import '../../../../core/auth_provider.dart';
 import '../../../../shared/models/tourist.dart';
 
 final profileProvider = FutureProvider<Tourist?>((ref) async {
-  final touristId = await ref.watch(touristIdProvider.future);
+  final authState = ref.watch(authProvider);
+  final touristId = authState.touristId;
   if (touristId == null) return null;
   final api = ApiClient();
   final data = await api.getTourist(touristId);
@@ -260,6 +261,29 @@ class ProfileScreen extends ConsumerWidget {
                         padding: const EdgeInsets.symmetric(vertical: 14),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 12),
+
+                    // Logout button
+                    SizedBox(
+                      width: double.infinity,
+                      child: TextButton.icon(
+                        onPressed: () async {
+                          await ref.read(authProvider.notifier).logout();
+                          if (context.mounted) {
+                            context.go('/login');
+                          }
+                        },
+                        icon: Icon(Icons.logout, color: Colors.red[400]),
+                        label: Text(
+                          'Sign Out',
+                          style: TextStyle(color: Colors.red[400]),
+                        ),
+                        style: TextButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 14),
                         ),
                       ),
                     ),

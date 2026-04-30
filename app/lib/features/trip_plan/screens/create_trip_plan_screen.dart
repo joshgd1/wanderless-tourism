@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/api_client.dart';
-import '../../../../core/onboarding_provider.dart';
+import '../../../../core/auth_provider.dart';
 import '../../../../shared/models/trip_plan.dart';
 
 class CreateTripPlanScreen extends ConsumerStatefulWidget {
@@ -111,10 +111,11 @@ class _CreateTripPlanScreenState extends ConsumerState<CreateTripPlanScreen> {
     setState(() => _isSubmitting = true);
 
     try {
-      final touristId = await ref.read(touristIdProvider.future);
+      final authState = ref.read(authProvider);
+      final touristId = authState.touristId;
       if (touristId == null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Please complete onboarding first')),
+          const SnackBar(content: Text('Please sign in first')),
         );
         return;
       }

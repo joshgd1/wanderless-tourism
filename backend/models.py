@@ -26,6 +26,9 @@ class Tourist(Base):
     __tablename__ = "tourists"
 
     id = Column(String, primary_key=True)
+    email = Column(String, unique=True, nullable=True)
+    password_hash = Column(String, nullable=True)
+    name = Column(String, nullable=True)
     food_interest = Column(Float)
     culture_interest = Column(Float)
     adventure_interest = Column(Float)
@@ -118,4 +121,5 @@ class TripPlan(Base):
     tour_date = Column(String, nullable=True)
     duration_hours = Column(Float, nullable=True)
     group_size = Column(Integer, nullable=True)
+    booking_id = Column(Integer, ForeignKey("bookings.id"), nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)

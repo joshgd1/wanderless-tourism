@@ -2,15 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/api_client.dart';
-import '../../../../core/onboarding_provider.dart';
+import '../../../../core/auth_provider.dart';
 import '../../../../shared/models/guide.dart';
 import '../widgets/match_card.dart';
 
 final matchesProvider = FutureProvider<List<MatchedGuide>>((ref) async {
-  final prefs = await ref.watch(touristIdProvider.future);
-  if (prefs == null) return [];
+  final authState = ref.watch(authProvider);
+  final touristId = authState.touristId;
+  if (touristId == null) return [];
   final api = ApiClient();
-  final data = await api.getMatches(prefs, topN: 5);
+  final data = await api.getMatches(touristId, topN: 5);
   return data.map((e) => MatchedGuide.fromJson(e as Map<String, dynamic>)).toList();
 });
 

@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:go_router/go_router.dart';
 import 'api_client.dart';
+import 'auth_provider.dart';
 import '../shared/models/tourist.dart';
 
 class OnboardingState {
@@ -79,22 +80,24 @@ class OnboardingNotifier extends StateNotifier<OnboardingState> {
   void setTravelStyle(String v) => state = state.copyWith(travelStyle: v);
   void setExperienceType(String v) => state = state.copyWith(experienceType: v);
 
-  Future<String> createTourist() async {
+  /// Save preferences — uses updatePreferences if touristId exists (post-registration),
+  /// otherwise creates a new anonymous tourist profile.
+  Future<String?> savePreferences(String? touristId) async {
     final api = ApiClient();
-    final result = await api.createTourist(state.toApiJson());
-    final touristId = result['id'] as String;
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('tourist_id', touristId);
-    return touristId;
+
+    if (touristId != null) {
+      // Authenticated user — update preferences
+      await api.updatePreferences(touristId, state.toApiJson());
+      return touristId;
+    } else {
+      // Anonymous onboarding — create tourist
+      final result = await api.createTourist(state.toApiJson());
+      return result['id'] as String?;
+    }
   }
 }
 
 final onboardingProvider =
     StateNotifierProvider<OnboardingNotifier, OnboardingState>((ref) {
   return OnboardingNotifier();
-});
-
-final touristIdProvider = FutureProvider<String?>((ref) async {
-  final prefs = await SharedPreferences.getInstance();
-  return prefs.getString('tourist_id');
 });
