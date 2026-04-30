@@ -275,6 +275,7 @@ async def get_me(tourist_id: str = Depends(_get_tourist_id), db: Session = Depen
         "pace_preference": t.pace_preference,
         "budget_level": t.budget_level,
         "language": t.language,
+        "languages": t.languages.split("|") if t.languages else [],
         "age_group": t.age_group,
         "travel_style": t.travel_style,
         "experience_type": t.experience_type,
@@ -298,6 +299,7 @@ async def get_tourist(tid: str, db: Session = Depends(get_db)):
         "pace_preference": t.pace_preference,
         "budget_level": t.budget_level,
         "language": t.language,
+        "languages": t.languages.split("|") if t.languages else [],
         "age_group": t.age_group,
         "travel_style": t.travel_style,
         "experience_type": t.experience_type,
@@ -312,6 +314,9 @@ async def create_tourist(data: dict, db: Session = Depends(get_db)):
     complete the preference flow AFTER registration.
     """
     tourist_id = data.get("id") or f"T{uuid.uuid4().hex[:8].upper()}"
+    languages = data.get("languages")
+    if isinstance(languages, list):
+        languages = "|".join(languages)
     t = models.Tourist(
         id=tourist_id,
         food_interest=data["food_interest"],
@@ -319,7 +324,8 @@ async def create_tourist(data: dict, db: Session = Depends(get_db)):
         adventure_interest=data["adventure_interest"],
         pace_preference=data["pace_preference"],
         budget_level=data["budget_level"],
-        language=data["language"],
+        language=data.get("language", "en"),
+        languages=languages,
         age_group=data.get("age_group", "26-35"),
         travel_style=data.get("travel_style", "solo"),
         experience_type=data.get("experience_type", "authentic_local"),
@@ -350,6 +356,9 @@ async def update_preferences(
                   "travel_style", "experience_type"]:
         if field in data:
             setattr(t, field, data[field])
+    if "languages" in data:
+        langs = data["languages"]
+        t.languages = "|".join(langs) if isinstance(langs, list) else langs
     db.commit()
     logger.info(f"tourist.preferences_updated tourist_id={tid}")
     return {"id": t.id, "status": "updated"}

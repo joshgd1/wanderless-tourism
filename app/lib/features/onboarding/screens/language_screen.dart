@@ -92,11 +92,20 @@ class LanguageScreen extends ConsumerWidget {
                 spacing: 12,
                 runSpacing: 12,
                 children: _languages.map((lang) {
-                  final selected = state.language == lang.$1;
-                  return ChoiceChip(
+                  final selected = state.languages.contains(lang.$1);
+                  return FilterChip(
                     label: Text(lang.$2),
                     selected: selected,
-                    onSelected: (_) => notifier.setLanguage(lang.$1),
+                    onSelected: (_) {
+                      final current = List<String>.from(state.languages);
+                      if (selected) {
+                        current.remove(lang.$1);
+                      } else {
+                        current.add(lang.$1);
+                      }
+                      if (current.isEmpty) current.add(lang.$1); // always keep at least one
+                      notifier.setLanguages(current);
+                    },
                     selectedColor: const Color(0xFF25D366).withOpacity(0.15),
                     checkmarkColor: const Color(0xFF25D366),
                     labelStyle: TextStyle(

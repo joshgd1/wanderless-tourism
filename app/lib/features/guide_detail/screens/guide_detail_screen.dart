@@ -16,6 +16,15 @@ class GuideDetailScreen extends ConsumerWidget {
 
   const GuideDetailScreen({super.key, required this.guideId});
 
+  static int _uniqueLanguages(List<String> pairs) {
+    final langs = <String>{};
+    for (final lp in pairs) {
+      final parts = lp.split('→');
+      if (parts.isNotEmpty) langs.add(parts[0].trim());
+    }
+    return langs.length;
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final guideAsync = ref.watch(guideDetailProvider(guideId));
@@ -155,7 +164,7 @@ class GuideDetailScreen extends ConsumerWidget {
                             icon: Icons.translate,
                             label: 'Languages',
                             value: guide.languagePairs.isNotEmpty
-                                ? guide.languagePairs.first.split('→').first.trim()
+                                ? '${_uniqueLanguages(guide.languagePairs)} languages'
                                 : 'En',
                           ),
                           Container(width: 1, height: 40, color: Colors.grey[200]),

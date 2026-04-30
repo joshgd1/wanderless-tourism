@@ -46,7 +46,8 @@ class Tourist(Base):
     adventure_interest = Column(Float)
     pace_preference = Column(Float)
     budget_level = Column(Float)
-    language = Column(String)
+    language = Column(String)  # single language (backwards compat)
+    languages = Column(String, nullable=True)  # pipe-delimited multi-select e.g. "en|zh|th"
     age_group = Column(String)
     travel_style = Column(String)
     experience_type = Column(String, default="authentic_local")  # 'authentic_local' | 'tourist_friendly'

@@ -10,7 +10,7 @@ class OnboardingState {
   final double adventureInterest;
   final double pacePreference;
   final double budgetLevel;
-  final String language;
+  final List<String> languages;
   final String ageGroup;
   final String travelStyle;
   /// Experience type: 'authentic_local' or 'tourist_friendly'
@@ -22,7 +22,7 @@ class OnboardingState {
     this.adventureInterest = 0.5,
     this.pacePreference = 0.5,
     this.budgetLevel = 0.5,
-    this.language = 'en',
+    this.languages = const ['en'],
     this.ageGroup = '26-35',
     this.travelStyle = 'solo',
     this.experienceType = 'authentic_local',
@@ -34,7 +34,7 @@ class OnboardingState {
     double? adventureInterest,
     double? pacePreference,
     double? budgetLevel,
-    String? language,
+    List<String>? languages,
     String? ageGroup,
     String? travelStyle,
     String? experienceType,
@@ -45,7 +45,7 @@ class OnboardingState {
       adventureInterest: adventureInterest ?? this.adventureInterest,
       pacePreference: pacePreference ?? this.pacePreference,
       budgetLevel: budgetLevel ?? this.budgetLevel,
-      language: language ?? this.language,
+      languages: languages ?? this.languages,
       ageGroup: ageGroup ?? this.ageGroup,
       travelStyle: travelStyle ?? this.travelStyle,
       experienceType: experienceType ?? this.experienceType,
@@ -59,7 +59,7 @@ class OnboardingState {
       'adventure_interest': adventureInterest,
       'pace_preference': pacePreference,
       'budget_level': budgetLevel,
-      'language': language,
+      'languages': languages,
       'age_group': ageGroup,
       'travel_style': travelStyle,
       'experience_type': experienceType,
@@ -75,7 +75,7 @@ class OnboardingNotifier extends StateNotifier<OnboardingState> {
   void setAdventureInterest(double v) => state = state.copyWith(adventureInterest: v);
   void setPacePreference(double v) => state = state.copyWith(pacePreference: v);
   void setBudgetLevel(double v) => state = state.copyWith(budgetLevel: v);
-  void setLanguage(String v) => state = state.copyWith(language: v);
+  void setLanguages(List<String> v) => state = state.copyWith(languages: v);
   void setAgeGroup(String v) => state = state.copyWith(ageGroup: v);
   void setTravelStyle(String v) => state = state.copyWith(travelStyle: v);
   void setExperienceType(String v) => state = state.copyWith(experienceType: v);
