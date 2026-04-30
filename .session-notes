@@ -60,3 +60,40 @@ None — all security/UX gaps resolved.
 ## Open Questions
 
 - None
+# Session Notes — 2026-05-01
+
+## What happened today
+
+### Flutter Android CI
+- Created `app/.github/workflows/flutter-android.yml` — GitHub Actions workflow to build Flutter APK
+- Workflow: subosito/flutter-action@v2 with Flutter 3.24.0, runs `flutter pub get` → `flutter analyze` → `flutter build apk --debug`
+- Uploads artifact `wanderless-debug-apk` on success
+- Triggered on push/PR to `app/**` paths
+- Pushed to origin/main at commit 8f3f73b
+- GitHub Actions build was RUNNING when user went to sleep
+
+### Build status (as of sleep)
+- Flutter Android CI: `in_progress` — Build Flutter APK job running
+- Previous runs show `failure` on Build Flutter APK (likely pre-existing)
+
+### Architecture in place
+- Backend: FastAPI + SQLite, JWT auth, booking state machine
+- Flutter: Riverpod, go_router, flutter_map, location tracking
+- CI: GitHub Actions for Flutter Android builds
+- Booking flow: REQUESTED → CONFIRMED → PAID → IN_PROGRESS → COMPLETED
+- Location tracking: guide (blue) and tourist (green) circle markers on map, 5s polling
+
+## Still pending from original task list
+- Business portal smoke test
+- End-to-end smoke test: tourist flow
+
+## Tomorrow
+1. Check GitHub Actions run status — did flutter-android.yml build succeed?
+2. If failed: diagnose and fix the workflow
+3. Business portal smoke test
+4. End-to-end tourist flow smoke test
+5. Continue building out the travel app features
+
+## Git state
+- Main is clean (commit 8f3f73b pushed)
+- Lots of untracked noise (pycache, __pycache__, .dart_tool, etc.) — not committed, fine to leave

@@ -69,16 +69,15 @@ def seed_test_tourist(db: SessionLocal):
 def seed_test_guide(db: SessionLocal):
     existing = db.query(Guide).filter_by(email="guide@wanderless.com").first()
     if existing:
-        print(f"  Guide already exists: {existing.id}")
+        print(f"  Guide already exists: {existing.id} — updating password_hash")
+        existing.password_hash = TEST_PASSWORD_HASH
+        db.commit()
         return existing
     # Bind to an existing seeded guide (first guide in database)
     guide = db.query(Guide).first()
     if not guide:
         print("  ERROR: No guides found — run init_db first")
         return None
-    if guide.email:
-        print(f"  Guide already has email: {guide.email}")
-        return guide
     guide.email = "guide@wanderless.com"
     guide.password_hash = TEST_PASSWORD_HASH
     guide.license_verified = True
