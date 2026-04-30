@@ -10,6 +10,7 @@ Guide auth fix committed (f1d7f2a).
 - `888419e` — fix: resolve red team critical findings — security, trust signals, and UX
 - `f1d7f2a` — fix(auth): add guide JWT auth — close guide impersonation on accept
 - `0bcb7a1` — fix(matching): replace keyword-only bio auth with weighted multi-signal
+- `a46ae4a` — fix(flutter): make filter chips trigger API calls, update accept flow
 
 ## Round 2 Red Team Findings
 
@@ -47,14 +48,11 @@ Guide auth fix committed (f1d7f2a).
 - **Matching**: auth_scale by experience_type (authentic_local ×1.5, tourist_friendly ×0.5), neighborhood cross-ref for bio authenticity
 - **CORS**: Explicit origins (not wildcard)
 - **Rate limiting**: In-memory per-IP rate limiter middleware
+- **Filter UX**: Filter chips trigger API calls with destination parameter
 
 ## Outstanding Gaps
 
-1. ~~Guide auth~~ — FIXED (f1d7f2a)
-2. ~~CORS wildcard~~ — already fixed in code
-3. ~~Rate limiting~~ — already in place
-4. ~~Bio keyword gaming~~ — FIXED (0bcb7a1) — weighted multi-signal, neighborhood cross-ref
-5. **Filter UX** — filter chips don't trigger API calls (frontend)
+All major security and UX gaps from Round 2 red team are now resolved.
 
 ## Traps
 
