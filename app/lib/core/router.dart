@@ -16,6 +16,7 @@ import '../features/onboarding/screens/language_screen.dart';
 import '../features/onboarding/screens/travel_style_screen.dart';
 import '../features/trip_plan/screens/create_trip_plan_screen.dart';
 import '../features/trip_plan/screens/trip_plan_list_screen.dart';
+import '../features/settings/screens/settings_screen.dart';
 import '../shared/widgets/main_shell.dart';
 import 'auth_provider.dart';
 
@@ -99,6 +100,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/splash', builder: (_, __) => const SplashScreen()),
       GoRoute(path: '/login', builder: (_, __) => const LoginScreen()),
       GoRoute(path: '/signup', builder: (_, __) => const SignupScreen()),
+      GoRoute(path: '/settings', builder: (_, __) => const SettingsScreen()),
 
       // Onboarding flow (no auth required — accessible for new signups)
       GoRoute(path: '/onboarding', builder: (_, __) => const InterestsScreen()),

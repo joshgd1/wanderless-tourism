@@ -1,14 +1,22 @@
 import 'package:dio/dio.dart';
-import 'constants.dart';
-
-final dio = Dio(BaseOptions(
-  baseUrl: ApiConstants.baseUrl,
-  connectTimeout: const Duration(seconds: 10),
-  receiveTimeout: const Duration(seconds: 10),
-));
+import 'config.dart';
 
 class ApiClient {
-  final Dio _dio = dio;
+  late final Dio _dio;
+  static String? _baseUrl;
+
+  ApiClient() {
+    _baseUrl ??= ApiConfig.defaultUrl;
+    _dio = Dio(BaseOptions(
+      baseUrl: _baseUrl!,
+      connectTimeout: const Duration(seconds: 10),
+      receiveTimeout: const Duration(seconds: 10),
+    ));
+  }
+
+  static Future<void> init() async {
+    _baseUrl = await ApiConfig.getBaseUrl();
+  }
 
   String? _authToken;
 
