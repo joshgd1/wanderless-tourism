@@ -144,9 +144,14 @@ async def get_guide(guide_id: str, db: Session = Depends(get_db)):
 
 
 @app.get("/api/matches/{tourist_id}")
-async def get_matches(tourist_id: str, top_n: int = 5, db: Session = Depends(get_db)):
+async def get_matches(
+    tourist_id: str,
+    top_n: int = 5,
+    destination: str | None = None,
+    db: Session = Depends(get_db),
+):
     t0 = time.monotonic()
-    logger.info(f"matches.start tourist_id={tourist_id} top_n={top_n}")
+    logger.info(f"matches.start tourist_id={tourist_id} top_n={top_n} destination={destination}")
 
     tourist = db.query(models.Tourist).filter_by(id=tourist_id).first()
     if not tourist:
@@ -154,7 +159,7 @@ async def get_matches(tourist_id: str, top_n: int = 5, db: Session = Depends(get
 
     guides = db.query(models.Guide).all()
     dot_range = compute_dot_range(db)
-    scored = top_matches(tourist, guides, dot_range, top_n)
+    scored = top_matches(tourist, guides, dot_range, top_n, destination)
 
     # Enrich with guide details
     guide_map = {g.id: g for g in guides}

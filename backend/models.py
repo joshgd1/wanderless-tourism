@@ -56,6 +56,7 @@ class Guide(Base):
     rating_history = Column(Float)
     rating_count = Column(Integer)
     specialties = Column(String)  # pipe-delimited
+    license_verified = Column(Boolean, default=False)
     created_at = Column(DateTime, default=datetime.utcnow)
 
 
