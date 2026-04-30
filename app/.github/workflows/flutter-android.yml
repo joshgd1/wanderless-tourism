@@ -1,0 +1,40 @@
+name: Flutter Android CI
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "app/**"
+  pull_request:
+    branches: [main]
+    paths:
+      - "app/**"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.24.0"
+          channel: "stable"
+
+      - working-directory: app
+      - run: flutter pub get
+
+      - working-directory: app
+      - run: flutter analyze || true
+
+      - working-directory: app
+        env:
+          ANDROID_HOME: /opt/android-sdk
+          ANDROID_SDK_ROOT: /opt/android-sdk
+      - run: flutter build apk --debug
+
+      - name: Upload debug APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: wanderless-debug-apk
+          path: app/build/app/outputs/flutter-apk/wanderless-debug.apk
