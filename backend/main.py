@@ -75,6 +75,19 @@ def _get_tourist_id(authorization: str | None = Header(None)) -> str:
     return tourist_id
 
 
+def _get_guide_id(authorization: str | None = Header(None)) -> str:
+    """Verify JWT and return guide_id. Raises 401 if invalid."""
+    if not authorization:
+        raise HTTPException(status_code=401, detail="Authorization header required")
+    parts = authorization.split()
+    if len(parts) != 2 or parts[0].lower() != "bearer":
+        raise HTTPException(status_code=401, detail="Invalid authorization header format")
+    guide_id = _verify_token(parts[1])
+    if not guide_id:
+        raise HTTPException(status_code=401, detail="Invalid or expired token")
+    return guide_id
+
+
 # ─── Database helpers ────────────────────────────────────────────────────────────
 
 def _hash_password(password: str) -> str:
@@ -358,6 +371,103 @@ async def get_guide(guide_id: str, db: Session = Depends(get_db)):
         "rating_history": g.rating_history,
         "rating_count": g.rating_count,
         "specialties": g.specialties.split("|"),
+        "license_verified": g.license_verified,
+    }
+
+
+# ─── Guide auth endpoints ────────────────────────────────────────────────────────
+
+@app.post("/api/guides/register")
+async def register_guide(data: dict, db: Session = Depends(get_db)):
+    """
+    Register a new guide account.
+    Returns JWT token for immediate login.
+    """
+    email = data.get("email", "").strip().lower()
+    password = data.get("password", "")
+    guide_id = data.get("guide_id", "").strip()
+
+    if not email or "@" not in email:
+        raise HTTPException(status_code=400, detail="Valid email is required")
+    if not password or len(password) < 6:
+        raise HTTPException(status_code=400, detail="Password must be at least 6 characters")
+    if not guide_id:
+        raise HTTPException(status_code=400, detail="guide_id is required")
+
+    existing_email = db.query(models.Guide).filter_by(email=email).first()
+    if existing_email:
+        raise HTTPException(status_code=409, detail="Email already registered")
+
+    guide = db.query(models.Guide).filter_by(id=guide_id).first()
+    if not guide:
+        raise HTTPException(status_code=404, detail="Guide not found in system")
+    if guide.email:
+        raise HTTPException(status_code=409, detail="Guide already has an account")
+
+    guide.email = email
+    guide.password_hash = _hash_password(password)
+    db.commit()
+    logger.info(f"guide.register guide_id={guide_id} email={email}")
+
+    token = _create_token(guide_id)
+    return {
+        "access_token": token,
+        "token_type": "bearer",
+        "guide_id": guide_id,
+        "name": guide.name,
+    }
+
+
+@app.post("/api/guides/login")
+async def guide_login(data: dict, db: Session = Depends(get_db)):
+    """
+    Authenticate guide with email + password.
+    Returns JWT token.
+    """
+    email = data.get("email", "").strip().lower()
+    password = data.get("password", "")
+
+    if not email or not password:
+        raise HTTPException(status_code=400, detail="Email and password are required")
+
+    guide = db.query(models.Guide).filter_by(email=email).first()
+    if not guide or not guide.password_hash:
+        raise HTTPException(status_code=401, detail="Invalid email or password")
+
+    if not _verify_password(password, guide.password_hash):
+        raise HTTPException(status_code=401, detail="Invalid email or password")
+
+    token = _create_token(guide.id)
+    logger.info(f"guide.login guide_id={guide.id} email={email}")
+    return {
+        "access_token": token,
+        "token_type": "bearer",
+        "guide_id": guide.id,
+        "name": guide.name,
+    }
+
+
+@app.get("/api/guides/auth/me")
+async def get_guide_me(guide_id: str = Depends(_get_guide_id), db: Session = Depends(get_db)):
+    """Get current authenticated guide's profile."""
+    g = db.query(models.Guide).filter_by(id=guide_id).first()
+    if not g:
+        raise HTTPException(status_code=404, detail="Guide not found")
+    return {
+        "id": g.id,
+        "email": g.email,
+        "name": g.name,
+        "bio": g.bio,
+        "photo_url": g.photo_url,
+        "expertise_tags": g.expertise_tags.split("|") if g.expertise_tags else [],
+        "language_pairs": g.language_pairs.split("|") if g.language_pairs else [],
+        "pace_style": g.pace_style,
+        "group_size_preferred": g.group_size_preferred,
+        "budget_tier": g.budget_tier,
+        "location_coverage": g.location_coverage.split("|") if g.location_coverage else [],
+        "rating_history": g.rating_history,
+        "rating_count": g.rating_count,
+        "specialties": g.specialties.split("|") if g.specialties else [],
         "license_verified": g.license_verified,
     }
 
@@ -758,24 +868,18 @@ async def get_trip_plan(plan_id: int, db: Session = Depends(get_db)):
 @app.post("/api/trip-plans/{plan_id}/accept")
 async def accept_trip_plan(
     plan_id: int,
-    data: dict,
+    guide_id: str = Depends(_get_guide_id),
     db: Session = Depends(get_db),
 ):
     """
     Guide accepts an OPEN trip plan.
-    NOTE: Full guide auth requires guide JWT. This endpoint currently
-    requires the guide_id in the body. In production, guide_id must
-    come from the authenticated guide's session token.
+    Requires guide JWT auth — guide_id comes from the token, not the request body.
     """
     p = db.query(models.TripPlan).filter_by(id=plan_id).first()
     if not p:
         raise HTTPException(status_code=404, detail="Trip plan not found")
     if p.status != "OPEN":
         raise HTTPException(status_code=400, detail=f"Cannot accept plan with status {p.status}")
-
-    guide_id = data.get("guide_id")
-    if not guide_id:
-        raise HTTPException(status_code=400, detail="guide_id required")
 
     guide = db.query(models.Guide).filter_by(id=guide_id).first()
     if not guide:

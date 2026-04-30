@@ -46,6 +46,8 @@ class Guide(Base):
     __tablename__ = "guides"
 
     id = Column(String, primary_key=True)
+    email = Column(String, unique=True, nullable=True)
+    password_hash = Column(String, nullable=True)
     name = Column(String)
     bio = Column(Text)
     photo_url = Column(String)
