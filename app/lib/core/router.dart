@@ -63,22 +63,37 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF1A2E1A),
+      backgroundColor: const Color(0xFF006B3C),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              width: 80,
-              height: 80,
+              width: 90,
+              height: 90,
               decoration: BoxDecoration(
-                color: const Color(0xFF25D366).withOpacity(0.15),
+                color: Colors.white,
                 shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.15),
+                    blurRadius: 20,
+                    offset: const Offset(0, 8),
+                  ),
+                ],
               ),
-              child: const Icon(
-                Icons.explore,
-                size: 40,
-                color: Color(0xFF25D366),
+              child: ClipOval(
+                child: Image.asset(
+                  'assets/images/wanderless_logo.png',
+                  width: 90,
+                  height: 90,
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, __, ___) => const Icon(
+                    Icons.explore,
+                    size: 40,
+                    color: Color(0xFF00A86B),
+                  ),
+                ),
               ),
             ),
             const SizedBox(height: 24),
@@ -91,7 +106,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
               ),
             ),
             const SizedBox(height: 32),
-            const CircularProgressIndicator(color: Color(0xFF25D366)),
+            const CircularProgressIndicator(color: Color(0xFF00A86B)),
           ],
         ),
       ),
