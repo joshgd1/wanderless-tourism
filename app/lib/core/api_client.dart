@@ -211,4 +211,59 @@ class ApiClient {
     );
     return resp.data as Map<String, dynamic>;
   }
+
+  // ─── Business Owner ───────────────────────────────────────────────────────
+
+  Future<Map<String, dynamic>> businessLogin({
+    required String email,
+    required String password,
+  }) async {
+    final resp = await _dio.post(
+      '/business/login',
+      data: {'email': email, 'password': password},
+    );
+    return resp.data as Map<String, dynamic>;
+  }
+
+  Future<Map<String, dynamic>> businessRegister({
+    required String email,
+    required String password,
+    required String businessName,
+    String? phone,
+  }) async {
+    final resp = await _dio.post(
+      '/business/register',
+      data: {
+        'email': email,
+        'password': password,
+        'business_name': businessName,
+        if (phone != null) 'phone': phone,
+      },
+    );
+    return resp.data as Map<String, dynamic>;
+  }
+
+  Future<Map<String, dynamic>> businessMe() async {
+    final resp = await _dio.get(
+      '/business/me',
+      options: Options(headers: _authHeaders),
+    );
+    return resp.data as Map<String, dynamic>;
+  }
+
+  Future<Map<String, dynamic>> businessDashboard() async {
+    final resp = await _dio.get(
+      '/business/dashboard',
+      options: Options(headers: _authHeaders),
+    );
+    return resp.data as Map<String, dynamic>;
+  }
+
+  Future<List<dynamic>> businessGuides() async {
+    final resp = await _dio.get(
+      '/business/guides',
+      options: Options(headers: _authHeaders),
+    );
+    return resp.data as List;
+  }
 }

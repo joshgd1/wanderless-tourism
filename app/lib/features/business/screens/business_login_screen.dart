@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../../../core/auth_provider.dart';
+import '../../../../core/business_auth_provider.dart';
 
-class LoginScreen extends ConsumerStatefulWidget {
-  const LoginScreen({super.key});
+class BusinessLoginScreen extends ConsumerStatefulWidget {
+  const BusinessLoginScreen({super.key});
 
   @override
-  ConsumerState<LoginScreen> createState() => _LoginScreenState();
+  ConsumerState<BusinessLoginScreen> createState() => _BusinessLoginScreenState();
 }
 
-class _LoginScreenState extends ConsumerState<LoginScreen> {
+class _BusinessLoginScreenState extends ConsumerState<BusinessLoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
@@ -25,25 +25,29 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   Future<void> _login() async {
     if (!_formKey.currentState!.validate()) return;
-    ref.read(authProvider.notifier).clearError();
-    final success = await ref.read(authProvider.notifier).login(
+    ref.read(businessAuthProvider.notifier).clearError();
+    final success = await ref.read(businessAuthProvider.notifier).login(
       email: _emailController.text.trim(),
       password: _passwordController.text,
     );
     if (success && mounted) {
-      context.go('/discover');
+      context.go('/business/dashboard');
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final authState = ref.watch(authProvider);
+    final authState = ref.watch(businessAuthProvider);
 
     return Scaffold(
       backgroundColor: const Color(0xFFF5F5F5),
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back, color: Colors.grey[700]),
+          onPressed: () => context.go('/login'),
+        ),
         actions: [
           IconButton(
             icon: Icon(Icons.settings, color: Colors.grey[600]),
@@ -57,27 +61,26 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SizedBox(height: 48),
-              // Logo / Brand
+              const SizedBox(height: 24),
               Center(
                 child: Container(
                   width: 72,
                   height: 72,
                   decoration: BoxDecoration(
-                    color: const Color(0xFF25D366).withOpacity(0.1),
+                    color: const Color(0xFF1A2E1A).withOpacity(0.1),
                     shape: BoxShape.circle,
                   ),
                   child: const Icon(
-                    Icons.explore,
+                    Icons.business,
                     size: 36,
-                    color: Color(0xFF25D366),
+                    color: Color(0xFF1A2E1A),
                   ),
                 ),
               ),
               const SizedBox(height: 24),
               Center(
                 child: Text(
-                  'Welcome Back',
+                  'Business Portal',
                   style: TextStyle(
                     fontSize: 28,
                     fontWeight: FontWeight.bold,
@@ -88,13 +91,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               const SizedBox(height: 8),
               Center(
                 child: Text(
-                  'Sign in to continue your journey',
+                  'Sign in to manage your tours business',
                   style: TextStyle(fontSize: 15, color: Colors.grey[600]),
                 ),
               ),
               const SizedBox(height: 48),
 
-              // Error message
               if (authState.error != null)
                 Container(
                   margin: const EdgeInsets.only(bottom: 16),
@@ -118,7 +120,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   ),
                 ),
 
-              // Form
               Form(
                 key: _formKey,
                 child: Column(
@@ -127,8 +128,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       controller: _emailController,
                       keyboardType: TextInputType.emailAddress,
                       decoration: InputDecoration(
-                        labelText: 'Email',
-                        hintText: 'you@example.com',
+                        labelText: 'Business Email',
+                        hintText: 'business@example.com',
                         prefixIcon: const Icon(Icons.email_outlined),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
@@ -173,7 +174,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       child: ElevatedButton(
                         onPressed: authState.isLoading ? null : _login,
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF25D366),
+                          backgroundColor: const Color(0xFF1A2E1A),
                           foregroundColor: Colors.white,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(14),
@@ -204,13 +205,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      "Don't have an account? ",
+                      'Are you a tourist? ',
                       style: TextStyle(color: Colors.grey[600]),
                     ),
                     TextButton(
-                      onPressed: () => context.push('/signup'),
+                      onPressed: () => context.go('/login'),
                       child: const Text(
-                        'Sign Up',
+                        'Sign In as Tourist',
                         style: TextStyle(
                           color: Color(0xFF25D366),
                           fontWeight: FontWeight.w600,
@@ -218,38 +219,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       ),
                     ),
                   ],
-                ),
-              ),
-              const SizedBox(height: 8),
-              Center(
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      'Business owner? ',
-                      style: TextStyle(color: Colors.grey[600]),
-                    ),
-                    TextButton(
-                      onPressed: () => context.push('/business/login'),
-                      child: const Text(
-                        'Sign in here',
-                        style: TextStyle(
-                          color: Color(0xFF1A2E1A),
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 16),
-              Center(
-                child: TextButton(
-                  onPressed: () => context.push('/onboarding'),
-                  child: Text(
-                    'Continue without account',
-                    style: TextStyle(color: Colors.grey[500], fontSize: 13),
-                  ),
                 ),
               ),
             ],

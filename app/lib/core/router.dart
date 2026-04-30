@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../features/auth/screens/login_screen.dart';
 import '../features/auth/screens/signup_screen.dart';
+import '../features/business/screens/business_login_screen.dart';
+import '../features/business/screens/business_dashboard_screen.dart';
 import '../features/discover/screens/discover_screen.dart';
 import '../features/guide_detail/screens/guide_detail_screen.dart';
 import '../features/booking/screens/booking_flow/booking_flow_screen.dart';
@@ -101,6 +103,8 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/login', builder: (_, __) => const LoginScreen()),
       GoRoute(path: '/signup', builder: (_, __) => const SignupScreen()),
       GoRoute(path: '/settings', builder: (_, __) => const SettingsScreen()),
+      GoRoute(path: '/business/login', builder: (_, __) => const BusinessLoginScreen()),
+      GoRoute(path: '/business/dashboard', builder: (_, __) => const BusinessDashboardScreen()),
 
       // Onboarding flow (no auth required — accessible for new signups)
       GoRoute(path: '/onboarding', builder: (_, __) => const InterestsScreen()),

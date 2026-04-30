@@ -22,6 +22,18 @@ from sqlalchemy.pool import StaticPool
 Base = declarative_base()
 
 
+class BusinessOwner(Base):
+    __tablename__ = "business_owners"
+
+    id = Column(String, primary_key=True)
+    email = Column(String, unique=True, nullable=True)
+    password_hash = Column(String, nullable=True)
+    business_name = Column(String)
+    commission_rate = Column(Float, default=0.15)  # 15% platform commission
+    phone = Column(String, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+
 class Tourist(Base):
     __tablename__ = "tourists"
 
@@ -63,6 +75,7 @@ class Guide(Base):
     rating_count = Column(Integer)
     specialties = Column(String)  # pipe-delimited
     license_verified = Column(Boolean, default=False)
+    owner_id = Column(String, ForeignKey("business_owners.id"), nullable=True)  # nullable: independent guides
     created_at = Column(DateTime, default=datetime.utcnow)
 
 
@@ -77,6 +90,7 @@ class Booking(Base):
     duration_hours = Column(Float)
     group_size = Column(Integer)
     gross_value = Column(Float)
+    platform_commission_pct = Column(Float, default=0.15)  # commission rate at time of booking
     status = Column(String)  # REQUESTED | CONFIRMED | PAID | IN_PROGRESS | COMPLETED | CANCELLED
     payment_status = Column(String)  # held_escrow | released | refunded
     created_at = Column(DateTime, default=datetime.utcnow)

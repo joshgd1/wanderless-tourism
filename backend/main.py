@@ -469,7 +469,214 @@ async def get_guide_me(guide_id: str = Depends(_get_guide_id), db: Session = Dep
         "rating_count": g.rating_count,
         "specialties": g.specialties.split("|") if g.specialties else [],
         "license_verified": g.license_verified,
+        "owner_id": g.owner_id,
     }
+
+
+# ─── Business Owner auth endpoints ─────────────────────────────────────────────
+
+def _get_business_owner_id(authorization: str | None = Header(None)) -> str:
+    """Verify JWT and return business_owner_id. Raises 401 if invalid."""
+    if not authorization:
+        raise HTTPException(status_code=401, detail="Authorization header required")
+    parts = authorization.split()
+    if len(parts) != 2 or parts[0].lower() != "bearer":
+        raise HTTPException(status_code=401, detail="Invalid authorization header format")
+    owner_id = _verify_token(parts[1])
+    if not owner_id:
+        raise HTTPException(status_code=401, detail="Invalid or expired token")
+    return owner_id
+
+
+@app.post("/api/business/register")
+async def register_business(data: dict, db: Session = Depends(get_db)):
+    """
+    Register a new business owner account.
+    Returns JWT token for immediate login.
+    """
+    email = data.get("email", "").strip().lower()
+    password = data.get("password", "")
+    business_name = data.get("business_name", "").strip()
+
+    if not email or "@" not in email:
+        raise HTTPException(status_code=400, detail="Valid email is required")
+    if not password or len(password) < 6:
+        raise HTTPException(status_code=400, detail="Password must be at least 6 characters")
+    if not business_name:
+        raise HTTPException(status_code=400, detail="Business name is required")
+
+    existing = db.query(models.BusinessOwner).filter_by(email=email).first()
+    if existing:
+        raise HTTPException(status_code=409, detail="Email already registered")
+
+    owner_id = f"B{uuid.uuid4().hex[:8].upper()}"
+    owner = models.BusinessOwner(
+        id=owner_id,
+        email=email,
+        password_hash=_hash_password(password),
+        business_name=business_name,
+        phone=data.get("phone"),
+        commission_rate=0.15,
+    )
+    db.add(owner)
+    db.commit()
+    logger.info(f"business.register owner_id={owner_id} email={email}")
+
+    token = _create_token(owner_id)
+    return {
+        "access_token": token,
+        "token_type": "bearer",
+        "business_owner_id": owner_id,
+        "business_name": business_name,
+    }
+
+
+@app.post("/api/business/login")
+async def business_login(data: dict, db: Session = Depends(get_db)):
+    """
+    Authenticate business owner with email + password.
+    Returns JWT token.
+    """
+    email = data.get("email", "").strip().lower()
+    password = data.get("password", "")
+
+    if not email or not password:
+        raise HTTPException(status_code=400, detail="Email and password are required")
+
+    owner = db.query(models.BusinessOwner).filter_by(email=email).first()
+    if not owner or not owner.password_hash:
+        raise HTTPException(status_code=401, detail="Invalid email or password")
+
+    if not _verify_password(password, owner.password_hash):
+        raise HTTPException(status_code=401, detail="Invalid email or password")
+
+    token = _create_token(owner.id)
+    logger.info(f"business.login owner_id={owner.id} email={email}")
+    return {
+        "access_token": token,
+        "token_type": "bearer",
+        "business_owner_id": owner.id,
+        "business_name": owner.business_name,
+    }
+
+
+@app.get("/api/business/me")
+async def get_business_me(
+    owner_id: str = Depends(_get_business_owner_id),
+    db: Session = Depends(get_db),
+):
+    """Get current authenticated business owner's profile."""
+    o = db.query(models.BusinessOwner).filter_by(id=owner_id).first()
+    if not o:
+        raise HTTPException(status_code=404, detail="Business owner not found")
+    return {
+        "id": o.id,
+        "email": o.email,
+        "business_name": o.business_name,
+        "commission_rate": o.commission_rate,
+        "phone": o.phone,
+    }
+
+
+@app.get("/api/business/dashboard")
+async def get_business_dashboard(
+    owner_id: str = Depends(_get_business_owner_id),
+    db: Session = Depends(get_db),
+):
+    """
+    Dashboard for business owner — bookings, revenue, guide performance.
+    """
+    # Get all guides owned by this business
+    owned_guides = db.query(models.Guide).filter_by(owner_id=owner_id).all()
+    owned_guide_ids = [g.id for g in owned_guides]
+
+    if not owned_guide_ids:
+        return {
+            "business_owner_id": owner_id,
+            "total_bookings": 0,
+            "total_revenue": 0.0,
+            "total_commission": 0.0,
+            "guides": [],
+            "recent_bookings": [],
+        }
+
+    # All bookings for owned guides
+    bookings = (
+        db.query(models.Booking)
+        .filter(models.Booking.guide_id.in_(owned_guide_ids))
+        .order_by(models.Booking.created_at.desc())
+        .all()
+    )
+
+    total_revenue = sum(b.gross_value for b in bookings)
+    total_commission = sum(
+        b.gross_value * b.platform_commission_pct for b in bookings
+    )
+
+    # Per-guide breakdown
+    guide_stats = {}
+    for gid in owned_guide_ids:
+        guide_stats[gid] = {"guide_id": gid, "bookings": 0, "revenue": 0.0, "guide_name": ""}
+
+    guide_map = {g.id: g for g in owned_guides}
+    for b in bookings:
+        if b.guide_id in guide_stats:
+            guide_stats[b.guide_id]["bookings"] += 1
+            guide_stats[b.guide_id]["revenue"] += b.gross_value
+            guide_stats[b.guide_id]["guide_name"] = guide_map[b.guide_id].name
+
+    # Recent bookings (last 10)
+    recent = bookings[:10]
+    recent_serialized = []
+    for b in recent:
+        guide = guide_map.get(b.guide_id)
+        tourist = db.query(models.Tourist).filter_by(id=b.tourist_id).first()
+        recent_serialized.append({
+            "id": b.id,
+            "guide_id": b.guide_id,
+            "guide_name": guide.name if guide else "?",
+            "tourist_name": tourist.name if tourist else "?",
+            "destination": b.destination,
+            "tour_date": b.tour_date,
+            "gross_value": b.gross_value,
+            "status": b.status,
+            "payment_status": b.payment_status,
+            "created_at": b.created_at.isoformat() if b.created_at else None,
+        })
+
+    logger.info(
+        f"business.dashboard owner_id={owner_id} "
+        f"bookings={len(bookings)} revenue={total_revenue:.2f}"
+    )
+    return {
+        "business_owner_id": owner_id,
+        "total_bookings": len(bookings),
+        "total_revenue": round(total_revenue, 2),
+        "total_commission": round(total_commission, 2),
+        "guides": list(guide_stats.values()),
+        "recent_bookings": recent_serialized,
+    }
+
+
+@app.get("/api/business/guides")
+async def get_business_guides(
+    owner_id: str = Depends(_get_business_owner_id),
+    db: Session = Depends(get_db),
+):
+    """List all guides owned by this business owner."""
+    guides = db.query(models.Guide).filter_by(owner_id=owner_id).all()
+    return [
+        {
+            "id": g.id,
+            "name": g.name,
+            "email": g.email,
+            "photo_url": g.photo_url,
+            "rating_history": g.rating_history,
+            "rating_count": g.rating_count,
+            "license_verified": g.license_verified,
+        }
+        for g in guides
+    ]
 
 
 # ─── Matching ────────────────────────────────────────────────────────────────────
@@ -560,6 +767,13 @@ async def create_booking(
     hourly_rate = _TIER_HOURLY_RATE.get(guide.budget_tier, 500.0)
     gross_value = hourly_rate * duration
 
+    # Capture commission rate from guide's owner at booking time
+    commission_rate = 0.15
+    if guide.owner_id:
+        owner = db.query(models.BusinessOwner).filter_by(id=guide.owner_id).first()
+        if owner:
+            commission_rate = owner.commission_rate or 0.15
+
     b = models.Booking(
         tourist_id=tourist_id,
         guide_id=guide_id,
@@ -568,6 +782,7 @@ async def create_booking(
         duration_hours=duration,
         group_size=group_size,
         gross_value=gross_value,
+        platform_commission_pct=commission_rate,
         status="REQUESTED",
         payment_status="held_escrow",
     )
