@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/auth_provider.dart';
+import '../../../../core/theme.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -51,7 +52,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 padding: const EdgeInsets.fromLTRB(24, 20, 24, 40),
                 decoration: const BoxDecoration(
                   gradient: LinearGradient(
-                    colors: [Color(0xFF1A2E1A), Color(0xFF2D4A2D)],
+                    colors: [Color(0xFF006B3C), Color(0xFF00A86B)],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
@@ -81,10 +82,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     const SizedBox(height: 24),
                     // Brand logo
                     Container(
-                      width: 80,
-                      height: 80,
+                      width: 90,
+                      height: 90,
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.15),
+                        color: Colors.white,
                         shape: BoxShape.circle,
                         boxShadow: [
                           BoxShadow(
@@ -94,10 +95,18 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           ),
                         ],
                       ),
-                      child: const Icon(
-                        Icons.explore,
-                        size: 40,
-                        color: Colors.white,
+                      child: ClipOval(
+                        child: Image.asset(
+                          'assets/images/wanderless_logo.png',
+                          width: 90,
+                          height: 90,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => const Icon(
+                            Icons.explore,
+                            size: 40,
+                            color: appTheme.primary,
+                          ),
+                        ),
                       ),
                     ),
                     const SizedBox(height: 24),
@@ -192,13 +201,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             child: ElevatedButton(
                               onPressed: authState.isLoading ? null : _login,
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(0xFF25D366),
+                                backgroundColor: appTheme.primary,
                                 foregroundColor: Colors.white,
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(16),
                                 ),
                                 elevation: 0,
-                                shadowColor: const Color(0xFF25D366).withOpacity(0.3),
+                                shadowColor: const Color(0x4D00A86B),
                               ),
                               child: authState.isLoading
                                   ? const SizedBox(
@@ -232,7 +241,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             child: const Text(
                               'Sign Up',
                               style: TextStyle(
-                                color: Color(0xFF25D366),
+                                color: Color(0xFF00A86B),
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
@@ -367,7 +376,7 @@ class _PremiumTextField extends StatelessWidget {
         labelText: label,
         hintText: hint,
         labelStyle: TextStyle(color: Colors.grey[600]),
-        prefixIcon: Icon(prefixIcon, color: const Color(0xFF25D366)),
+        prefixIcon: Icon(prefixIcon, color: appTheme.primary),
         suffixIcon: suffixIcon,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
@@ -379,7 +388,7 @@ class _PremiumTextField extends StatelessWidget {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(color: Color(0xFF25D366), width: 2),
+          borderSide: BorderSide(color: appTheme.primary, width: 2),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
