@@ -30,7 +30,7 @@ final appTheme = ThemeData(
     ),
     iconTheme: IconThemeData(color: Colors.white),
   ),
-  cardTheme: CardThemeData(
+  cardTheme: CardTheme(
     elevation: 0,
     color: Colors.white,
     shadowColor: _cardShadowColor,
