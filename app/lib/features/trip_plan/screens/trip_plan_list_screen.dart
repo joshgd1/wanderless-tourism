@@ -311,6 +311,108 @@ class _TripPlanCard extends ConsumerWidget {
                 ],
               ),
               const SizedBox(height: 16),
+              // Waiting state for tourist with OPEN plan
+              if (!isGuideView && plan.status == 'OPEN')
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF25D366).withOpacity(0.08),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: const Color(0xFF25D366).withOpacity(0.2)),
+                  ),
+                  child: const Row(
+                    children: [
+                      SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Color(0xFF25D366),
+                        ),
+                      ),
+                      SizedBox(width: 10),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Waiting for a guide to accept',
+                              style: TextStyle(fontWeight: FontWeight.w600, color: Color(0xFF1A2E1A), fontSize: 13),
+                            ),
+                            SizedBox(height: 2),
+                            Text(
+                              'You\'ll be notified when a guide picks up your request. No payment required yet.',
+                              style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              // Accepted state — show guide assigned, prompt to confirm & pay
+              if (!isGuideView && plan.status == 'ACCEPTED' && plan.guideId != null) ...[
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF25D366).withOpacity(0.08),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: const Color(0xFF25D366).withOpacity(0.3)),
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 44,
+                        height: 44,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF25D366).withOpacity(0.15),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(Icons.person, color: Color(0xFF25D366)),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'Guide Assigned!',
+                              style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF1A2E1A), fontSize: 14),
+                            ),
+                            Text(
+                              'ID: ${plan.guideId}',
+                              style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const Icon(Icons.check_circle, color: Color(0xFF25D366)),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.amber[50],
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.amber[200]!),
+                  ),
+                  child: const Row(
+                    children: [
+                      Icon(Icons.info_outline, color: Colors.amber[800], size: 18),
+                      SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'Confirm and pay to finalize your booking.',
+                          style: TextStyle(fontSize: 12, color: Colors.amber[900]),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+              const SizedBox(height: 16),
               _detailRow(Icons.calendar_today, 'Date', plan.tourDate ?? 'Not specified'),
               _detailRow(Icons.schedule, 'Duration', plan.durationHours != null ? '${plan.durationHours!.toStringAsFixed(1)} hours' : 'Not specified'),
               _detailRow(Icons.group, 'Group size', plan.groupSize != null ? '${plan.groupSize} people' : 'Not specified'),
@@ -402,6 +504,27 @@ class _TripPlanCard extends ConsumerWidget {
                     child: const Text('Cancel Plan'),
                   ),
                 ),
+              // ACCEPTED: must confirm & pay
+              if (!isGuideView && plan.status == 'ACCEPTED') ...[
+                const SizedBox(height: 4),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () => _confirmAndPay(context, ref, ctx),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF25D366),
+                      foregroundColor: Colors.white,
+                      minimumSize: const Size.fromHeight(52),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                      elevation: 0,
+                    ),
+                    child: const Text(
+                      'Confirm & Pay Now',
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                    ),
+                  ),
+                ),
+              ],
               const SizedBox(height: 20),
             ],
           ),
@@ -516,6 +639,37 @@ class _TripPlanCard extends ConsumerWidget {
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+      }
+    }
+  }
+
+  Future<void> _confirmAndPay(BuildContext context, WidgetRef ref, BuildContext sheetCtx) async {
+    if (plan.guideId == null) return;
+    try {
+      final api = ApiClient();
+      // Create actual booking from accepted trip plan
+      final result = await api.createBooking({
+        'tourist_id': (await ref.read(touristIdProvider.future))!,
+        'guide_id': plan.guideId,
+        'tour_date': plan.tourDate ?? DateTime.now().toString().split(' ')[0],
+        'duration_hours': plan.durationHours ?? 4.0,
+        'group_size': plan.groupSize ?? 1,
+        'destination': plan.destination,
+      });
+      ref.invalidate(myTripPlansProvider);
+      if (context.mounted) {
+        Navigator.pop(sheetCtx);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Booking confirmed! ID: ${result['id']}. Your guide will contact you soon.'),
+            backgroundColor: const Color(0xFF25D366),
+            duration: const Duration(seconds: 4),
+          ),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Payment error: $e')));
       }
     }
   }

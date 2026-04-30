@@ -1,42 +1,62 @@
-# Session Notes — 2026-04-28
+# Session Notes — 2026-04-30
 
 ## Where we are
 
-Phase 1 MVP complete. 10 commits. Backend on localhost:8000. Flutter build infrastructure added.
+Round 2 red team completed + full red team with Opus model analysis done.
+Comprehensive fixes applied across security, trust signals, and UX.
 
-## Read first
+## Commits on main (not yet pushed)
 
-1. `backend/main.py` — FastAPI app
-2. `.github/workflows/flutter-build.yml` — GitHub Actions APK build
-3. `app/build.sh` — local x86_64 build script
+- `888419e` — fix: resolve red team critical findings — security, trust signals, and UX
 
-## Commits (10 total)
+## Red Team Findings (this session)
 
-8f43b78 Initial commit
-c33963b feat: initial backend + Flutter app + synthetic data
-cd925b7 feat: add Flutter app source files
-34538c7 fix: missing api_client import and refresh callback
-8bbdbb1 fix: remove unused flutter_svg dep
-ee05b55 fix: remove unused dart:math import and random_suffix
-3207b1f fix: generate unique tourist ID using uuid on create
-802f7d2 fix: pass guideId directly through booking flow
-4eb3d16 fix: add missing booking.dart import to itinerary_screen
-cee9778 feat: add build tooling for x86_64
+### UX vs Klook/Agoda (Opus analysis)
+| Dimension | Score | Key Gap |
+|-----------|-------|---------|
+| Trust Signals | 3/10 | Fake hardcoded stars, no verification badge |
+| Visual Hierarchy | 4/10 | No hero images, no pricing on cards |
+| Filter UX | 3/10 | Filters cosmetic only, never hit API |
+| Booking Flow | 4/10 | Price/duration hardcoded client-side |
+| Emotional Design | 3/10 | No aspirational copy |
+| Micro-interactions | 2/10 | Entirely static |
 
-## Flutter build
+### Security — Fixed
+| Severity | Finding | File | Fix |
+|----------|---------|------|-----|
+| CRITICAL | IDOR — any tourist can read/update any booking | main.py:234-261 | Add tourist_id ownership check + status transition guard |
+| CRITICAL | Client-controlled price | main.py:223 | Server calculates from guide budget tier |
+| CRITICAL | Guide impersonation on accept | main.py:401 | Added license_verified + rating_count>=5 check |
+| HIGH | Fake stars | match_card.dart:71 | Render actual ratingHistory |
+| HIGH | Bio authenticity gameable | matching.py:80 | Now uses multi-signal scoring |
 
-- **GitHub Actions**: push to main or manual trigger → builds APK at `app/build/wanderless-debug.apk`
-- **Local script**: `app/build.sh` on any x86_64 Linux with Flutter SDK
-- **Docker**: `app/Dockerfile.flutter-build` for containerized builds
-- **analysis_options.yaml** added for `flutter analyze`
+### Security — Outstanding (need guide auth)
+| Severity | Finding | File | Notes |
+|----------|---------|------|-------|
+| HIGH | Guide impersonation (accept) | main.py:409 | Still needs guide-level auth/JWT binding |
+
+## What's Fixed
+
+- **Trust**: Real stars, verification badges on cards + detail screen
+- **Security**: IDOR closed, server pricing, credential checks on accept
+- **UX**: Experience type onboarding, dynamic pricing, real language/location on cards
+- **Matching**: auth_scale by experience_type (authentic_local ×1.5, tourist_friendly ×0.5)
+
+## Outstanding Gaps
+
+1. **Guide auth** — accept endpoint needs guide-level JWT/session (no tourist auth either)
+2. **CORS wildcard** — `allow_origins=["*"]` in main.py
+3. **Bio keyword gaming** — `_bio_authenticity` still keyword-based, gameable
+4. **Rate limiting** — no endpoint has rate limits
+5. **Filter UX** — filter chips don't trigger API calls
 
 ## Traps
 
-- Root `.gitignore` has `lib/` which blocks `app/lib/` — use `git add -f`
-- ARM64 Linux — cannot run Flutter locally, use GitHub Actions
-- Backend: `cd backend && uv run uvicorn main:app --port 8000`
-- No `GET /api/bookings` list endpoint
+- Backend uses `uv run python` (not bare `python`)
+- `wanderless.db` needs reseed after restart (POST /api/admin/reseed)
+- Git push from Windows requires credential workaround
 
-## Open questions for the human
+## Open Questions
 
-None.
+- When to push to GitHub?
+- Priority for remaining gaps?

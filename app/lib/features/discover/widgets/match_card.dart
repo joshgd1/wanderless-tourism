@@ -8,6 +8,23 @@ class MatchCard extends StatelessWidget {
 
   const MatchCard({super.key, required this.guide, required this.onTap});
 
+  Color _avatarColor(String name) {
+    final colors = [
+      const Color(0xFF25D366), const Color(0xFF1A2E1A),
+      const Color(0xFF128C7E), const Color(0xFF2D6A4F),
+      const Color(0xFF40916C), const Color(0xFF52B788),
+    ];
+    return colors[name.hashCode.abs() % colors.length];
+  }
+
+  String _initials(String name) {
+    final parts = name.trim().split(' ');
+    if (parts.length >= 2) {
+      return '${parts[0][0]}${parts[1][0]}'.toUpperCase();
+    }
+    return name.isNotEmpty ? name[0].toUpperCase() : '?';
+  }
+
   @override
   Widget build(BuildContext context) {
     return Card(
@@ -24,7 +41,7 @@ class MatchCard extends StatelessWidget {
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Circular profile photo
+                  // Circular profile photo with initials fallback
                   Container(
                     width: 80,
                     height: 80,
@@ -43,13 +60,13 @@ class MatchCard extends StatelessWidget {
                       child: CachedNetworkImage(
                         imageUrl: guide.photoUrl,
                         fit: BoxFit.cover,
-                        placeholder: (_, __) => Container(
-                          color: Colors.grey[200],
-                          child: const Icon(Icons.person, size: 40, color: Colors.grey),
+                        placeholder: (_, __) => _InitialsAvatar(
+                          name: guide.name,
+                          color: _avatarColor(guide.name),
                         ),
-                        errorWidget: (_, __, ___) => Container(
-                          color: Colors.grey[200],
-                          child: const Icon(Icons.person, size: 40, color: Colors.grey),
+                        errorWidget: (_, __, ___) => _InitialsAvatar(
+                          name: guide.name,
+                          color: _avatarColor(guide.name),
                         ),
                       ),
                     ),
@@ -295,6 +312,37 @@ class _BudgetBadge extends StatelessWidget {
       child: Text(
         label,
         style: TextStyle(fontSize: 12, color: Colors.grey[700]),
+      ),
+    );
+  }
+}
+
+class _InitialsAvatar extends StatelessWidget {
+  final String name;
+  final Color color;
+
+  const _InitialsAvatar({required this.name, required this.color});
+
+  String get initials {
+    final parts = name.trim().split(' ');
+    if (parts.length >= 2) {
+      return '${parts[0][0]}${parts[1][0]}'.toUpperCase();
+    }
+    return name.isNotEmpty ? name[0].toUpperCase() : '?';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: color.withOpacity(0.15),
+      alignment: Alignment.center,
+      child: Text(
+        initials,
+        style: TextStyle(
+          color: color,
+          fontSize: 24,
+          fontWeight: FontWeight.bold,
+        ),
       ),
     );
   }
