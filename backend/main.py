@@ -75,6 +75,20 @@ def _get_tourist_id(authorization: str | None = Header(None)) -> str:
     return tourist_id
 
 
+def _get_tourist_id_optional(authorization: str | None = Header(None)) -> str | None:
+    """Verify JWT and return tourist_id. Returns None if no valid auth header."""
+    if not authorization:
+        return None
+    try:
+        parts = authorization.split()
+        if len(parts) != 2 or parts[0].lower() != "bearer":
+            return None
+        tourist_id = _verify_token(parts[1])
+        return tourist_id or None
+    except Exception:
+        return None
+
+
 def _get_guide_id(authorization: str | None = Header(None)) -> str:
     """Verify JWT and return guide_id. Raises 401 if invalid."""
     if not authorization:
@@ -86,6 +100,20 @@ def _get_guide_id(authorization: str | None = Header(None)) -> str:
     if not guide_id:
         raise HTTPException(status_code=401, detail="Invalid or expired token")
     return guide_id
+
+
+def _get_guide_id_optional(authorization: str | None = Header(None)) -> str | None:
+    """Verify JWT and return guide_id. Returns None if no valid auth header."""
+    if not authorization:
+        return None
+    try:
+        parts = authorization.split()
+        if len(parts) != 2 or parts[0].lower() != "bearer":
+            return None
+        guide_id = _verify_token(parts[1])
+        return guide_id or None
+    except Exception:
+        return None
 
 
 # ─── Database helpers ────────────────────────────────────────────────────────────
@@ -860,13 +888,14 @@ async def list_bookings(
 async def update_booking_status(
     booking_id: int,
     data: dict | None = None,
-    tourist_id: str = Depends(_get_tourist_id),
+    tourist_id: str | None = Depends(_get_tourist_id_optional),
+    guide_id: str | None = Depends(_get_guide_id_optional),
     db: Session = Depends(get_db),
 ):
-    """Update booking status. Requires JWT; tourist can only update own bookings.
+    """Update booking status. Requires JWT; tourist or guide can update their bookings.
 
-    Cancellation safety:
-    - Tourist cancellation: if payment_status == 'held_escrow', auto-refund to 'refunded'
+    - Tourist: can cancel own bookings (auto-refund from escrow)
+    - Guide: can confirm (REQUESTED→CONFIRMED) or cancel own bookings
     - Cancellation reason stored for dispute resolution
     - Guide cancellation triggers penalty tracking
     """
@@ -875,7 +904,11 @@ async def update_booking_status(
     b = db.query(models.Booking).filter_by(id=booking_id).first()
     if not b:
         raise HTTPException(status_code=404, detail="Booking not found")
-    if b.tourist_id != tourist_id:
+
+    # Authorization: tourist owns tourist_id, guide owns guide_id
+    is_tourist = tourist_id is not None and b.tourist_id == tourist_id
+    is_guide = guide_id is not None and b.guide_id == guide_id
+    if not is_tourist and not is_guide:
         raise HTTPException(status_code=403, detail="Not your booking")
 
     valid_transitions = {
@@ -1106,6 +1139,22 @@ async def accept_trip_plan(
 
     p.status = "ACCEPTED"
     p.guide_id = guide_id
+
+    # SAFETY: Also confirm any REQUESTED booking for this tourist+guide
+    # The booking was created before the trip plan was accepted, so it wasn't
+    # linked at creation time. Find and confirm it now.
+    linked_booking = db.query(models.Booking).filter(
+        models.Booking.tourist_id == p.tourist_id,
+        models.Booking.guide_id == guide_id,
+        models.Booking.status == "REQUESTED",
+    ).first()
+    if linked_booking:
+        linked_booking.status = "CONFIRMED"
+        logger.info(
+            f"booking.confirmed_via_plan_accept booking_id={linked_booking.id} "
+            f"plan_id={plan_id} guide_id={guide_id}"
+        )
+
     db.commit()
     logger.info(f"trip_plan.accepted plan_id={plan_id} guide_id={guide_id}")
     return {"id": p.id, "status": p.status, "guide_id": p.guide_id}
