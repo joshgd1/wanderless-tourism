@@ -973,10 +973,44 @@ async def list_bookings(
 ):
     """List all bookings for the authenticated tourist."""
     bookings = db.query(models.Booking).filter_by(tourist_id=tourist_id).order_by(models.Booking.created_at.desc()).all()
+    # Pre-fetch guide names to avoid N queries
+    guide_ids = {b.guide_id for b in bookings}
+    guides = db.query(models.Guide).filter(models.Guide.id.in_(guide_ids)).all() if guide_ids else []
+    guide_map = {g.id: g.name for g in guides}
     return [
         {
             "id": b.id,
             "tourist_id": b.tourist_id,
+            "guide_id": b.guide_id,
+            "guide_name": guide_map.get(b.guide_id, "Unknown Guide"),
+            "destination": b.destination,
+            "tour_date": b.tour_date,
+            "duration_hours": b.duration_hours,
+            "group_size": b.group_size,
+            "gross_value": b.gross_value,
+            "status": b.status,
+            "payment_status": b.payment_status,
+        }
+        for b in bookings
+    ]
+
+
+@app.get("/api/guide/bookings")
+async def list_guide_bookings(
+    guide_id: str = Depends(_get_guide_id),
+    db: Session = Depends(get_db),
+):
+    """List all bookings for the authenticated guide (current jobs + history)."""
+    bookings = db.query(models.Booking).filter_by(guide_id=guide_id).order_by(models.Booking.created_at.desc()).all()
+    # Pre-fetch tourist names
+    tourist_ids = {b.tourist_id for b in bookings}
+    tourists = db.query(models.Tourist).filter(models.Tourist.id.in_(tourist_ids)).all() if tourist_ids else []
+    tourist_map = {t.id: t.name for t in tourists}
+    return [
+        {
+            "id": b.id,
+            "tourist_id": b.tourist_id,
+            "tourist_name": tourist_map.get(b.tourist_id, "Unknown Tourist"),
             "guide_id": b.guide_id,
             "destination": b.destination,
             "tour_date": b.tour_date,

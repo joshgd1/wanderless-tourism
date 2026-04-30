@@ -1,0 +1,530 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import '../../../../core/api_client.dart';
+import '../../../../core/guide_auth_provider.dart';
+
+final guideBookingsProvider = FutureProvider<List<Map<String, dynamic>>>((ref) async {
+  final authState = ref.watch(guideAuthProvider);
+  if (authState.guideId == null) return [];
+  final api = ApiClient();
+  final data = await api.getGuideBookings();
+  return data.cast<Map<String, dynamic>>();
+});
+
+class GuideDashboardScreen extends ConsumerStatefulWidget {
+  const GuideDashboardScreen({super.key});
+
+  @override
+  ConsumerState<GuideDashboardScreen> createState() => _GuideDashboardScreenState();
+}
+
+class _GuideDashboardScreenState extends ConsumerState<GuideDashboardScreen> with SingleTickerProviderStateMixin {
+  late TabController _tabController;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 2, vsync: this);
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final authState = ref.watch(guideAuthProvider);
+    final bookingsAsync = ref.watch(guideBookingsProvider);
+
+    return Scaffold(
+      backgroundColor: const Color(0xFFF5F5F5),
+      body: NestedScrollView(
+        headerSliverBuilder: (context, innerBoxIsScrolled) {
+          return [
+            SliverAppBar(
+              expandedHeight: 120,
+              pinned: true,
+              backgroundColor: const Color(0xFF1A2E1A),
+              flexibleSpace: FlexibleSpaceBar(
+                background: Container(
+                  decoration: const BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [Color(0xFF1A2E1A), Color(0xFF2D4A2D)],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                  ),
+                  child: SafeArea(
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              const Text(
+                                'Guide Dashboard',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const Spacer(),
+                              IconButton(
+                                icon: const Icon(Icons.logout, color: Colors.white),
+                                onPressed: () async {
+                                  await ref.read(guideAuthProvider.notifier).logout();
+                                  if (context.mounted) {
+                                    context.go('/guide/login');
+                                  }
+                                },
+                              ),
+                            ],
+                          ),
+                          Text(
+                            'Welcome, ${authState.guideName ?? "Guide"}',
+                            style: TextStyle(
+                              color: Colors.white.withOpacity(0.8),
+                              fontSize: 14,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              bottom: TabBar(
+                controller: _tabController,
+                indicatorColor: const Color(0xFF25D366),
+                labelColor: Colors.white,
+                unselectedLabelColor: Colors.white60,
+                tabs: const [
+                  Tab(text: 'Current Jobs'),
+                  Tab(text: 'History'),
+                ],
+              ),
+            ),
+          ];
+        },
+        body: TabBarView(
+          controller: _tabController,
+          children: [
+            _CurrentJobsTab(bookingsAsync: bookingsAsync),
+            _HistoryTab(bookingsAsync: bookingsAsync),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _CurrentJobsTab extends ConsumerWidget {
+  final AsyncValue<List<Map<String, dynamic>>> bookingsAsync;
+
+  const _CurrentJobsTab({required this.bookingsAsync});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return bookingsAsync.when(
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (e, _) => Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.error_outline, size: 48, color: Colors.grey[400]),
+            const SizedBox(height: 16),
+            Text('Failed to load bookings', style: TextStyle(color: Colors.grey[600])),
+            const SizedBox(height: 12),
+            ElevatedButton(
+              onPressed: () => ref.refresh(guideBookingsProvider),
+              child: const Text('Retry'),
+            ),
+          ],
+        ),
+      ),
+      data: (bookings) {
+        // Filter to active bookings (not completed or cancelled)
+        final activeStatuses = ['REQUESTED', 'CONFIRMED', 'PAID', 'IN_PROGRESS'];
+        final activeBookings = bookings.where((b) => activeStatuses.contains(b['status'])).toList();
+
+        if (activeBookings.isEmpty) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.work_off_outlined, size: 72, color: Colors.grey[300]),
+                const SizedBox(height: 20),
+                Text(
+                  'No current jobs',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.grey[700],
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'New booking requests will appear here',
+                  style: TextStyle(color: Colors.grey[500]),
+                ),
+              ],
+            ),
+          );
+        }
+
+        return RefreshIndicator(
+          onRefresh: () async => ref.refresh(guideBookingsProvider),
+          child: ListView.builder(
+            padding: const EdgeInsets.all(16),
+            itemCount: activeBookings.length,
+            itemBuilder: (context, index) {
+              final booking = activeBookings[index];
+              return _GuideBookingCard(
+                booking: booking,
+                onAccept: booking['status'] == 'REQUESTED'
+                    ? () => _updateStatus(context, ref, booking['id'], 'CONFIRMED')
+                    : null,
+                onDecline: booking['status'] == 'REQUESTED'
+                    ? () => _updateStatus(context, ref, booking['id'], 'CANCELLED')
+                    : null,
+              );
+            },
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _updateStatus(BuildContext context, WidgetRef ref, int bookingId, String status) async {
+    try {
+      final api = ApiClient();
+      await api.updateBookingStatus(bookingId, status);
+      ref.refresh(guideBookingsProvider);
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(status == 'CONFIRMED' ? 'Booking accepted!' : 'Booking declined'),
+            backgroundColor: status == 'CONFIRMED' ? const Color(0xFF25D366) : Colors.red,
+          ),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to update booking: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+}
+
+class _HistoryTab extends ConsumerWidget {
+  final AsyncValue<List<Map<String, dynamic>>> bookingsAsync;
+
+  const _HistoryTab({required this.bookingsAsync});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return bookingsAsync.when(
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (e, _) => Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.error_outline, size: 48, color: Colors.grey[400]),
+            const SizedBox(height: 16),
+            Text('Failed to load history', style: TextStyle(color: Colors.grey[600])),
+            const SizedBox(height: 12),
+            ElevatedButton(
+              onPressed: () => ref.refresh(guideBookingsProvider),
+              child: const Text('Retry'),
+            ),
+          ],
+        ),
+      ),
+      data: (bookings) {
+        // Filter to completed/cancelled bookings
+        final historyStatuses = ['COMPLETED', 'CANCELLED'];
+        final historyBookings = bookings.where((b) => historyStatuses.contains(b['status'])).toList();
+
+        if (historyBookings.isEmpty) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.history, size: 72, color: Colors.grey[300]),
+                const SizedBox(height: 20),
+                Text(
+                  'No booking history',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.grey[700],
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Your completed trips will appear here',
+                  style: TextStyle(color: Colors.grey[500]),
+                ),
+              ],
+            ),
+          );
+        }
+
+        return RefreshIndicator(
+          onRefresh: () async => ref.refresh(guideBookingsProvider),
+          child: ListView.builder(
+            padding: const EdgeInsets.all(16),
+            itemCount: historyBookings.length,
+            itemBuilder: (context, index) {
+              final booking = historyBookings[index];
+              return _GuideBookingCard(
+                booking: booking,
+                isHistory: true,
+              );
+            },
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _GuideBookingCard extends StatelessWidget {
+  final Map<String, dynamic> booking;
+  final VoidCallback? onAccept;
+  final VoidCallback? onDecline;
+  final bool isHistory;
+
+  const _GuideBookingCard({
+    required this.booking,
+    this.onAccept,
+    this.onDecline,
+    this.isHistory = false,
+  });
+
+  Color _statusColor(String status) {
+    switch (status.toUpperCase()) {
+      case 'REQUESTED':
+        return Colors.orange;
+      case 'CONFIRMED':
+        return const Color(0xFF25D366);
+      case 'PAID':
+        return Colors.blue;
+      case 'IN_PROGRESS':
+        return Colors.purple;
+      case 'COMPLETED':
+        return Colors.green;
+      case 'CANCELLED':
+        return Colors.red;
+      default:
+        return Colors.grey;
+    }
+  }
+
+  String _statusLabel(String status) {
+    switch (status.toUpperCase()) {
+      case 'REQUESTED':
+        return 'New Request';
+      case 'CONFIRMED':
+        return 'Confirmed';
+      case 'PAID':
+        return 'Paid';
+      case 'IN_PROGRESS':
+        return 'In Progress';
+      case 'COMPLETED':
+        return 'Completed';
+      case 'CANCELLED':
+        return 'Cancelled';
+      default:
+        return status;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final status = booking['status'] as String;
+    final isRequested = status == 'REQUESTED';
+
+    return Card(
+      elevation: 0,
+      margin: const EdgeInsets.only(bottom: 16),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Header row with status
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: _statusColor(status).withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (isRequested) ...[
+                        Icon(Icons.fiber_manual_record, color: _statusColor(status), size: 12),
+                        const SizedBox(width: 4),
+                      ],
+                      Text(
+                        _statusLabel(status),
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: _statusColor(status),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const Spacer(),
+                Text(
+                  'Booking #${booking['id']}',
+                  style: TextStyle(fontSize: 12, color: Colors.grey[500]),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+
+            // Tourist info
+            Row(
+              children: [
+                Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF25D366).withOpacity(0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.person, color: Color(0xFF25D366)),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Tourist',
+                        style: TextStyle(fontSize: 12, color: Colors.grey[500]),
+                      ),
+                      Text(
+                        booking['tourist_name'] as String? ?? 'Unknown Tourist',
+                        style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
+                      ),
+                    ],
+                  ),
+                ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text(
+                      booking['tour_date'] as String? ?? 'TBD',
+                      style: const TextStyle(fontWeight: FontWeight.w600),
+                    ),
+                    Text(
+                      '${(booking['duration_hours'] as num?)?.toStringAsFixed(1) ?? '0'}h',
+                      style: TextStyle(fontSize: 12, color: Colors.grey[500]),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+
+            // Destination and group
+            Row(
+              children: [
+                Icon(Icons.location_on_outlined, size: 16, color: Colors.grey[500]),
+                const SizedBox(width: 4),
+                Expanded(
+                  child: Text(
+                    booking['destination'] as String? ?? 'TBD',
+                    style: TextStyle(fontSize: 13, color: Colors.grey[600]),
+                  ),
+                ),
+                Icon(Icons.group_outlined, size: 16, color: Colors.grey[500]),
+                const SizedBox(width: 4),
+                Text(
+                  '${booking['group_size'] ?? 1} people',
+                  style: TextStyle(fontSize: 13, color: Colors.grey[600]),
+                ),
+              ],
+            ),
+
+            // Action buttons for REQUESTED status
+            if (isRequested && !isHistory) ...[
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: onDecline,
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: Colors.red,
+                        side: const BorderSide(color: Colors.red),
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                      ),
+                      child: const Text('Decline'),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: onAccept,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF25D366),
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                      ),
+                      child: const Text('Accept'),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+
+            // Completed/Cancelled shows earnings
+            if (isHistory && (status == 'COMPLETED')) ...[
+              const SizedBox(height: 12),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.green.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.account_balance_wallet, color: Colors.green, size: 18),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Earned: \$${(booking['gross_value'] as num?)?.toStringAsFixed(2) ?? '0.00'}',
+                      style: const TextStyle(
+                        color: Colors.green,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}

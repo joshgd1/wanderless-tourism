@@ -270,6 +270,36 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         ),
                       ),
                     ),
+                    const SizedBox(height: 12),
+                    Center(
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                        decoration: BoxDecoration(
+                          color: Colors.grey[100],
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              'Are you a guide? ',
+                              style: TextStyle(color: Colors.grey[600], fontSize: 13),
+                            ),
+                            GestureDetector(
+                              onTap: () => context.push('/guide/login'),
+                              child: const Text(
+                                'Sign in here',
+                                style: TextStyle(
+                                  color: Color(0xFF1A2E1A),
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 13,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
                     const SizedBox(height: 16),
                     Center(
                       child: GestureDetector(

@@ -2,6 +2,7 @@ class Booking {
   final int id;
   final String touristId;
   final String guideId;
+  final String? guideName;
   final String destination;
   final String tourDate;
   final double durationHours;
@@ -14,6 +15,7 @@ class Booking {
     required this.id,
     required this.touristId,
     required this.guideId,
+    this.guideName,
     required this.destination,
     required this.tourDate,
     required this.durationHours,
@@ -28,6 +30,7 @@ class Booking {
       id: json['id'] as int,
       touristId: json['tourist_id'] as String,
       guideId: json['guide_id'] as String,
+      guideName: json['guide_name'] as String?,
       destination: json['destination'] as String,
       tourDate: json['tour_date'] as String,
       durationHours: (json['duration_hours'] as num).toDouble(),

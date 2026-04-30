@@ -19,8 +19,11 @@ import '../features/onboarding/screens/travel_style_screen.dart';
 import '../features/trip_plan/screens/create_trip_plan_screen.dart';
 import '../features/trip_plan/screens/trip_plan_list_screen.dart';
 import '../features/settings/screens/settings_screen.dart';
+import '../features/guide/screens/guide_login_screen.dart';
+import '../features/guide/screens/guide_dashboard_screen.dart';
 import '../shared/widgets/main_shell.dart';
 import 'auth_provider.dart';
+import 'guide_auth_provider.dart';
 
 // Splash screen resolves auth from storage, then redirects
 class SplashScreen extends ConsumerStatefulWidget {
@@ -105,6 +108,22 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/settings', builder: (_, __) => const SettingsScreen()),
       GoRoute(path: '/business/login', builder: (_, __) => const BusinessLoginScreen()),
       GoRoute(path: '/business/dashboard', builder: (_, __) => const BusinessDashboardScreen()),
+      GoRoute(path: '/guide/login', builder: (_, __) => const GuideLoginScreen()),
+
+      // Guide dashboard — protected by guide auth
+      GoRoute(
+        path: '/guide/dashboard',
+        builder: (context, state) {
+          final guideAuth = ProviderScope.containerOf(context).read(guideAuthProvider);
+          if (!guideAuth.isAuthenticated) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              context.go('/guide/login');
+            });
+            return const SizedBox.shrink();
+          }
+          return const GuideDashboardScreen();
+        },
+      ),
 
       // Onboarding flow (no auth required — accessible for new signups)
       GoRoute(path: '/onboarding', builder: (_, __) => const InterestsScreen()),

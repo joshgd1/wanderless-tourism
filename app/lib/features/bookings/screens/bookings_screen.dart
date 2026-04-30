@@ -209,7 +209,7 @@ class _BookingCard extends StatelessWidget {
                       color: const Color(0xFF25D366).withOpacity(0.1),
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(Icons.tour, color: Color(0xFF25D366)),
+                    child: const Icon(Icons.person, color: Color(0xFF25D366)),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
@@ -224,7 +224,7 @@ class _BookingCard extends StatelessWidget {
                           ),
                         ),
                         Text(
-                          'Guide ${booking.guideId}',
+                          booking.guideName ?? 'Guide',
                           style: const TextStyle(
                             fontWeight: FontWeight.w600,
                             fontSize: 15,
