@@ -20,7 +20,7 @@ jobs:
         working-directory: ./app
 
       - name: Create Android platform project
-        run: flutter create --platforms=android --org com.wanderless app
+        run: flutter create --platforms=android --org com.wanderless .
         working-directory: ./app
 
       - run: flutter build apk --release
