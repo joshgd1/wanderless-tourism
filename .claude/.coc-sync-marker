@@ -1,33 +1,36 @@
-# COC Sync Marker — kailash-coc-claude-py
-timestamp: 2026-04-29T11:17:46Z
+# COC Sync Marker — kailash-coc-claude-py (legacy CC-only)
+timestamp: 2026-04-30T13:50:00Z
 source: loom/.claude
-loom_version: 2.10.2
+loom_version: 2.11.0
+loom_sha: 068415b
 variant: py
 clis: ["claude"]
-template_version: 3.5.30
 stats:
-  files_updated_this_sync:
-    - .claude/commands/codify.md (cc-architect rename completion; loom 2.10.2 source fix)
-  files_added_this_sync: []
-  files_purged:
-    - .claude/agents/claude-code-architect.md (obsoleted)
-    - .claude/projects/ (obsoleted)
-    - .claude/scheduled_tasks.lock (obsoleted)
-    - .claude/test-harness/ (obsoleted)
-    - .claude/learning/ (one-shot; loom-leaked, manifest-excluded but no auto-purge mechanism)
-  manifest_changes:
-    obsoleted_added:
-      - .claude/agents/claude-code-architect.md
-      - .claude/projects/
-      - .claude/scheduled_tasks.lock
-      - .claude/test-harness/
-    exclude_added:
-      - "projects/**"
-      - "scheduled_tasks.lock"
-      - "test-harness/**"
-  coc_obsoleted_emitted: 13 paths (16-line file with header)
-notes: |
-  Surgical sync-hygiene patch (loom 2.10.2). Only modified artifact is
-  commands/codify.md (cc-architect rename completion). Stale state purged
-  across all 8 BUILD/USE consumers via new .coc-obsoleted entries.
-  No SDK pin updates this cycle (pure metadata + sync-hygiene patch).
+  updated: 37
+  created: 1
+  unchanged: 611
+  composed: 2          # rules/deployment.md + rules/ci-runners.md slot-keyed py overlays (ci-runners stripped at use_exclude was NOT in canonical use_exclude — only the 8 listed; ci-runners synced as composed)
+  preserved: 1         # CLAUDE.md (template-owned; never overwritten)
+  use_excluded: 26     # files that previously synced are now NOT propagated; pre-existing copies remain
+  pre_existing_use_excluded:
+    - .claude/rules/documentation.md
+    - .claude/skills/30-claude-code-patterns/sdk-upstream-donation.md
+    - .claude/guides/co-setup/
+    - .claude/guides/deterministic-quality/
+  baselines_emitted:
+    cc: 0              # CLAUDE.md preserved, not emitted
+    codex: 0           # legacy template is CC-only
+    gemini: 0
+  cli_artifacts: null  # legacy single-CLI; no .codex/.gemini trees
+sdk_pins:
+  kailash: "2.13.0"
+  kailash-dataflow: "2.6.0"
+  kailash-nexus: "2.5.0"
+  kailash-kaizen: "2.14.0"
+  kailash-mcp: "0.2.10"
+  kailash-pact: "0.11.0"
+  kailash-ml: "1.6.0"
+  kailash-align: "0.7.0"
+notes:
+  - "Pre-existing use_excluded files preserved per additive-merge semantics (Step 4 rule 5)."
+  - "User decision pending: convert use_excluded paths to obsoleted in future cycle for purge."

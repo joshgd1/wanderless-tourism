@@ -2571,7 +2571,7 @@ wheels = [
 
 [[package]]
 name = "kailash"
-version = "2.12.0"
+version = "2.13.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "aiofiles" },
@@ -2610,9 +2610,9 @@ dependencies = [
     { name = "sqlalchemy" },
     { name = "uvicorn", extra = ["standard"] },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/ba/47/3aa75199961b6e9ba36a703d8127cfaf5a2bf9a585d4179e9d7faceaad55/kailash-2.12.0.tar.gz", hash = "sha256:1005d9690ea1455b8051a1b0115ba10738e0d13c71a746aed0c09ffc1d52826a", size = 2498587, upload-time = "2026-04-28T11:36:12.047Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/a0/06/10f9b751c7c78de50794a4884ccec156501ac6563e6f758f93030f54549a/kailash-2.13.0.tar.gz", hash = "sha256:255747c71961060e95264080a14a83b5759444a94ea8b390a77e6b876dbc3b1b", size = 2506724, upload-time = "2026-04-30T01:44:08.805Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/4c/4a/3cac9e00161548e292b900e5d5b6b3a0bc73f63a9cc768cf15ffe69c5516/kailash-2.12.0-py3-none-any.whl", hash = "sha256:0618aba135ecf63fade5e1ed931c8abb85536c061b7c1f7eb4e172e3421365da", size = 2896885, upload-time = "2026-04-28T11:36:09.686Z" },
+    { url = "https://files.pythonhosted.org/packages/c9/3f/cfec71234c6baaed7c88d0334e1ae027a5d40961ab1e69a8af53c9657345/kailash-2.13.0-py3-none-any.whl", hash = "sha256:b635381ca8a580b598c5004e2e86ff402c0668cfda72f91bf7ecf027c82066cd", size = 2908493, upload-time = "2026-04-30T01:44:06.318Z" },
 ]
 
 [[package]]
@@ -2648,7 +2648,7 @@ all = [
 
 [[package]]
 name = "kailash-dataflow"
-version = "2.4.0"
+version = "2.6.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "aiomysql" },
@@ -2674,12 +2674,12 @@ dependencies = [
     { name = "uvicorn", extra = ["standard"] },
 ]
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/0b/1c/ee1a34e80f885166c91690a2fde07943a72f6a6c2ef64c59312946d8c46d/kailash_dataflow-2.4.0-py3-none-any.whl", hash = "sha256:3b63763cf7b37167c881183c50465ac7a1866b2dbfbfef55a4a5e06130248c06", size = 1244423, upload-time = "2026-04-28T11:51:27.684Z" },
+    { url = "https://files.pythonhosted.org/packages/a8/ab/a1550d755704db67a2e932cbfb5fab112eabc5881c2eefec2a929ba4379f/kailash_dataflow-2.6.0-py3-none-any.whl", hash = "sha256:85ed8e26a13f1c9e4ecb6bef8fed71d16a5ab1392634f2e8af50b32a304f0b25", size = 1254275, upload-time = "2026-04-30T01:44:21.523Z" },
 ]
 
 [[package]]
 name = "kailash-kaizen"
-version = "2.13.1"
+version = "2.14.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "aiohttp" },
@@ -2713,7 +2713,7 @@ dependencies = [
     { name = "uvicorn", extra = ["standard"] },
 ]
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/c8/bb/e93b2b2fe547229830c62a7c9788b32af8a81545aace20edb8850b5fef2b/kailash_kaizen-2.13.1-py3-none-any.whl", hash = "sha256:4f077582580bb186bc23bae23829027493eac70da71ed00b82e43aa9bc4cc9e5", size = 1548828, upload-time = "2026-04-25T09:54:14.827Z" },
+    { url = "https://files.pythonhosted.org/packages/5c/aa/385a3b4484b12917b5f9ef7a7ad4f3dfa21486184d03190b90e6b5d4e2ba/kailash_kaizen-2.14.0-py3-none-any.whl", hash = "sha256:3addca724004acfa1f019830a36410e97b91fd6fb1a9c35d627f89ba06cdc1c0", size = 1555907, upload-time = "2026-04-30T05:46:19.88Z" },
 ]
 
 [[package]]
@@ -2774,7 +2774,7 @@ rl = [
 
 [[package]]
 name = "kailash-nexus"
-version = "2.3.0"
+version = "2.5.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "fastapi" },
@@ -2785,7 +2785,7 @@ dependencies = [
     { name = "websockets" },
 ]
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/0c/a4/bd1433fdc0329c9891afb3d714647818128120bf0b86325e783dea676eb9/kailash_nexus-2.3.0-py3-none-any.whl", hash = "sha256:0832fdca2e0fb8914e61eb735d570d4c3be41f4ec07b4f8cc6536c0572db41cc", size = 239010, upload-time = "2026-04-25T09:20:15.087Z" },
+    { url = "https://files.pythonhosted.org/packages/ed/d0/f240a9814f316787eee071f84bfcfa9960548f1d4e40ee2d64c29707f74f/kailash_nexus-2.5.0-py3-none-any.whl", hash = "sha256:ecccbb6172f1237610b84fc161ce82762c185cad816c0f6a9542d04a67b45c9a", size = 242845, upload-time = "2026-04-30T01:44:24.999Z" },
 ]
 
 [[package]]
@@ -3862,14 +3862,14 @@ requires-dist = [
     { name = "black", marker = "extra == 'dev'", specifier = ">=23.0" },
     { name = "detect-secrets", marker = "extra == 'dev'", specifier = ">=1.5.0" },
     { name = "isort", marker = "extra == 'dev'", specifier = ">=5.12.0" },
-    { name = "kailash", specifier = ">=2.12.0" },
+    { name = "kailash", specifier = ">=2.13.0" },
     { name = "kailash-align", marker = "extra == 'align'", specifier = ">=0.7.0" },
     { name = "kailash-align", extras = ["all"], marker = "extra == 'all'", specifier = ">=0.7.0" },
-    { name = "kailash-dataflow", specifier = ">=2.4.0" },
-    { name = "kailash-kaizen", specifier = ">=2.13.1" },
+    { name = "kailash-dataflow", specifier = ">=2.6.0" },
+    { name = "kailash-kaizen", specifier = ">=2.14.0" },
     { name = "kailash-mcp", specifier = ">=0.2.10" },
     { name = "kailash-ml", specifier = ">=1.6.0" },
-    { name = "kailash-nexus", specifier = ">=2.3.0" },
+    { name = "kailash-nexus", specifier = ">=2.5.0" },
     { name = "kailash-pact", specifier = ">=0.11.0" },
     { name = "kaizen-agents", specifier = ">=0.9.4" },
     { name = "mypy", marker = "extra == 'dev'", specifier = ">=1.0" },
