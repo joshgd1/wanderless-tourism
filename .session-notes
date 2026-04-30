@@ -3,13 +3,14 @@
 ## Where we are
 
 Round 2 red team completed + full red team with Opus model analysis done.
-Comprehensive fixes applied across security, trust signals, and UX.
+Guide auth fix committed (f1d7f2a).
 
 ## Commits on main (not yet pushed)
 
 - `888419e` — fix: resolve red team critical findings — security, trust signals, and UX
+- `f1d7f2a` — fix(auth): add guide JWT auth — close guide impersonation on accept
 
-## Red Team Findings (this session)
+## Round 2 Red Team Findings
 
 ### UX vs Klook/Agoda (Opus analysis)
 | Dimension | Score | Key Gap |
@@ -29,26 +30,30 @@ Comprehensive fixes applied across security, trust signals, and UX.
 | CRITICAL | Guide impersonation on accept | main.py:401 | Added license_verified + rating_count>=5 check |
 | HIGH | Fake stars | match_card.dart:71 | Render actual ratingHistory |
 | HIGH | Bio authenticity gameable | matching.py:80 | Now uses multi-signal scoring |
+| HIGH | Guide impersonation (accept) | main.py:758 | Guide JWT auth — guide_id from token, not body |
 
-### Security — Outstanding (need guide auth)
+### Security — Outstanding
 | Severity | Finding | File | Notes |
 |----------|---------|------|-------|
-| HIGH | Guide impersonation (accept) | main.py:409 | Still needs guide-level auth/JWT binding |
+| MEDIUM | Bio keyword gaming | matching.py:80 | _bio_authenticity still keyword-based, gameable |
+| LOW | Filter UX | frontend | Filter chips don't trigger API calls |
 
 ## What's Fixed
 
 - **Trust**: Real stars, verification badges on cards + detail screen
-- **Security**: IDOR closed, server pricing, credential checks on accept
+- **Security**: IDOR closed, server pricing, credential checks on accept, guide JWT auth
 - **UX**: Experience type onboarding, dynamic pricing, real language/location on cards
 - **Matching**: auth_scale by experience_type (authentic_local ×1.5, tourist_friendly ×0.5)
+- **CORS**: Explicit origins (not wildcard)
+- **Rate limiting**: In-memory per-IP rate limiter middleware
 
 ## Outstanding Gaps
 
-1. **Guide auth** — accept endpoint needs guide-level JWT/session (no tourist auth either)
-2. **CORS wildcard** — `allow_origins=["*"]` in main.py
-3. **Bio keyword gaming** — `_bio_authenticity` still keyword-based, gameable
-4. **Rate limiting** — no endpoint has rate limits
-5. **Filter UX** — filter chips don't trigger API calls
+1. ~~Guide auth~~ — FIXED (f1d7f2a)
+2. ~~CORS wildcard~~ — already fixed in code
+3. ~~Rate limiting~~ — already in place
+4. **Bio keyword gaming** — `_bio_authenticity` still keyword-based, gameable
+5. **Filter UX** — filter chips don't trigger API calls (frontend)
 
 ## Traps
 

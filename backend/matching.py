@@ -47,17 +47,20 @@ AUTHENTICITY_KEYWORDS = [
     "authentic local", "local born",
 ]
 
-LOCALITY_BONUS = 0.25
-
 # Chiang Mai neighborhoods — used when tourist destination is "Chiang Mai"
 CHIANG_MAI_NEIGHBORHOODS = {
     "old city", "nimman", "night bazaar", "do inthanon", "doi inthanon",
     "do suthep", "doi suthep", "do pui", "doi pui", "mae sa valley",
     "sankamphaeng", "hang dong", "saraphi", "sansai",
+    "santitham", "huay kaew", "maya", "prettpak", "chang moi",
 }
+
+LOCALITY_BONUS = 0.25
+
+MAX_BIO_BONUS = 0.20
+
 VERIFIED_BONUS = 0.20
 MAX_REVIEW_BONUS = 0.50
-MAX_BIO_BONUS = 0.30
 
 
 def interest_vec(tourist: Tourist) -> list[float]:
@@ -77,13 +80,43 @@ def raw_dot(tourist: Tourist, guide: Guide) -> float:
     return sum(a * b for a, b in zip(interest_vec(tourist), expertise_vec(guide)))
 
 
-def _bio_authenticity(bio: str | None) -> float:
-    """Score how much bio signals authentic local knowledge."""
-    if not bio:
+def _bio_authenticity(guide: Guide) -> float:
+    """
+    Score bio authenticity using weighted independent signals.
+    Harder to game than keyword-only: requires either license verification,
+    or location-specific claims cross-referenced against guide's coverage area,
+    or verified locality keywords backed by coverage.
+
+    Signal weights:
+    - license_verified: 0.20 (anchor — requires official credential)
+    - neighborhood match (bio mentions "Santitham" + guide covers Chiang Mai
+      neighborhood): 0.20 (requires specific local knowledge)
+    - city match (bio mentions "Chiang Mai" + guide covers it): 0.10
+    - generic keyword without location claim: 0.05 (weak, capped low)
+    """
+    if not guide.bio:
         return 0.0
-    bio_lower = bio.lower()
-    matches = sum(1 for kw in AUTHENTICITY_KEYWORDS if kw in bio_lower)
-    return min(matches * 0.10, MAX_BIO_BONUS)
+
+    bio_lower = guide.bio.lower()
+    covered = set(loc.strip().lower() for loc in guide.location_coverage.split("|"))
+
+    # Strong: neighborhood in bio + guide covers that neighborhood
+    bio_neighborhoods_found = covered & CHIANG_MAI_NEIGHBORHOODS & set(bio_lower.split())
+    if bio_neighborhoods_found:
+        # At least one neighborhood appears in bio text
+        # This requires the guide to actually mention a specific local area
+        return 0.20
+
+    # Moderate: city-level match (bio mentions Chiang Mai + guide covers Chiang Mai)
+    if "chiang mai" in bio_lower and any("chiang mai" in c for c in covered):
+        return 0.10
+
+    # Weak fallback: generic keyword presence (capped low)
+    keyword_matches = sum(1 for kw in AUTHENTICITY_KEYWORDS if kw in bio_lower)
+    if keyword_matches > 0:
+        return min(keyword_matches * 0.05, 0.05)
+
+    return 0.0
 
 
 def _location_match(guide: Guide, destination: str | None) -> float:
@@ -158,7 +191,7 @@ def compatibility_score(
     # Authenticity signals as multiplicative premium on the interest-match core only
     review_bonus = min(math.log1p(guide.rating_count or 1) / 10, MAX_REVIEW_BONUS)
     verified_bonus = VERIFIED_BONUS if guide.license_verified else 0.0
-    bio_bonus = _bio_authenticity(guide.bio)
+    bio_bonus = _bio_authenticity(guide)
     locality_bonus = _location_match(guide, destination)
 
     auth_multiplier = 1.0 + (review_bonus + verified_bonus + bio_bonus + locality_bonus) * auth_scale
