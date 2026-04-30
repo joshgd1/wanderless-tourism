@@ -239,7 +239,7 @@ class DiscoverScreen extends ConsumerWidget {
                     );
                   }).toList(),
                 ),
-              ),
+              ],
             ),
           ),
 

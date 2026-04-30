@@ -222,6 +222,7 @@ class MatchCard extends StatelessWidget {
                     scoreContent: guide.scoreContent,
                     scoreCollab: guide.scoreCollab,
                     scoreDest: guide.scoreDest,
+                    mlExplanation: guide.mlExplanation,
                   ),
                   const SizedBox(width: 12),
                   _BudgetBadge(tier: guide.budgetTier),
@@ -261,6 +262,7 @@ class _ScoreBadge extends StatelessWidget {
   final double? scoreContent;
   final double? scoreCollab;
   final double? scoreDest;
+  final String? mlExplanation;
 
   const _ScoreBadge({
     required this.score,
@@ -268,6 +270,7 @@ class _ScoreBadge extends StatelessWidget {
     this.scoreContent,
     this.scoreCollab,
     this.scoreDest,
+    this.mlExplanation,
   });
 
   @override
@@ -359,10 +362,10 @@ class _ScoreBadge extends StatelessWidget {
             if (scoreDest != null && scoreDest! > 0)
               _ScoreRow('Destination Fit', '${(scoreDest! * 100).toInt()}%',
                   subtitle: 'Location bonus'),
-            if (guide.mlExplanation != null) ...[
+            if (mlExplanation != null) ...[
               const Divider(height: 24),
               Text(
-                guide.mlExplanation!,
+                mlExplanation!,
                 style: TextStyle(fontSize: 13, color: Colors.grey[700], height: 1.4),
               ),
             ],
