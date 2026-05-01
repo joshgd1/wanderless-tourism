@@ -2,7 +2,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class ApiConfig {
   static const _baseUrlKey = 'api_base_url';
-  static const String defaultUrl = 'https://camping-dollhouse-hull.ngrok-free.dev/api';
+  static const String defaultUrl = 'https://wanderless-tourism.onrender.com/api';
 
   static Future<String> getBaseUrl() async {
     final prefs = await SharedPreferences.getInstance();
