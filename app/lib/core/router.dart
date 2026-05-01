@@ -173,6 +173,13 @@ final routerProvider = Provider<GoRouter>((ref) {
         routes: [
           GoRoute(path: '/discover', builder: (_, __) => const DiscoverScreen()),
           GoRoute(path: '/bookings', builder: (_, __) => const BookingsScreen()),
+          GoRoute(
+            path: '/trip-plans',
+            builder: (context, state) {
+              final isGuide = state.uri.queryParameters['guide'] == 'true';
+              return TripPlanListScreen(isGuideView: isGuide);
+            },
+          ),
           GoRoute(path: '/profile', builder: (_, __) => const ProfileScreen()),
         ],
       ),
@@ -213,13 +220,6 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/trip-plan/create',
         builder: (_, __) => const CreateTripPlanScreen(),
-      ),
-      GoRoute(
-        path: '/trip-plans',
-        builder: (context, state) {
-          final isGuide = state.uri.queryParameters['guide'] == 'true';
-          return TripPlanListScreen(isGuideView: isGuide);
-        },
       ),
     ],
   );

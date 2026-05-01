@@ -23,7 +23,7 @@ final matchesProvider = FutureProvider<List<MatchedGuide>>((ref) async {
   final selectedFilter = ref.watch(_selectedFilterProvider);
   final destination = _filterDestinationMap[selectedFilter];
   final api = ApiClient();
-  final data = await api.getMatches(touristId, topN: 5, destination: destination);
+  final data = await api.getMatches(touristId, topN: 10, destination: destination);
   return data.map((e) => MatchedGuide.fromJson(e as Map<String, dynamic>)).toList();
 });
 
@@ -35,12 +35,13 @@ final mlMatchesProvider = FutureProvider<List<MatchedGuide>>((ref) async {
   final selectedFilter = ref.watch(_selectedFilterProvider);
   final destination = _filterDestinationMap[selectedFilter];
   final api = ApiClient();
-  final data = await api.getMlGuideRecommendations(touristId, topN: 5, destination: destination);
+  final data = await api.getMlGuideRecommendations(touristId, topN: 10, destination: destination);
   return data.map((e) => MatchedGuide.fromJson(e as Map<String, dynamic>)).toList();
 });
 
 final _selectedFilterProvider = StateProvider<String>((_) => 'Recommended');
 final _mlModeProvider = StateProvider<bool>((_) => false);
+final _searchQueryProvider = StateProvider<String>((_) => '');
 
 class DiscoverScreen extends ConsumerWidget {
   const DiscoverScreen({super.key});
@@ -77,13 +78,16 @@ class DiscoverScreen extends ConsumerWidget {
                       children: [
                         Row(
                           children: [
-                            const Text(
-                              'WanderLess',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 22,
-                                fontWeight: FontWeight.bold,
-                                letterSpacing: 0.5,
+                            GestureDetector(
+                              onTap: () => context.go('/discover'),
+                              child: const Text(
+                                'WanderLess',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.bold,
+                                  letterSpacing: 0.5,
+                                ),
                               ),
                             ),
                             const Spacer(),
@@ -114,7 +118,9 @@ class DiscoverScreen extends ConsumerWidget {
                             ],
                           ),
                           child: TextField(
-                            readOnly: true,
+                            onChanged: (value) {
+                              ref.read(_searchQueryProvider.notifier).state = value;
+                            },
                             decoration: InputDecoration(
                               hintText: 'Search destinations, experiences...',
                               hintStyle: TextStyle(color: Colors.grey[500], fontSize: 14),
@@ -269,9 +275,43 @@ class DiscoverScreen extends ConsumerWidget {
               ),
             ),
             data: (matches) {
-              if (matches.isEmpty) {
+              final searchQuery = ref.watch(_searchQueryProvider).toLowerCase();
+              final filtered = searchQuery.isEmpty
+                  ? matches
+                  : matches.where((g) {
+                      final name = g.name.toLowerCase();
+                      final guideId = g.guideId.toLowerCase();
+                      final locations = g.locationCoverage.join(' ').toLowerCase();
+                      final expertise = g.expertiseTags.join(' ').toLowerCase();
+                      return name.contains(searchQuery) ||
+                          guideId.contains(searchQuery) ||
+                          locations.contains(searchQuery) ||
+                          expertise.contains(searchQuery);
+                    }).toList();
+              if (filtered.isEmpty) {
                 return SliverFillRemaining(
-                  child: _EmptyStateCard(),
+                  child: Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.search_off, size: 64, color: Colors.grey[300]),
+                        const SizedBox(height: 16),
+                        Text(
+                          'No guides found',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.grey[700],
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Try a different search term',
+                          style: TextStyle(color: Colors.grey[500]),
+                        ),
+                      ],
+                    ),
+                  ),
                 );
               }
               return SliverPadding(
@@ -279,7 +319,7 @@ class DiscoverScreen extends ConsumerWidget {
                 sliver: SliverList(
                   delegate: SliverChildBuilderDelegate(
                     (context, index) {
-                      final guide = matches[index];
+                      final guide = filtered[index];
                       return Padding(
                         padding: const EdgeInsets.only(bottom: 16),
                         child: MatchCard(
@@ -288,7 +328,7 @@ class DiscoverScreen extends ConsumerWidget {
                         ),
                       );
                     },
-                    childCount: matches.length,
+                    childCount: filtered.length,
                   ),
                 ),
               );
