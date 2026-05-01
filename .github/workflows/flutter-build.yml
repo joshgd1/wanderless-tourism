@@ -29,7 +29,7 @@ jobs:
       - name: Upgrade Kotlin version
         run: |
           cd app/android
-          sed -i 's/id "org.jetbrains.kotlin.android" version "[^"]*"/id "org.jetbrains.kotlin.android" version "1.9.22"/' settings.gradle
+          sed -i 's/id("org.jetbrains.kotlin.android") version "[^"]*"/id("org.jetbrains.kotlin.android") version "1.9.22"/' settings.gradle.kts
 
       - name: Analyze
         run: |
