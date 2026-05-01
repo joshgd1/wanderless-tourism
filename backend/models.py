@@ -28,6 +28,7 @@ class BusinessOwner(Base):
     id = Column(String, primary_key=True)
     email = Column(String, unique=True, nullable=True)
     password_hash = Column(String, nullable=True)
+    name = Column(String)  # owner's personal name
     business_name = Column(String)
     commission_rate = Column(Float, default=0.15)  # 15% platform commission
     phone = Column(String, nullable=True)
