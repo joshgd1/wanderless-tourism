@@ -32,17 +32,15 @@ def get_db() -> Session:
 
 
 def init_db(db: Session) -> None:
-    """Create tables and seed from CSV."""
-    Base.metadata.drop_all(bind=engine)
+    """Create tables if missing; seed CSV data only if tables are empty."""
     Base.metadata.create_all(bind=engine)
-    db.execute(delete(Tourist))
-    db.execute(delete(Guide))
-    db.execute(delete(Rating))
-    db.execute(delete(TripPlan))
-    db.commit()
-    _seed_tourists(db)
-    _seed_guides(db)
-    _seed_ratings(db)
+    # Only seed from CSV if tables are empty (preserve seeded accounts)
+    if db.query(Tourist).count() == 0:
+        _seed_tourists(db)
+    if db.query(Guide).count() == 0:
+        _seed_guides(db)
+    if db.query(Rating).count() == 0:
+        _seed_ratings(db)
     db.commit()
 
 

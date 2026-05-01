@@ -19,7 +19,7 @@ sys.path.insert(0, '.')
 from database import SessionLocal, init_db
 from models import Tourist, Guide, BusinessOwner
 
-TEST_PASSWORD_HASH = "$2b$12$ZHbhAaNbDlM2HAk4vdw7COPsdw/oqL/2Hc0uFpOZUUgzBMVsmz3Xy"
+TEST_PASSWORD_HASH = "$2b$12$eCcT/GO4Hj.fAqgihcxO/epKof8E9rxObeKjW9llKS7sViNyi7SX2"
 
 
 def seed_test_business(db: SessionLocal):

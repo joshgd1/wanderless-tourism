@@ -171,7 +171,7 @@ async def _rate_limit_middleware(request: Request, call_next):
     try:
         _check_rate_limit(client_ip)
     except HTTPException:
-        return
+        raise  # Re-raise so FastAPI error handling + CORS middleware handle it
     return await call_next(request)
 
 
