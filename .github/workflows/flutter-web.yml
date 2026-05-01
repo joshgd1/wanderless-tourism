@@ -28,7 +28,7 @@ jobs:
       - run: flutter pub get
         working-directory: ./app
 
-      - run: flutter build web
+      - run: flutter build web --base-href=/wanderless-tourism/
         working-directory: ./app
 
       - name: Upload Pages Artifact
