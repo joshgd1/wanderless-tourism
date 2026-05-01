@@ -14,10 +14,11 @@ class GuideRegisterScreen extends ConsumerStatefulWidget {
 
 class _GuideRegisterScreenState extends ConsumerState<GuideRegisterScreen> {
   final _formKey = GlobalKey<FormState>();
+  final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
-  final _guideIdController = TextEditingController();
+  final _bioController = TextEditingController();
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
   bool _isLoading = false;
@@ -25,10 +26,11 @@ class _GuideRegisterScreenState extends ConsumerState<GuideRegisterScreen> {
 
   @override
   void dispose() {
+    _nameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
-    _guideIdController.dispose();
+    _bioController.dispose();
     super.dispose();
   }
 
@@ -51,9 +53,10 @@ class _GuideRegisterScreenState extends ConsumerState<GuideRegisterScreen> {
         Uri.parse('$baseUrl/api/guides/register'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
+          'name': _nameController.text.trim(),
           'email': _emailController.text.trim(),
           'password': _passwordController.text,
-          'guide_id': _guideIdController.text.trim(),
+          'bio': _bioController.text.trim(),
         }),
       );
 
@@ -160,11 +163,11 @@ class _GuideRegisterScreenState extends ConsumerState<GuideRegisterScreen> {
                 child: Column(
                   children: [
                     TextFormField(
-                      controller: _guideIdController,
+                      controller: _nameController,
                       decoration: InputDecoration(
-                        labelText: 'Guide ID',
-                        hintText: 'Enter your assigned guide ID',
-                        prefixIcon: const Icon(Icons.badge_outlined),
+                        labelText: 'Full Name',
+                        hintText: 'Your full name',
+                        prefixIcon: const Icon(Icons.person_outline),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
@@ -172,7 +175,7 @@ class _GuideRegisterScreenState extends ConsumerState<GuideRegisterScreen> {
                         fillColor: Colors.white,
                       ),
                       validator: (v) {
-                        if (v == null || v.trim().isEmpty) return 'Guide ID is required';
+                        if (v == null || v.trim().isEmpty) return 'Name is required';
                         return null;
                       },
                     ),
@@ -246,6 +249,21 @@ class _GuideRegisterScreenState extends ConsumerState<GuideRegisterScreen> {
                         if (v == null || v.isEmpty) return 'Please confirm your password';
                         return null;
                       },
+                    ),
+                    const SizedBox(height: 16),
+                    TextFormField(
+                      controller: _bioController,
+                      maxLines: 3,
+                      decoration: InputDecoration(
+                        labelText: 'Bio (optional)',
+                        hintText: 'Tell tourists about yourself and your expertise...',
+                        prefixIcon: const Icon(Icons.description_outlined),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        filled: true,
+                        fillColor: Colors.white,
+                      ),
                     ),
                     const SizedBox(height: 28),
                     SizedBox(

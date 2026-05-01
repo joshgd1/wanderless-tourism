@@ -429,31 +429,49 @@ async def get_guide(guide_id: str, db: Session = Depends(get_db)):
 async def register_guide(data: dict, db: Session = Depends(get_db)):
     """
     Register a new guide account.
+    Creates a new Guide record with auto-generated ID.
     Returns JWT token for immediate login.
     """
     email = data.get("email", "").strip().lower()
     password = data.get("password", "")
-    guide_id = data.get("guide_id", "").strip()
+    name = data.get("name", "").strip()
+    bio = data.get("bio", "").strip()
 
     if not email or "@" not in email:
         raise HTTPException(status_code=400, detail="Valid email is required")
     if not password or len(password) < 6:
         raise HTTPException(status_code=400, detail="Password must be at least 6 characters")
-    if not guide_id:
-        raise HTTPException(status_code=400, detail="guide_id is required")
+    if not name:
+        raise HTTPException(status_code=400, detail="Name is required")
 
     existing_email = db.query(models.Guide).filter_by(email=email).first()
     if existing_email:
         raise HTTPException(status_code=409, detail="Email already registered")
 
-    guide = db.query(models.Guide).filter_by(id=guide_id).first()
-    if not guide:
-        raise HTTPException(status_code=404, detail="Guide not found in system")
-    if guide.email:
-        raise HTTPException(status_code=409, detail="Guide already has an account")
+    # Auto-generate guide ID: G + 8 char uppercase hex
+    guide_id = f"G{uuid.uuid4().hex[:8].upper()}"
 
-    guide.email = email
-    guide.password_hash = _hash_password(password)
+    guide = models.Guide(
+        id=guide_id,
+        email=email,
+        password_hash=_hash_password(password),
+        name=name,
+        bio=bio or "Local guide ready to show you around!",
+        expertise_tags="culture|food|adventure",
+        personality_vector="|".join(["0.5"] * 8),
+        language_pairs=data.get("language_pair", "en→th"),
+        pace_style=0.5,
+        group_size_preferred=4,
+        budget_tier="mid",
+        location_coverage="Chiang Mai",
+        availability={},
+        rating_history=0.0,
+        rating_count=0,
+        specialties="local_culture|food_tours|history",
+        license_verified=False,
+        owner_id=None,
+    )
+    db.add(guide)
     db.commit()
     logger.info(f"guide.register guide_id={guide_id} email={email}")
 
@@ -462,7 +480,7 @@ async def register_guide(data: dict, db: Session = Depends(get_db)):
         "access_token": token,
         "token_type": "bearer",
         "guide_id": guide_id,
-        "name": guide.name,
+        "name": name,
     }
 
 
