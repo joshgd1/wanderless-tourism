@@ -29,12 +29,12 @@ jobs:
       - name: Upgrade Kotlin version
         run: |
           cd app/android
-          sed -i 's/id("org.jetbrains.kotlin.android") version "[^"]*"/id("org.jetbrains.kotlin.android") version "1.9.22"/' settings.gradle.kts
+          sed -i 's/id "org.jetbrains.kotlin.android" version "[^"]*"/id "org.jetbrains.kotlin.android" version "1.9.22"/' settings.gradle
 
       - name: Analyze
         run: |
           cd app
-          flutter analyze || true
+          flutter analyze
 
       - name: Build debug APK
         run: |
