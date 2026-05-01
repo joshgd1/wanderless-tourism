@@ -101,7 +101,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           width: 90,
                           height: 90,
                           fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) => const Icon(
+                          errorBuilder: (_, __, ___) => Icon(
                             Icons.explore,
                             size: 40,
                             color: appTheme.colorScheme.primary,
