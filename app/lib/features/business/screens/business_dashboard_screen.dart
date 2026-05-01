@@ -22,7 +22,7 @@ class BusinessDashboardScreen extends ConsumerWidget {
     return Scaffold(
       backgroundColor: const Color(0xFFF5F5F5),
       appBar: AppBar(
-        backgroundColor: const Color(0xFF1A2E1A),
+        backgroundColor: const Color(0xFFED8A19),
         elevation: 0,
         title: Text(
           authState.businessName ?? 'Business Dashboard',
@@ -95,7 +95,7 @@ class BusinessDashboardScreen extends ConsumerWidget {
                         title: 'Total Bookings',
                         value: '$totalBookings',
                         icon: Icons.calendar_today,
-                        color: const Color(0xFF25D366),
+                        color: const Color(0xFFED8A19),
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -114,7 +114,7 @@ class BusinessDashboardScreen extends ConsumerWidget {
                   title: 'Platform Commission Earned',
                   value: '\$${totalCommission.toStringAsFixed(2)}',
                   icon: Icons.account_balance_wallet,
-                  color: const Color(0xFF1A2E1A),
+                  color: const Color(0xFFED8A19),
                   subtitle: '15% of gross booking value',
                 ),
                 const SizedBox(height: 24),
@@ -296,10 +296,10 @@ class _GuideCard extends StatelessWidget {
             width: 48,
             height: 48,
             decoration: BoxDecoration(
-              color: const Color(0xFF1A2E1A).withOpacity(0.1),
+              color: const Color(0xFFED8A19).withOpacity(0.1),
               shape: BoxShape.circle,
             ),
-            child: const Icon(Icons.person, color: Color(0xFF1A2E1A)),
+            child: const Icon(Icons.person, color: Color(0xFFED8A19)),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -314,7 +314,7 @@ class _GuideCard extends StatelessWidget {
                     ),
                     if (licenseVerified) ...[
                       const SizedBox(width: 6),
-                      const Icon(Icons.verified, color: Color(0xFF25D366), size: 16),
+                      const Icon(Icons.verified, color: Color(0xFFED8A19), size: 16),
                     ],
                   ],
                 ),
@@ -362,7 +362,7 @@ class _BookingCard extends StatelessWidget {
     Color statusColor;
     switch (status.toString().toUpperCase()) {
       case 'CONFIRMED':
-        statusColor = const Color(0xFF25D366);
+        statusColor = const Color(0xFFED8A19);
         break;
       case 'COMPLETED':
         statusColor = Colors.blue[600]!;

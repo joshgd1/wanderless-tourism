@@ -47,12 +47,12 @@ class _GuideDashboardScreenState extends ConsumerState<GuideDashboardScreen> wit
             SliverAppBar(
               expandedHeight: 120,
               pinned: true,
-              backgroundColor: const Color(0xFF1A2E1A),
+              backgroundColor: const Color(0xFFED8A19),
               flexibleSpace: FlexibleSpaceBar(
                 background: Container(
                   decoration: const BoxDecoration(
                     gradient: LinearGradient(
-                      colors: [Color(0xFF1A2E1A), Color(0xFF2D4A2D)],
+                      colors: [Color(0xFFED8A19), Color(0xFFEF9B2A)],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                     ),
@@ -100,7 +100,7 @@ class _GuideDashboardScreenState extends ConsumerState<GuideDashboardScreen> wit
               ),
               bottom: TabBar(
                 controller: _tabController,
-                indicatorColor: const Color(0xFF25D366),
+                indicatorColor: Colors.white,
                 labelColor: Colors.white,
                 unselectedLabelColor: Colors.white60,
                 tabs: const [
@@ -209,7 +209,7 @@ class _CurrentJobsTab extends ConsumerWidget {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(status == 'CONFIRMED' ? 'Booking accepted!' : 'Booking declined'),
-            backgroundColor: status == 'CONFIRMED' ? const Color(0xFF25D366) : Colors.red,
+            backgroundColor: status == 'CONFIRMED' ? const Color(0xFFED8A19) : Colors.red,
           ),
         );
       }
@@ -317,7 +317,7 @@ class _GuideBookingCard extends StatelessWidget {
       case 'REQUESTED':
         return Colors.orange;
       case 'CONFIRMED':
-        return const Color(0xFF25D366);
+        return const Color(0xFFED8A19);
       case 'PAID':
         return Colors.blue;
       case 'IN_PROGRESS':
@@ -407,10 +407,10 @@ class _GuideBookingCard extends StatelessWidget {
                   width: 48,
                   height: 48,
                   decoration: BoxDecoration(
-                    color: const Color(0xFF25D366).withOpacity(0.1),
+                    color: const Color(0xFFED8A19).withOpacity(0.1),
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(Icons.person, color: Color(0xFF25D366)),
+                  child: const Icon(Icons.person, color: Color(0xFFED8A19)),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -510,7 +510,7 @@ class _GuideBookingCard extends StatelessWidget {
                     child: ElevatedButton(
                       onPressed: onAccept,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF25D366),
+                        backgroundColor: const Color(0xFFED8A19),
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(vertical: 12),
                       ),

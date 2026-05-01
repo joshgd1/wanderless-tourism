@@ -22,11 +22,14 @@ import '../features/settings/screens/settings_screen.dart';
 import '../features/guide/screens/guide_login_screen.dart';
 import '../features/guide/screens/guide_register_screen.dart';
 import '../features/guide/screens/guide_dashboard_screen.dart';
+import '../features/guide/screens/guide_jobs_screen.dart';
 import '../features/business/screens/business_register_screen.dart';
+import '../features/business/screens/business_jobs_screen.dart';
 import '../features/tracking/screens/tour_tracking_screen.dart';
 import '../shared/widgets/main_shell.dart';
 import 'auth_provider.dart';
 import 'guide_auth_provider.dart';
+import 'business_auth_provider.dart';
 
 // Splash screen resolves auth from storage, then redirects
 class SplashScreen extends ConsumerStatefulWidget {
@@ -142,6 +145,34 @@ final routerProvider = Provider<GoRouter>((ref) {
             return const SizedBox.shrink();
           }
           return const GuideDashboardScreen();
+        },
+      ),
+      GoRoute(
+        path: '/guide/jobs',
+        builder: (context, state) {
+          final guideAuth = ProviderScope.containerOf(context).read(guideAuthProvider);
+          if (!guideAuth.isAuthenticated) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              context.go('/guide/login');
+            });
+            return const SizedBox.shrink();
+          }
+          return const GuideJobsScreen();
+        },
+      ),
+
+      // Business jobs — protected by business auth
+      GoRoute(
+        path: '/business/jobs',
+        builder: (context, state) {
+          final businessAuth = ProviderScope.containerOf(context).read(businessAuthProvider);
+          if (!businessAuth.isAuthenticated) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              context.go('/business/login');
+            });
+            return const SizedBox.shrink();
+          }
+          return const BusinessJobsScreen();
         },
       ),
 
