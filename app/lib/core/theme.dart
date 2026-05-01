@@ -1,27 +1,25 @@
 import 'package:flutter/material.dart';
 
-// WanderLess brand colors — emerald green + orange (per logo)
-const _wanderGreen = Color(0xFF00A86B); // emerald from logo
-const _deepForest = Color(0xFF006B3C);   // darker emerald for headers
-const _warmOrange = Color(0xFFFF8C00);   // orange from logo location icon
-const _softPurple = Color(0xFF6B4EFF);
+// WanderLess brand colors — orange (per logo)
+const _wanderOrange = Color(0xFFED8A19); // primary orange from logo
+const _deepOrange = Color(0xFFEF9B2A);   // accent orange
+const _darkGrey = Color(0xFF3C3830);     // dark grey from logo text
 const _cardShadowColor = Color(0x0D000000);
 
 final appTheme = ThemeData(
   useMaterial3: true,
   colorScheme: ColorScheme.fromSeed(
-    seedColor: _wanderGreen,
+    seedColor: _wanderOrange,
     brightness: Brightness.light,
-    primary: _wanderGreen,
-    secondary: _warmOrange,
-    tertiary: _softPurple,
+    primary: _wanderOrange,
+    secondary: _deepOrange,
     surface: Colors.white,
   ),
-  scaffoldBackgroundColor: const Color(0xFFF0F7F4), // subtle emerald tint
+  scaffoldBackgroundColor: const Color(0xFFFAF5F0), // subtle warm tint
   appBarTheme: const AppBarTheme(
     centerTitle: false,
     elevation: 0,
-    backgroundColor: _deepForest,
+    backgroundColor: _wanderOrange,
     foregroundColor: Colors.white,
     titleTextStyle: TextStyle(
       color: Colors.white,
@@ -38,7 +36,7 @@ final appTheme = ThemeData(
   ),
   elevatedButtonTheme: ElevatedButtonThemeData(
     style: ElevatedButton.styleFrom(
-      backgroundColor: _wanderGreen,
+      backgroundColor: _wanderOrange,
       foregroundColor: Colors.white,
       padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
@@ -47,15 +45,15 @@ final appTheme = ThemeData(
   ),
   outlinedButtonTheme: OutlinedButtonThemeData(
     style: OutlinedButton.styleFrom(
-      foregroundColor: _wanderGreen,
-      side: const BorderSide(color: _wanderGreen, width: 1.5),
+      foregroundColor: _wanderOrange,
+      side: const BorderSide(color: _wanderOrange, width: 1.5),
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
     ),
   ),
   textButtonTheme: TextButtonThemeData(
     style: TextButton.styleFrom(
-      foregroundColor: _wanderGreen,
+      foregroundColor: _wanderOrange,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
     ),
   ),
@@ -70,29 +68,29 @@ final appTheme = ThemeData(
     hintStyle: TextStyle(color: Colors.grey[500]),
   ),
   sliderTheme: SliderThemeData(
-    activeTrackColor: _wanderGreen,
-    thumbColor: _wanderGreen,
-    overlayColor: const Color(0x3300A86B), // 20% of 00A86B
+    activeTrackColor: _wanderOrange,
+    thumbColor: _wanderOrange,
+    overlayColor: const Color(0x33ED8A19), // 20% of ED8A19
     inactiveTrackColor: Colors.grey[200],
     trackHeight: 4,
     thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 8),
   ),
   chipTheme: ChipThemeData(
     backgroundColor: Colors.grey[100]!,
-    selectedColor: const Color(0x2600A86B), // 15% of 00A86B
+    selectedColor: const Color(0x26ED8A19), // 15% of ED8A19
     labelStyle: const TextStyle(fontSize: 13),
     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
   ),
   bottomNavigationBarTheme: BottomNavigationBarThemeData(
     backgroundColor: Colors.white,
-    selectedItemColor: _wanderGreen,
+    selectedItemColor: _wanderOrange,
     unselectedItemColor: Colors.grey[400],
     type: BottomNavigationBarType.fixed,
     elevation: 8,
   ),
   floatingActionButtonTheme: FloatingActionButtonThemeData(
-    backgroundColor: _warmOrange,
+    backgroundColor: _wanderOrange,
     foregroundColor: Colors.white,
   ),
   dividerTheme: DividerThemeData(
