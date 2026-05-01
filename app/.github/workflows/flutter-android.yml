@@ -21,20 +21,34 @@ jobs:
           flutter-version: "3.24.0"
           channel: "stable"
 
-      - working-directory: app
-      - run: flutter pub get
+      - name: Install dependencies
+        working-directory: app
+        run: flutter pub get
 
-      - working-directory: app
-      - run: flutter analyze || true
+      - name: Create Android project
+        working-directory: app
+        run: flutter create --platforms=android .
 
-      - working-directory: app
+      - name: Upgrade Kotlin version
+        working-directory: app
+        run: |
+          sed -i 's/id("org.jetbrains.kotlin.android") version "[^"]*"/id("org.jetbrains.kotlin.android") version "1.9.22"/' android/settings.gradle.kts || \
+          sed -i 's/id "org.jetbrains.kotlin.android" version "[^"]*"/id "org.jetbrains.kotlin.android" version "1.9.22"/' android/settings.gradle || true
+
+      - name: Analyze
+        working-directory: app
+        run: flutter analyze || true
+
+      - name: Build debug APK
+        working-directory: app
         env:
           ANDROID_HOME: /opt/android-sdk
           ANDROID_SDK_ROOT: /opt/android-sdk
-      - run: flutter build apk --debug
+        run: flutter build apk --debug
 
       - name: Upload debug APK
         uses: actions/upload-artifact@v4
+        continue-on-error: true
         with:
           name: wanderless-debug-apk
-          path: app/build/app/outputs/flutter-apk/wanderless-debug.apk
+          path: app/build/app/outputs/flutter-apk/app-debug.apk
