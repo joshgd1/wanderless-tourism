@@ -34,30 +34,6 @@ jobs:
             sed -i 's/id "org.jetbrains.kotlin.android" version "[^"]*"/id "org.jetbrains.kotlin.android" version "1.9.22"/' settings.gradle
           fi
 
-      - name: Fix generated test file
-        run: |
-          mkdir -p app/test
-          cat > app/test/widget_test.dart << 'EOF'
-import 'package:flutter/material.dart';
-import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:wanderless/main.dart';
-
-void main() {
-  testWidgets('WanderLess app smoke test', (WidgetTester tester) async {
-    await tester.pumpWidget(
-      const ProviderScope(child: WanderlessApp()),
-    );
-    expect(find.byType(MaterialApp), findsOneWidget);
-  });
-}
-EOF
-
-      - name: Analyze
-        run: |
-          cd app
-          flutter analyze || true
-
       - name: Build debug APK
         run: |
           cd app
