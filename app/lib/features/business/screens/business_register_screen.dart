@@ -50,7 +50,7 @@ class _BusinessRegisterScreenState extends ConsumerState<BusinessRegisterScreen>
     try {
       final baseUrl = await ApiConfig.getBaseUrl();
       final response = await http.post(
-        Uri.parse('$baseUrl/api/business/register'),
+        Uri.parse('$baseUrl/business/register'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'name': _nameController.text.trim(),

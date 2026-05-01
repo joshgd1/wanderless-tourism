@@ -50,7 +50,7 @@ class _GuideRegisterScreenState extends ConsumerState<GuideRegisterScreen> {
     try {
       final baseUrl = await ApiConfig.getBaseUrl();
       final response = await http.post(
-        Uri.parse('$baseUrl/api/guides/register'),
+        Uri.parse('$baseUrl/guides/register'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'name': _nameController.text.trim(),
