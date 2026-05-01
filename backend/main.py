@@ -47,8 +47,10 @@ def _check_rate_limit(client_ip: str) -> None:
 
 def _create_token(tourist_id: str, expires_delta: timedelta | None = None) -> str:
     from jose import jwt
-    expire = datetime.utcnow() + (expires_delta or timedelta(hours=ACCESS_TOKEN_EXPIRE_HOURS))
-    payload = {"sub": tourist_id, "exp": expire, "iat": datetime.utcnow()}
+    from datetime import timezone
+    now = datetime.now(timezone.utc)
+    expire = now + (expires_delta or timedelta(hours=ACCESS_TOKEN_EXPIRE_HOURS))
+    payload = {"sub": tourist_id, "exp": expire, "iat": now}
     return jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
 
 
@@ -120,13 +122,13 @@ def _get_guide_id_optional(authorization: str | None = Header(None)) -> str | No
 # ─── Database helpers ────────────────────────────────────────────────────────────
 
 def _hash_password(password: str) -> str:
-    from passlib.context import CryptContext
-    return CryptContext(schemes=["bcrypt"], deprecated="auto").hash(password)
+    import bcrypt
+    return bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt(rounds=12)).decode("utf-8")
 
 
 def _verify_password(password: str, hashed: str) -> bool:
-    from passlib.context import CryptContext
-    return CryptContext(schemes=["bcrypt"], deprecated="auto").verify(password, hashed)
+    import bcrypt
+    return bcrypt.checkpw(password.encode("utf-8"), hashed.encode("utf-8"))
 
 
 # ─── Lifespan ───────────────────────────────────────────────────────────────────
@@ -163,6 +165,8 @@ app.add_middleware(
 
 @app.middleware("http")
 async def _rate_limit_middleware(request: Request, call_next):
+    if request.method == "OPTIONS":
+        return await call_next(request)
     client_ip = request.client.host if request.client else "unknown"
     try:
         _check_rate_limit(client_ip)
