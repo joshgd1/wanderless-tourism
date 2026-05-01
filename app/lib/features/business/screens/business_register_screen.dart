@@ -14,6 +14,7 @@ class BusinessRegisterScreen extends ConsumerStatefulWidget {
 
 class _BusinessRegisterScreenState extends ConsumerState<BusinessRegisterScreen> {
   final _formKey = GlobalKey<FormState>();
+  final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
@@ -25,6 +26,7 @@ class _BusinessRegisterScreenState extends ConsumerState<BusinessRegisterScreen>
 
   @override
   void dispose() {
+    _nameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
@@ -51,6 +53,7 @@ class _BusinessRegisterScreenState extends ConsumerState<BusinessRegisterScreen>
         Uri.parse('$baseUrl/api/business/register'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
+          'name': _nameController.text.trim(),
           'email': _emailController.text.trim(),
           'password': _passwordController.text,
           'business_name': _businessNameController.text.trim(),
@@ -159,6 +162,24 @@ class _BusinessRegisterScreenState extends ConsumerState<BusinessRegisterScreen>
                 key: _formKey,
                 child: Column(
                   children: [
+                    TextFormField(
+                      controller: _nameController,
+                      decoration: InputDecoration(
+                        labelText: 'Your Name',
+                        hintText: 'Enter your full name',
+                        prefixIcon: const Icon(Icons.person_outline),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        filled: true,
+                        fillColor: Colors.white,
+                      ),
+                      validator: (v) {
+                        if (v == null || v.trim().isEmpty) return 'Your name is required';
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 16),
                     TextFormField(
                       controller: _businessNameController,
                       decoration: InputDecoration(

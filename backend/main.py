@@ -562,12 +562,15 @@ async def register_business(data: dict, db: Session = Depends(get_db)):
     """
     email = data.get("email", "").strip().lower()
     password = data.get("password", "")
+    name = data.get("name", "").strip()
     business_name = data.get("business_name", "").strip()
 
     if not email or "@" not in email:
         raise HTTPException(status_code=400, detail="Valid email is required")
     if not password or len(password) < 6:
         raise HTTPException(status_code=400, detail="Password must be at least 6 characters")
+    if not name:
+        raise HTTPException(status_code=400, detail="Your name is required")
     if not business_name:
         raise HTTPException(status_code=400, detail="Business name is required")
 
@@ -580,6 +583,7 @@ async def register_business(data: dict, db: Session = Depends(get_db)):
         id=owner_id,
         email=email,
         password_hash=_hash_password(password),
+        name=name,
         business_name=business_name,
         phone=data.get("phone"),
         commission_rate=0.15,
