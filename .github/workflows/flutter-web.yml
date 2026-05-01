@@ -25,16 +25,18 @@ jobs:
           flutter-version: "3.41.0"
           channel: "stable"
 
-      - run: flutter pub get
-        working-directory: ./app
+      - run: |
+          cd app
+          flutter pub get
+          flutter create --platforms=web .
 
-      - run: flutter build web --base-href=/wanderless-tourism/
+      - run: flutter build web --base-href=/wanderless-tourism/ --output-dir=docs
         working-directory: ./app
 
       - name: Upload Pages Artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: app/build/web
+          path: app/docs
 
   deploy:
     environment:
