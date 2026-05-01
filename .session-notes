@@ -1,99 +1,64 @@
-# Session Notes — 2026-04-30 (updated)
+# Session Notes — 2026-05-01 (updated)
 
 ## Where we are
 
-Redteam complete. All Round 2 security gaps + 1 newly found gap fixed and pushed.
-Business owner feature fully implemented.
+All red team findings from 2026-04-30 resolved.
+Flutter Android CI workflow fixed and pushed.
+Backend is running.
 
-## Commits on main (pushed)
+## Commits on main (pushed today)
 
-- `888419e` — fix: resolve red team critical findings — security, trust signals, and UX
-- `f1d7f2a` — fix(auth): add guide JWT auth — close guide impersonation on accept
-- `0bcb7a1` — fix(matching): replace keyword-only bio auth with weighted multi-signal
-- `a46ae4a` — fix(flutter): make filter chips trigger API calls, update accept flow
-- `2452671` — fix(backend): guide can confirm bookings — add guide auth to booking status endpoint
+- `6e279b6` — fix(flutter): correct workflow YAML syntax and Kotlin Gradle file
 
-## Round 2 Red Team Findings (all fixed)
+## Today's Fix
 
-| Severity | Finding | File | Fix |
-|----------|---------|------|-----|
-| CRITICAL | IDOR — any tourist can read/update any booking | main.py:234-261 | Add tourist_id ownership check + status transition guard |
-| CRITICAL | Client-controlled price | main.py:223 | Server calculates from guide budget tier |
-| CRITICAL | Guide impersonation on accept | main.py:401 | Added license_verified + rating_count>=5 check |
-| HIGH | Fake stars | match_card.dart:71 | Render actual ratingHistory |
-| HIGH | Bio authenticity gameable | matching.py:80 | Now uses multi-signal scoring |
-| HIGH | Guide impersonation (accept) | main.py:758 | Guide JWT auth — guide_id from token, not body |
+### Flutter Android CI YAML syntax was broken
 
-## Newly Found Gap (fixed in 2452671)
+The `app/.github/workflows/flutter-android.yml` had `working-directory: app` as a **standalone step** instead of as a **key within the run step**. This invalid YAML would cause GitHub Actions to skip those steps entirely.
 
-| Severity | Finding | File | Fix |
-|----------|---------|------|-----|
-| HIGH | Guide could not confirm bookings — update_booking_status only accepted tourist JWT | main.py:887-912 | Added _get_tourist_id_optional + _get_guide_id_optional; dual auth (tourist OR guide) |
-| HIGH | Trip plan accept did not update linked booking status | main.py:1116-1144 | Trip plan accept now confirms linked REQUESTED booking to CONFIRMED |
+**Broken:**
+```yaml
+- working-directory: app
+- run: flutter pub get
+```
 
-## What's Fixed
+**Fixed:**
+```yaml
+- name: Install dependencies
+  working-directory: app
+  run: flutter pub get
+```
 
-- **Trust**: Real stars, verification badges on cards + detail screen
-- **Security**: IDOR closed, server pricing, credential checks on accept, guide JWT auth, bio auth multi-signal, guide can confirm bookings
-- **UX**: Experience type onboarding, dynamic pricing, real language/location on cards
-- **Matching**: auth_scale by experience_type (authentic_local ×1.5, tourist_friendly ×0.5), neighborhood cross-ref for bio authenticity
-- **CORS**: Explicit origins (not wildcard)
-- **Rate limiting**: In-memory per-IP rate limiter middleware
-- **Filter UX**: Filter chips trigger API calls with destination parameter
-- **Booking confirm flow**: Guide can confirm (REQUESTED→CONFIRMED), trip plan accept updates booking
+Also fixed `flutter-build.yml` uncommitted change: `settings.gradle` → `settings.gradle.kts` (Kotlin DSL for newer Flutter).
 
-## Outstanding Gaps
+## Backend Status
 
-None — all security/UX gaps resolved.
+- FastAPI backend running on port 8000
+- ML recommender fitted on startup
+- Database seeded on startup
+- Swagger docs at `/docs`
+- No health endpoint (root `/` returns 404 — expected)
+- Reseed endpoint requires admin token
 
-## Backend Health
+## API Routes Available
 
-- FastAPI app loads OK: `python -c "from main import app; print(app.title)"` → "WanderLess API"
-- No import errors
+Tourist auth: `/api/auth/register`, `/api/auth/login`, `/api/auth/me`
+Guide auth: `/api/guides/register`, `/api/guides/login`, `/api/guides/auth/me`
+Business auth: `/api/business/register`, `/api/business/login`, `/api/business/me`
+Business portal: `/api/business/dashboard`, `/api/business/guides`
+Matching: `/api/matches/{tid}`, `/api/recommendations/{tourist_id}/guides`, `/api/recommendations/{tourist_id}/destinations`
+Bookings: `/api/bookings`, `/api/bookings/{booking_id}`, `/api/guide/bookings`, `/api/bookings/{booking_id}/status`
+Itineraries: `/api/itineraries/{booking_id}`, `/api/itineraries/{itinerary_id}`
+Ratings: `/api/ratings`
+Trip plans: `/api/trip-plans`, `/api/trip-plans/{plan_id}`, `/api/trip-plans/{plan_id}/accept`
 
-## Traps
+## Still Pending
 
-- Backend uses `uv run python` (not bare `python`)
-- `wanderless.db` needs reseed after restart (POST /api/admin/reseed)
-- Flutter build cannot run locally (WSL + Windows Flutter path issue) — verified via code review
+1. Business portal smoke test
+2. End-to-end tourist flow smoke test
+3. Verify GitHub Actions flutter-android.yml build succeeds after fix
 
-## Open Questions
+## Git State
 
-- None
-# Session Notes — 2026-05-01
-
-## What happened today
-
-### Flutter Android CI
-- Created `app/.github/workflows/flutter-android.yml` — GitHub Actions workflow to build Flutter APK
-- Workflow: subosito/flutter-action@v2 with Flutter 3.24.0, runs `flutter pub get` → `flutter analyze` → `flutter build apk --debug`
-- Uploads artifact `wanderless-debug-apk` on success
-- Triggered on push/PR to `app/**` paths
-- Pushed to origin/main at commit 8f3f73b
-- GitHub Actions build was RUNNING when user went to sleep
-
-### Build status (as of sleep)
-- Flutter Android CI: `in_progress` — Build Flutter APK job running
-- Previous runs show `failure` on Build Flutter APK (likely pre-existing)
-
-### Architecture in place
-- Backend: FastAPI + SQLite, JWT auth, booking state machine
-- Flutter: Riverpod, go_router, flutter_map, location tracking
-- CI: GitHub Actions for Flutter Android builds
-- Booking flow: REQUESTED → CONFIRMED → PAID → IN_PROGRESS → COMPLETED
-- Location tracking: guide (blue) and tourist (green) circle markers on map, 5s polling
-
-## Still pending from original task list
-- Business portal smoke test
-- End-to-end smoke test: tourist flow
-
-## Tomorrow
-1. Check GitHub Actions run status — did flutter-android.yml build succeed?
-2. If failed: diagnose and fix the workflow
-3. Business portal smoke test
-4. End-to-end tourist flow smoke test
-5. Continue building out the travel app features
-
-## Git state
-- Main is clean (commit 8f3f73b pushed)
-- Lots of untracked noise (pycache, __pycache__, .dart_tool, etc.) — not committed, fine to leave
+- Main is clean (commit 6e279b6 pushed)
+- `app/.claude/learning/observations.jsonl` modified (not committed, learning data)

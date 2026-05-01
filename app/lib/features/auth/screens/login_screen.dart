@@ -52,7 +52,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 padding: const EdgeInsets.fromLTRB(24, 20, 24, 40),
                 decoration: const BoxDecoration(
                   gradient: LinearGradient(
-                    colors: [Color(0xFF006B3C), Color(0xFF00A86B)],
+                    colors: [Color(0xFFED8A19), Color(0xFFEF9B2A)],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
@@ -275,6 +275,21 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                 ),
                               ),
                             ),
+                            Text(
+                              ' or ',
+                              style: TextStyle(color: Colors.grey[600], fontSize: 13),
+                            ),
+                            GestureDetector(
+                              onTap: () => context.push('/business/register'),
+                              child: const Text(
+                                'register',
+                                style: TextStyle(
+                                  color: Color(0xFFED8A19),
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 13,
+                                ),
+                              ),
+                            ),
                           ],
                         ),
                       ),
@@ -300,6 +315,21 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                 'Sign in here',
                                 style: TextStyle(
                                   color: Color(0xFF1A2E1A),
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 13,
+                                ),
+                              ),
+                            ),
+                            Text(
+                              ' or ',
+                              style: TextStyle(color: Colors.grey[600], fontSize: 13),
+                            ),
+                            GestureDetector(
+                              onTap: () => context.push('/guide/register'),
+                              child: const Text(
+                                'register',
+                                style: TextStyle(
+                                  color: Color(0xFFED8A19),
                                   fontWeight: FontWeight.bold,
                                   fontSize: 13,
                                 ),
