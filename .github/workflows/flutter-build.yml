@@ -3,13 +3,10 @@ name: Build Flutter APK
 on:
   push:
     branches: [main]
-  workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
     steps:
       - uses: actions/checkout@v4
 
@@ -39,9 +36,8 @@ jobs:
 
       - name: Fix generated test file
         run: |
-          cd app
-          mkdir -p test
-          cat > test/widget_test.dart << 'EOF'
+          mkdir -p app/test
+          cat > app/test/widget_test.dart << 'EOF'
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
