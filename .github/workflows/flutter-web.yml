@@ -33,6 +33,9 @@ jobs:
       - run: flutter build web --base-href=/wanderless-tourism/ --output-dir=docs
         working-directory: ./app
 
+      - name: Disable Jekyll processing
+        run: touch app/docs/.nojekyll
+
       - name: Upload Pages Artifact
         uses: actions/upload-pages-artifact@v3
         with:
