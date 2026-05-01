@@ -139,6 +139,10 @@ async def lifespan(app: FastAPI):
     db = next(get_db())
     init_db(db)
 
+    # Auto-seed test accounts so the API is usable on first deploy
+    import seed_accounts
+    seed_accounts.main()
+
     # Fit ML recommender on seeded data
     tourists = db.query(models.Tourist).all()
     guides = db.query(models.Guide).all()
