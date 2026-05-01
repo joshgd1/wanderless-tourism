@@ -67,13 +67,13 @@ class _BusinessLoginScreenState extends ConsumerState<BusinessLoginScreen> {
                   width: 72,
                   height: 72,
                   decoration: BoxDecoration(
-                    color: const Color(0xFF1A2E1A).withOpacity(0.1),
+                    color: const Color(0xFFED8A19).withOpacity(0.1),
                     shape: BoxShape.circle,
                   ),
                   child: const Icon(
                     Icons.business,
                     size: 36,
-                    color: Color(0xFF1A2E1A),
+                    color: Color(0xFFED8A19),
                   ),
                 ),
               ),
@@ -174,7 +174,7 @@ class _BusinessLoginScreenState extends ConsumerState<BusinessLoginScreen> {
                       child: ElevatedButton(
                         onPressed: authState.isLoading ? null : _login,
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF1A2E1A),
+                          backgroundColor: const Color(0xFFED8A19),
                           foregroundColor: Colors.white,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(14),
@@ -214,6 +214,28 @@ class _BusinessLoginScreenState extends ConsumerState<BusinessLoginScreen> {
                         'Sign In as Tourist',
                         style: TextStyle(
                           color: Color(0xFF25D366),
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 8),
+              Center(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text(
+                      "Don't have an account? ",
+                      style: TextStyle(color: Color(0xFF6B6560)),
+                    ),
+                    TextButton(
+                      onPressed: () => context.go('/business/register'),
+                      child: const Text(
+                        'Register as Business',
+                        style: TextStyle(
+                          color: Color(0xFFED8A19),
                           fontWeight: FontWeight.w600,
                         ),
                       ),

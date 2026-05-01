@@ -1,59 +1,94 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../../../core/guide_auth_provider.dart';
+import '../../../../core/config.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
-class GuideLoginScreen extends ConsumerStatefulWidget {
-  const GuideLoginScreen({super.key});
+class BusinessRegisterScreen extends ConsumerStatefulWidget {
+  const BusinessRegisterScreen({super.key});
 
   @override
-  ConsumerState<GuideLoginScreen> createState() => _GuideLoginScreenState();
+  ConsumerState<BusinessRegisterScreen> createState() => _BusinessRegisterScreenState();
 }
 
-class _GuideLoginScreenState extends ConsumerState<GuideLoginScreen> {
+class _BusinessRegisterScreenState extends ConsumerState<BusinessRegisterScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
+  final _businessNameController = TextEditingController();
   bool _obscurePassword = true;
+  bool _obscureConfirmPassword = true;
+  bool _isLoading = false;
+  String? _error;
 
   @override
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
+    _confirmPasswordController.dispose();
+    _businessNameController.dispose();
     super.dispose();
   }
 
-  Future<void> _login() async {
+  Future<void> _register() async {
     if (!_formKey.currentState!.validate()) return;
-    ref.read(guideAuthProvider.notifier).clearError();
-    final success = await ref.read(guideAuthProvider.notifier).login(
-      email: _emailController.text.trim(),
-      password: _passwordController.text,
-    );
-    if (success && mounted) {
-      context.go('/guide/dashboard');
+
+    if (_passwordController.text != _confirmPasswordController.text) {
+      setState(() => _error = 'Passwords do not match');
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+      _error = null;
+    });
+
+    try {
+      final baseUrl = await ApiConfig.getBaseUrl();
+      final response = await http.post(
+        Uri.parse('$baseUrl/api/business/register'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'email': _emailController.text.trim(),
+          'password': _passwordController.text,
+          'business_name': _businessNameController.text.trim(),
+        }),
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: const Text('Registration successful! Please sign in.'),
+              backgroundColor: const Color(0xFFED8A19),
+            ),
+          );
+          context.go('/business/login');
+        }
+      } else {
+        final data = jsonDecode(response.body);
+        setState(() => _error = data['detail'] ?? 'Registration failed');
+      }
+    } catch (e) {
+      setState(() => _error = 'Connection error. Please try again.');
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final authState = ref.watch(guideAuthProvider);
-
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F5F5),
+      backgroundColor: const Color(0xFFFAF5F0),
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Colors.grey[700]),
-          onPressed: () => context.go('/login'),
+          icon: const Icon(Icons.arrow_back, color: Color(0xFF3C3830)),
+          onPressed: () => context.go('/business/login'),
         ),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.settings, color: Colors.grey[600]),
-            onPressed: () => context.push('/settings'),
-          ),
-        ],
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -61,7 +96,7 @@ class _GuideLoginScreenState extends ConsumerState<GuideLoginScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SizedBox(height: 24),
+              const SizedBox(height: 16),
               Center(
                 child: Container(
                   width: 72,
@@ -69,35 +104,35 @@ class _GuideLoginScreenState extends ConsumerState<GuideLoginScreen> {
                   decoration: BoxDecoration(
                     color: const Color(0xFFED8A19).withOpacity(0.1),
                     shape: BoxShape.circle,
-                  ),
+                ),
                   child: const Icon(
-                    Icons.person,
+                    Icons.business_center,
                     size: 36,
                     color: Color(0xFFED8A19),
                   ),
                 ),
               ),
               const SizedBox(height: 24),
-              Center(
+              const Center(
                 child: Text(
-                  'Guide Portal',
+                  'Business Registration',
                   style: TextStyle(
                     fontSize: 28,
                     fontWeight: FontWeight.bold,
-                    color: Colors.grey[800],
+                    color: Color(0xFF3C3830),
                   ),
                 ),
               ),
               const SizedBox(height: 8),
-              Center(
+              const Center(
                 child: Text(
-                  'Sign in to manage your guided tours',
-                  style: TextStyle(fontSize: 15, color: Colors.grey[600]),
+                  'Create your business account to manage tours',
+                  style: TextStyle(fontSize: 15, color: Color(0xFF6B6560)),
                 ),
               ),
-              const SizedBox(height: 48),
+              const SizedBox(height: 40),
 
-              if (authState.error != null)
+              if (_error != null)
                 Container(
                   margin: const EdgeInsets.only(bottom: 16),
                   padding: const EdgeInsets.all(12),
@@ -112,7 +147,7 @@ class _GuideLoginScreenState extends ConsumerState<GuideLoginScreen> {
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
-                          authState.error!.replaceAll('Exception: ', ''),
+                          _error!,
                           style: TextStyle(color: Colors.red[700], fontSize: 13),
                         ),
                       ),
@@ -125,11 +160,29 @@ class _GuideLoginScreenState extends ConsumerState<GuideLoginScreen> {
                 child: Column(
                   children: [
                     TextFormField(
+                      controller: _businessNameController,
+                      decoration: InputDecoration(
+                        labelText: 'Business Name',
+                        hintText: 'Enter your business name',
+                        prefixIcon: const Icon(Icons.store_outlined),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        filled: true,
+                        fillColor: Colors.white,
+                      ),
+                      validator: (v) {
+                        if (v == null || v.trim().isEmpty) return 'Business name is required';
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    TextFormField(
                       controller: _emailController,
                       keyboardType: TextInputType.emailAddress,
                       decoration: InputDecoration(
-                        labelText: 'Guide Email',
-                        hintText: 'guide@example.com',
+                        labelText: 'Email Address',
+                        hintText: 'business@example.com',
                         prefixIcon: const Icon(Icons.email_outlined),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
@@ -153,6 +206,7 @@ class _GuideLoginScreenState extends ConsumerState<GuideLoginScreen> {
                         suffixIcon: IconButton(
                           icon: Icon(
                             _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                            color: const Color(0xFF6B6560),
                           ),
                           onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
                         ),
@@ -164,15 +218,41 @@ class _GuideLoginScreenState extends ConsumerState<GuideLoginScreen> {
                       ),
                       validator: (v) {
                         if (v == null || v.isEmpty) return 'Password is required';
+                        if (v.length < 6) return 'Password must be at least 6 characters';
                         return null;
                       },
                     ),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 16),
+                    TextFormField(
+                      controller: _confirmPasswordController,
+                      obscureText: _obscureConfirmPassword,
+                      decoration: InputDecoration(
+                        labelText: 'Confirm Password',
+                        prefixIcon: const Icon(Icons.lock_outline),
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            _obscureConfirmPassword ? Icons.visibility_off : Icons.visibility,
+                            color: const Color(0xFF6B6560),
+                          ),
+                          onPressed: () => setState(() => _obscureConfirmPassword = !_obscureConfirmPassword),
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        filled: true,
+                        fillColor: Colors.white,
+                      ),
+                      validator: (v) {
+                        if (v == null || v.isEmpty) return 'Please confirm your password';
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 28),
                     SizedBox(
                       width: double.infinity,
                       height: 52,
                       child: ElevatedButton(
-                        onPressed: authState.isLoading ? null : _login,
+                        onPressed: _isLoading ? null : _register,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFFED8A19),
                           foregroundColor: Colors.white,
@@ -181,7 +261,7 @@ class _GuideLoginScreenState extends ConsumerState<GuideLoginScreen> {
                           ),
                           elevation: 0,
                         ),
-                        child: authState.isLoading
+                        child: _isLoading
                             ? const SizedBox(
                                 width: 24,
                                 height: 24,
@@ -191,7 +271,7 @@ class _GuideLoginScreenState extends ConsumerState<GuideLoginScreen> {
                                 ),
                               )
                             : const Text(
-                                'Sign In',
+                                'Create Account',
                                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                               ),
                       ),
@@ -204,36 +284,14 @@ class _GuideLoginScreenState extends ConsumerState<GuideLoginScreen> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text(
-                      'Are you a tourist? ',
-                      style: TextStyle(color: Colors.grey[600]),
-                    ),
-                    TextButton(
-                      onPressed: () => context.go('/login'),
-                      child: const Text(
-                        'Sign In as Tourist',
-                        style: TextStyle(
-                          color: Color(0xFF25D366),
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 8),
-              Center(
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
                     const Text(
-                      "Don't have an account? ",
+                      'Already have an account? ',
                       style: TextStyle(color: Color(0xFF6B6560)),
                     ),
                     TextButton(
-                      onPressed: () => context.go('/guide/register'),
+                      onPressed: () => context.go('/business/login'),
                       child: const Text(
-                        'Register as Guide',
+                        'Sign In',
                         style: TextStyle(
                           color: Color(0xFFED8A19),
                           fontWeight: FontWeight.w600,

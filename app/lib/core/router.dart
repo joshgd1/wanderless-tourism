@@ -20,7 +20,9 @@ import '../features/trip_plan/screens/create_trip_plan_screen.dart';
 import '../features/trip_plan/screens/trip_plan_list_screen.dart';
 import '../features/settings/screens/settings_screen.dart';
 import '../features/guide/screens/guide_login_screen.dart';
+import '../features/guide/screens/guide_register_screen.dart';
 import '../features/guide/screens/guide_dashboard_screen.dart';
+import '../features/business/screens/business_register_screen.dart';
 import '../features/tracking/screens/tour_tracking_screen.dart';
 import '../shared/widgets/main_shell.dart';
 import 'auth_provider.dart';
@@ -123,8 +125,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/signup', builder: (_, __) => const SignupScreen()),
       GoRoute(path: '/settings', builder: (_, __) => const SettingsScreen()),
       GoRoute(path: '/business/login', builder: (_, __) => const BusinessLoginScreen()),
+      GoRoute(path: '/business/register', builder: (_, __) => const BusinessRegisterScreen()),
       GoRoute(path: '/business/dashboard', builder: (_, __) => const BusinessDashboardScreen()),
       GoRoute(path: '/guide/login', builder: (_, __) => const GuideLoginScreen()),
+      GoRoute(path: '/guide/register', builder: (_, __) => const GuideRegisterScreen()),
 
       // Guide dashboard — protected by guide auth
       GoRoute(
