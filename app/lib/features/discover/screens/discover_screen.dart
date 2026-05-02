@@ -190,8 +190,6 @@ class DiscoverScreen extends ConsumerWidget {
                           preferBelow: false,
                           child: IconBtn(
                             icon: Icons.info_outline,
-                            size: 18,
-                            color: AppColors.textTertiary,
                             onPressed: () {},
                           ),
                         ),

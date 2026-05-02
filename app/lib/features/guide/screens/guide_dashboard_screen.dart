@@ -71,7 +71,7 @@ class _GuideDashboardScreenState extends ConsumerState<GuideDashboardScreen>
                         // Subtle grid
                         Positioned.fill(
                           child: CustomPaint(
-                            painter: _DarkGridPainter(),
+                            painter: GridPainter(),
                             size: Size.infinite,
                           ),
                         ),

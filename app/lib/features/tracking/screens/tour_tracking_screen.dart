@@ -406,5 +406,3 @@ class _BackBtnState extends State<_BackBtn> {
     );
   }
 }
-
-}
