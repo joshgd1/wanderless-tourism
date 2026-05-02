@@ -76,75 +76,120 @@ class GuideDetailScreen extends ConsumerWidget {
                         onTap: () => context.pop(),
                       ),
                     ),
-                    // Name overlay at bottom
+                    // Top-left Grab-style info card (avatar + rating + name)
                     Positioned(
-                      left: 20,
-                      right: 20,
-                      bottom: 20,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  guide.name,
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 28,
-                                    fontWeight: FontWeight.bold,
-                                    letterSpacing: 0.3,
+                      left: 16,
+                      top: MediaQuery.of(context).padding.top + 60,
+                      child: Container(
+                        padding: const EdgeInsets.all(14),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withOpacity(0.55),
+                          borderRadius: BorderRadius.circular(20),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.25),
+                              blurRadius: 12,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: Row(
+                          children: [
+                            // Circular avatar
+                            Container(
+                              width: 72,
+                              height: 72,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                border: Border.all(color: Colors.white, width: 2.5),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.3),
+                                    blurRadius: 8,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ],
+                              ),
+                              child: ClipOval(
+                                child: CachedNetworkImage(
+                                  imageUrl: guide.photoUrl,
+                                  fit: BoxFit.cover,
+                                  placeholder: (_, __) => Container(color: Colors.grey[700]),
+                                  errorWidget: (_, __, ___) => Container(
+                                    color: Colors.grey[700],
+                                    child: const Icon(Icons.person, color: Colors.white54, size: 36),
                                   ),
                                 ),
                               ),
-                              if (guide.licenseVerified) ...[
-                                const SizedBox(width: 8),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                                  decoration: BoxDecoration(
-                                    gradient: const LinearGradient(
-                                      colors: [Color(0xFF25D366), Color(0xFF128C7E)],
+                            ),
+                            const SizedBox(width: 14),
+                            // Name, verified badge, and rating
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    Text(
+                                      guide.name,
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
+                                        letterSpacing: 0.3,
+                                      ),
                                     ),
-                                    borderRadius: BorderRadius.circular(20),
-                                  ),
-                                  child: const Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Icon(Icons.verified, size: 14, color: Colors.white),
-                                      SizedBox(width: 4),
-                                      Text(
-                                        'Verified',
-                                        style: TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.bold,
+                                    if (guide.licenseVerified) ...[
+                                      const SizedBox(width: 6),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                        decoration: BoxDecoration(
+                                          gradient: const LinearGradient(
+                                            colors: [Color(0xFF25D366), Color(0xFF128C7E)],
+                                          ),
+                                          borderRadius: BorderRadius.circular(12),
+                                        ),
+                                        child: const Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Icon(Icons.verified, size: 11, color: Colors.white),
+                                            SizedBox(width: 3),
+                                            Text(
+                                              'Verified',
+                                              style: TextStyle(
+                                                color: Colors.white,
+                                                fontSize: 10,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                          ],
                                         ),
                                       ),
                                     ],
-                                  ),
+                                  ],
+                                ),
+                                const SizedBox(height: 6),
+                                // Stars + rating count
+                                Row(
+                                  children: [
+                                    ...List.generate(guide.ratingHistory.floor(), (i) {
+                                      return const Icon(Icons.star, size: 15, color: Colors.amber);
+                                    }),
+                                    if (guide.ratingHistory % 1 >= 0.5)
+                                      const Icon(Icons.star_half, size: 15, color: Colors.amber),
+                                    ...List.generate(5 - guide.ratingHistory.ceil(), (i) {
+                                      return const Icon(Icons.star_border, size: 15, color: Colors.white54);
+                                    }),
+                                    const SizedBox(width: 6),
+                                    Text(
+                                      '${guide.ratingHistory.toStringAsFixed(1)} (${guide.ratingCount})',
+                                      style: const TextStyle(color: Colors.white70, fontSize: 12),
+                                    ),
+                                  ],
                                 ),
                               ],
-                            ],
-                          ),
-                          const SizedBox(height: 10),
-                          Row(
-                            children: [
-                              ...List.generate(guide.ratingHistory.floor(), (i) {
-                                return const Icon(Icons.star, size: 18, color: Colors.amber);
-                              }),
-                              if (guide.ratingHistory % 1 >= 0.5)
-                                const Icon(Icons.star_half, size: 18, color: Colors.amber),
-                              ...List.generate(5 - guide.ratingHistory.ceil(), (i) {
-                                return Icon(Icons.star_border, size: 18, color: Colors.white54);
-                              }),
-                              const SizedBox(width: 8),
-                              Text(
-                                '${guide.ratingHistory.toStringAsFixed(1)} (${guide.ratingCount} reviews)',
-                                style: const TextStyle(color: Colors.white70, fontSize: 13),
-                              ),
-                            ],
-                          ),
-                        ],
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ],

@@ -143,6 +143,33 @@ class TripPlan(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
 
 
+class Wallet(Base):
+    """One wallet per user — Tourist, Guide, or BusinessOwner."""
+    __tablename__ = "wallets"
+
+    id = Column(String, primary_key=True)
+    owner_id = Column(String, nullable=False)  # tourist_id / guide_id / business_owner_id
+    owner_type = Column(String, nullable=False)  # "tourist" | "guide" | "business"
+    balance = Column(Float, default=0.0)
+    currency = Column(String, default="THB")
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+
+class WalletTransaction(Base):
+    """Immutable transaction ledger for wallet deposits, payments, and payouts."""
+    __tablename__ = "wallet_transactions"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    wallet_id = Column(String, ForeignKey("wallets.id"), nullable=False)
+    txn_type = Column(String, nullable=False)  # deposit | payment | payout | refund | commission
+    amount = Column(Float, nullable=False)  # positive = credit, negative = debit
+    currency = Column(String, default="THB")
+    booking_id = Column(Integer, ForeignKey("bookings.id"), nullable=True)
+    description = Column(String, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+
 class LocationTracking(Base):
     """Real-time GPS location for guide and tourist during active tour."""
     __tablename__ = "location_tracking"

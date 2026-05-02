@@ -131,6 +131,51 @@ def _verify_password(password: str, hashed: str) -> bool:
     return bcrypt.checkpw(password.encode("utf-8"), hashed.encode("utf-8"))
 
 
+# ─── Wallet helpers ──────────────────────────────────────────────────────────────
+
+def _get_or_create_wallet(db: Session, owner_id: str, owner_type: str) -> models.Wallet:
+    """Return existing wallet or create a new one with zero balance."""
+    wallet = db.query(models.Wallet).filter_by(owner_id=owner_id, owner_type=owner_type).first()
+    if wallet:
+        return wallet
+    wallet = models.Wallet(
+        id=f"W{uuid.uuid4().hex[:8].upper()}",
+        owner_id=owner_id,
+        owner_type=owner_type,
+        balance=0.0,
+        currency="THB",
+    )
+    db.add(wallet)
+    db.commit()
+    db.refresh(wallet)
+    return wallet
+
+
+def _wallet_transaction(
+    db: Session,
+    wallet: models.Wallet,
+    txn_type: str,
+    amount: float,
+    booking_id: int | None = None,
+    description: str | None = None,
+) -> models.WalletTransaction:
+    """Add a transaction record and update wallet balance atomically."""
+    wallet.balance += amount
+    if wallet.balance < 0:
+        raise HTTPException(status_code=400, detail="Insufficient wallet balance")
+    txn = models.WalletTransaction(
+        wallet_id=wallet.id,
+        txn_type=txn_type,
+        amount=amount,
+        booking_id=booking_id,
+        description=description,
+    )
+    db.add(txn)
+    db.commit()
+    db.refresh(wallet)
+    return txn
+
+
 # ─── Lifespan ───────────────────────────────────────────────────────────────────
 
 @asynccontextmanager
@@ -372,6 +417,62 @@ async def update_preferences(
     return {"id": t.id, "status": "updated"}
 
 
+# ─── Tourist wallet endpoints ──────────────────────────────────────────────────────
+
+@app.get("/api/auth/wallet")
+async def get_tourist_wallet(
+    tourist_id: str = Depends(_get_tourist_id),
+    db: Session = Depends(get_db),
+):
+    """Get current tourist's wallet balance."""
+    wallet = _get_or_create_wallet(db, tourist_id, "tourist")
+    return {"wallet_id": wallet.id, "balance": wallet.balance, "currency": wallet.currency}
+
+
+@app.post("/api/auth/wallet/deposit")
+async def deposit_tourist_wallet(
+    data: dict,
+    tourist_id: str = Depends(_get_tourist_id),
+    db: Session = Depends(get_db),
+):
+    """Deposit funds into the current tourist's wallet."""
+    amount = data.get("amount", 0)
+    if amount <= 0:
+        raise HTTPException(status_code=400, detail="Amount must be positive")
+    wallet = _get_or_create_wallet(db, tourist_id, "tourist")
+    _wallet_transaction(db, wallet, "deposit", amount, description=f"Wallet deposit")
+    logger.info(f"wallet.deposit tourist_id={tourist_id} amount={amount}")
+    return {"wallet_id": wallet.id, "balance": wallet.balance, "deposited": amount}
+
+
+@app.get("/api/auth/wallet/transactions")
+async def get_tourist_wallet_transactions(
+    tourist_id: str = Depends(_get_tourist_id),
+    db: Session = Depends(get_db),
+):
+    """Get transaction history for the current tourist's wallet."""
+    wallet = _get_or_create_wallet(db, tourist_id, "tourist")
+    txns = (
+        db.query(models.WalletTransaction)
+        .filter_by(wallet_id=wallet.id)
+        .order_by(models.WalletTransaction.created_at.desc())
+        .limit(50)
+        .all()
+    )
+    return [
+        {
+            "id": t.id,
+            "txn_type": t.txn_type,
+            "amount": t.amount,
+            "currency": t.currency,
+            "booking_id": t.booking_id,
+            "description": t.description,
+            "created_at": t.created_at.isoformat() if t.created_at else None,
+        }
+        for t in txns
+    ]
+
+
 # ─── Guide endpoints ─────────────────────────────────────────────────────────────
 
 @app.get("/api/guides")
@@ -539,6 +640,62 @@ async def get_guide_me(guide_id: str = Depends(_get_guide_id), db: Session = Dep
     }
 
 
+# ─── Guide wallet endpoints ────────────────────────────────────────────────────────
+
+@app.get("/api/guides/auth/wallet")
+async def get_guide_wallet(
+    guide_id: str = Depends(_get_guide_id),
+    db: Session = Depends(get_db),
+):
+    """Get current guide's wallet balance."""
+    wallet = _get_or_create_wallet(db, guide_id, "guide")
+    return {"wallet_id": wallet.id, "balance": wallet.balance, "currency": wallet.currency}
+
+
+@app.post("/api/guides/auth/wallet/deposit")
+async def deposit_guide_wallet(
+    data: dict,
+    guide_id: str = Depends(_get_guide_id),
+    db: Session = Depends(get_db),
+):
+    """Deposit funds into the current guide's wallet (for manual top-ups / testing)."""
+    amount = data.get("amount", 0)
+    if amount <= 0:
+        raise HTTPException(status_code=400, detail="Amount must be positive")
+    wallet = _get_or_create_wallet(db, guide_id, "guide")
+    _wallet_transaction(db, wallet, "deposit", amount, description=f"Wallet deposit")
+    logger.info(f"wallet.deposit guide_id={guide_id} amount={amount}")
+    return {"wallet_id": wallet.id, "balance": wallet.balance, "deposited": amount}
+
+
+@app.get("/api/guides/auth/wallet/transactions")
+async def get_guide_wallet_transactions(
+    guide_id: str = Depends(_get_guide_id),
+    db: Session = Depends(get_db),
+):
+    """Get transaction history for the current guide's wallet."""
+    wallet = _get_or_create_wallet(db, guide_id, "guide")
+    txns = (
+        db.query(models.WalletTransaction)
+        .filter_by(wallet_id=wallet.id)
+        .order_by(models.WalletTransaction.created_at.desc())
+        .limit(50)
+        .all()
+    )
+    return [
+        {
+            "id": t.id,
+            "txn_type": t.txn_type,
+            "amount": t.amount,
+            "currency": t.currency,
+            "booking_id": t.booking_id,
+            "description": t.description,
+            "created_at": t.created_at.isoformat() if t.created_at else None,
+        }
+        for t in txns
+    ]
+
+
 # ─── Business Owner auth endpoints ─────────────────────────────────────────────
 
 def _get_business_owner_id(authorization: str | None = Header(None)) -> str:
@@ -646,6 +803,62 @@ async def get_business_me(
         "commission_rate": o.commission_rate,
         "phone": o.phone,
     }
+
+
+# ─── Business wallet endpoints ─────────────────────────────────────────────────────
+
+@app.get("/api/business/wallet")
+async def get_business_wallet(
+    owner_id: str = Depends(_get_business_owner_id),
+    db: Session = Depends(get_db),
+):
+    """Get current business owner's wallet balance."""
+    wallet = _get_or_create_wallet(db, owner_id, "business")
+    return {"wallet_id": wallet.id, "balance": wallet.balance, "currency": wallet.currency}
+
+
+@app.post("/api/business/wallet/deposit")
+async def deposit_business_wallet(
+    data: dict,
+    owner_id: str = Depends(_get_business_owner_id),
+    db: Session = Depends(get_db),
+):
+    """Deposit funds into the business owner's wallet."""
+    amount = data.get("amount", 0)
+    if amount <= 0:
+        raise HTTPException(status_code=400, detail="Amount must be positive")
+    wallet = _get_or_create_wallet(db, owner_id, "business")
+    _wallet_transaction(db, wallet, "deposit", amount, description=f"Wallet deposit")
+    logger.info(f"wallet.deposit business_owner_id={owner_id} amount={amount}")
+    return {"wallet_id": wallet.id, "balance": wallet.balance, "deposited": amount}
+
+
+@app.get("/api/business/wallet/transactions")
+async def get_business_wallet_transactions(
+    owner_id: str = Depends(_get_business_owner_id),
+    db: Session = Depends(get_db),
+):
+    """Get transaction history for the business owner's wallet."""
+    wallet = _get_or_create_wallet(db, owner_id, "business")
+    txns = (
+        db.query(models.WalletTransaction)
+        .filter_by(wallet_id=wallet.id)
+        .order_by(models.WalletTransaction.created_at.desc())
+        .limit(50)
+        .all()
+    )
+    return [
+        {
+            "id": t.id,
+            "txn_type": t.txn_type,
+            "amount": t.amount,
+            "currency": t.currency,
+            "booking_id": t.booking_id,
+            "description": t.description,
+            "created_at": t.created_at.isoformat() if t.created_at else None,
+        }
+        for t in txns
+    ]
 
 
 @app.get("/api/business/dashboard")
@@ -951,6 +1164,22 @@ async def create_booking(
         payment_status="held_escrow",
     )
     db.add(b)
+
+    # Deduct from tourist's wallet (instant payment)
+    tourist_wallet = _get_or_create_wallet(db, tourist_id, "tourist")
+    try:
+        _wallet_transaction(
+            db,
+            tourist_wallet,
+            "payment",
+            -gross_value,
+            booking_id=b.id,
+            description=f"Booking #{b.id} payment",
+        )
+    except HTTPException as e:
+        db.rollback()
+        raise HTTPException(status_code=400, detail="Insufficient wallet balance")
+
     db.commit()
     db.refresh(b)
 
@@ -1116,6 +1345,16 @@ async def update_booking_status(
             # SAFETY: Auto-refund if money was held in escrow
             if b.payment_status == "held_escrow":
                 b.payment_status = "refunded"
+                # Refund tourist's wallet
+                tourist_wallet = _get_or_create_wallet(db, b.tourist_id, "tourist")
+                _wallet_transaction(
+                    db,
+                    tourist_wallet,
+                    "refund",
+                    b.gross_value,
+                    booking_id=b.id,
+                    description=f"Refund for cancelled booking #{b.id}",
+                )
                 logger.info(
                     f"booking.refunded booking_id={booking_id} "
                     f"cancelled_by={cancelled_by or 'unknown'} "
@@ -1126,6 +1365,37 @@ async def update_booking_status(
                 logger.warning(
                     f"booking.guide_cancel penalty flagged booking_id={booking_id} guide_id={b.guide_id}"
                 )
+
+        if new_status == "COMPLETED":
+            # Pay guide: gross minus platform commission
+            guide_pay = b.gross_value * (1 - b.platform_commission_pct)
+            guide_wallet = _get_or_create_wallet(db, b.guide_id, "guide")
+            _wallet_transaction(
+                db,
+                guide_wallet,
+                "payout",
+                guide_pay,
+                booking_id=b.id,
+                description=f"Payout for completed booking #{b.id}",
+            )
+            # Pay business owner their commission share
+            commission = b.gross_value * b.platform_commission_pct
+            guide = db.query(models.Guide).filter_by(id=b.guide_id).first()
+            if guide and guide.owner_id:
+                business_wallet = _get_or_create_wallet(db, guide.owner_id, "business")
+                _wallet_transaction(
+                    db,
+                    business_wallet,
+                    "commission",
+                    commission,
+                    booking_id=b.id,
+                    description=f"Commission from booking #{b.id}",
+                )
+            b.payment_status = "released"
+            logger.info(
+                f"booking.payout_completed booking_id={booking_id} "
+                f"guide_pay={guide_pay} commission={commission}"
+            )
 
         b.status = new_status
 

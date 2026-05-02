@@ -14,10 +14,11 @@ Login the app with any of these accounts.
 
 import uuid
 import sys
+from datetime import datetime, timedelta
 sys.path.insert(0, '.')
 
 from database import SessionLocal, init_db
-from models import Tourist, Guide, BusinessOwner
+from models import Tourist, Guide, BusinessOwner, Booking
 
 TEST_PASSWORD_HASH = "$2b$12$eCcT/GO4Hj.fAqgihcxO/epKof8E9rxObeKjW9llKS7sViNyi7SX2"
 
@@ -25,14 +26,19 @@ TEST_PASSWORD_HASH = "$2b$12$eCcT/GO4Hj.fAqgihcxO/epKof8E9rxObeKjW9llKS7sViNyi7S
 def seed_test_business(db: SessionLocal):
     existing = db.query(BusinessOwner).filter_by(email="business@wanderless.com").first()
     if existing:
-        print(f"  Business owner already exists: {existing.id}")
+        print(f"  Business owner already exists: {existing.id} — updating fields")
+        existing.business_name = "Chiang Mai Adventures"
+        existing.commission_rate = 0.15
+        existing.phone = "+66 81 234 5678"
+        db.commit()
         return existing
     owner = BusinessOwner(
         id=f"B{uuid.uuid4().hex[:8].upper()}",
         email="business@wanderless.com",
         password_hash=TEST_PASSWORD_HASH,
-        business_name="Chiang Mai Tours Co.",
+        business_name="Chiang Mai Adventures",
         commission_rate=0.15,
+        phone="+66 81 234 5678",
     )
     db.add(owner)
     db.commit()
@@ -69,8 +75,12 @@ def seed_test_tourist(db: SessionLocal):
 def seed_test_guide(db: SessionLocal):
     existing = db.query(Guide).filter_by(email="guide@wanderless.com").first()
     if existing:
-        print(f"  Guide already exists: {existing.id} — updating password_hash")
+        print(f"  Guide already exists: {existing.id} — updating fields")
         existing.password_hash = TEST_PASSWORD_HASH
+        existing.name = "Somchai Thailand"
+        existing.bio = "Local guide with 8 years of experience showing visitors the authentic side of Chiang Mai — from hidden temples to the best street food stalls. Born and raised here, I love sharing my culture."
+        existing.photo_url = f"https://picsum.photos/seed/somchai_guide/400/400"
+        existing.license_verified = True
         db.commit()
         return existing
     # Bind to an existing seeded guide (first guide in database)
@@ -80,10 +90,55 @@ def seed_test_guide(db: SessionLocal):
         return None
     guide.email = "guide@wanderless.com"
     guide.password_hash = TEST_PASSWORD_HASH
+    guide.name = "Somchai Thailand"
+    guide.bio = "Local guide with 8 years of experience showing visitors the authentic side of Chiang Mai — from hidden temples to the best street food stalls. Born and raised here, I love sharing my culture."
+    guide.photo_url = f"https://picsum.photos/seed/somchai_guide/400/400"
     guide.license_verified = True
     db.commit()
     print(f"  Guide: guide@wanderless.com / wanderless123  (id={guide.id}, name={guide.name})")
     return guide
+
+
+def seed_synthetic_bookings(db: SessionLocal, guide: Guide, tourist: Tourist):
+    """Create synthetic bookings for the test guide so business dashboard isn't empty."""
+    # Only seed if no bookings exist for this guide
+    existing = db.query(Booking).filter_by(guide_id=guide.id).first()
+    if existing:
+        print(f"  Bookings already exist for guide {guide.id}")
+        return
+
+    destinations = [
+        ("Doi Suthep Temple", 4.0, 2),
+        ("Old City Walking Tour", 3.0, 3),
+        ("Mae Sa Valley Trek", 6.0, 2),
+        ("Night Bazaar Food Tour", 2.5, 4),
+        ("Doi Inthanon National Park", 8.0, 2),
+    ]
+
+    now = datetime.utcnow()
+    for i, (dest, duration, group_size) in enumerate(destinations):
+        # Vary statuses: mix of COMPLETED, CONFIRMED, IN_PROGRESS
+        statuses = ["COMPLETED", "COMPLETED", "CONFIRMED", "IN_PROGRESS"]
+        status = statuses[i % len(statuses)]
+        payment_status = "released" if status == "COMPLETED" else "held_escrow"
+        gross = 1500.0 + (i * 250)
+
+        booking = Booking(
+            tourist_id=tourist.id,
+            guide_id=guide.id,
+            destination=dest,
+            tour_date=(now + timedelta(days=i + 1)).strftime("%Y-%m-%d"),
+            duration_hours=duration,
+            group_size=group_size,
+            gross_value=gross,
+            platform_commission_pct=0.15,
+            status=status,
+            payment_status=payment_status,
+        )
+        db.add(booking)
+
+    db.commit()
+    print(f"  Created {len(destinations)} synthetic bookings for guide {guide.id}")
 
 
 def main():
@@ -94,11 +149,18 @@ def main():
     seed_test_tourist(db)
     guide = seed_test_guide(db)
 
+    # Get the tourist object for booking creation
+    tourist = db.query(Tourist).filter_by(email="test@wanderless.com").first()
+
     # Link the guide to the business owner
     if guide and owner and not guide.owner_id:
         guide.owner_id = owner.id
         db.commit()
         print(f"  Linked guide {guide.id} -> business {owner.id}")
+
+    # Seed synthetic bookings for the guide
+    if guide and tourist:
+        seed_synthetic_bookings(db, guide, tourist)
 
     db.close()
     print("Done.")
