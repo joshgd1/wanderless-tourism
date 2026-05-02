@@ -195,8 +195,9 @@ class ExperienceTypeScreen extends ConsumerWidget {
                     onPressed: () => context.go('/onboarding/language'),
                   ),
                 ),
-                const SizedBox(height: AppSpacing.md),
-                Center(
+                const SizedBox(height: AppSpacing.sm),
+                SizedBox(
+                  width: double.infinity,
                   child: GhostButton(
                     label: 'Skip',
                     onPressed: () => context.go('/onboarding/language'),
@@ -261,40 +262,54 @@ class _ExperienceOption extends StatelessWidget {
   Widget build(BuildContext context) {
     return AppCard(
       onTap: onTap,
-      child: Row(
+      padding: const EdgeInsets.all(AppSpacing.md),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            width: 48,
-            height: 48,
-            decoration: BoxDecoration(
-              color: isSelected ? color.withOpacity(0.1) : AppColors.surfaceSecondary,
-              borderRadius: BorderRadius.circular(AppRadius.sm),
-            ),
-            child: Icon(icon, size: 24, color: isSelected ? color : AppColors.textTertiary),
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(title, style: AppText.labelBold),
-                const SizedBox(height: 4),
-                Text(description, style: AppText.bodySmall, maxLines: 2, overflow: TextOverflow.ellipsis),
-              ],
-            ),
-          ),
-          if (isSelected) ...[
-            const SizedBox(width: 8),
-            Container(
-              width: 24,
-              height: 24,
-              decoration: BoxDecoration(
-                color: color,
-                shape: BoxShape.circle,
+          Row(
+            children: [
+              Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  color: isSelected ? color.withOpacity(0.1) : AppColors.surfaceSecondary,
+                  borderRadius: BorderRadius.circular(AppRadius.sm),
+                ),
+                child: Icon(icon, size: 24, color: isSelected ? color : AppColors.textTertiary),
               ),
-              child: const Icon(Icons.check, size: 14, color: Colors.white),
-            ),
-          ],
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(title, style: AppText.labelBold),
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        if (isSelected) ...[
+                          Container(
+                            width: 20,
+                            height: 20,
+                            decoration: BoxDecoration(
+                              color: color,
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(Icons.check, size: 12, color: Colors.white),
+                          ),
+                          const SizedBox(width: 8),
+                        ],
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          Text(
+            description,
+            style: AppText.bodySmall.copyWith(color: AppColors.textSecondary),
+          ),
         ],
       ),
     );

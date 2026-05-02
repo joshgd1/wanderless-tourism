@@ -257,7 +257,7 @@ class _GuideLoginScreenState extends ConsumerState<GuideLoginScreen> {
             Text('Are you a tourist?', style: AppText.bodySmall),
             const SizedBox(width: 4),
             GhostButton(
-              label: 'Sign In as Tourist',
+              label: 'Sign In',
               onPressed: () => context.go('/login'),
               color: const Color(0xFF25D366),
             ),
@@ -267,10 +267,10 @@ class _GuideLoginScreenState extends ConsumerState<GuideLoginScreen> {
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text("Don't have an account?", style: AppText.bodySmall),
+            Text("No account?", style: AppText.bodySmall),
             const SizedBox(width: 4),
             GhostButton(
-              label: 'Register as Guide',
+              label: 'Register',
               onPressed: () => context.go('/guide/register'),
               color: AppColors.brand,
             ),

@@ -9,7 +9,7 @@ import random
 from pathlib import Path
 from typing import Optional
 
-from sqlalchemy import create_engine, delete
+from sqlalchemy import create_engine, delete, text
 from sqlalchemy.orm import sessionmaker, Session
 
 from models import Base, Tourist, Guide, Rating, TripPlan
@@ -34,6 +34,8 @@ def get_db() -> Session:
 def init_db(db: Session) -> None:
     """Create tables if missing; seed CSV data only if tables are empty."""
     Base.metadata.create_all(bind=engine)
+    # Schema migrations for columns added after initial table creation
+    _migrate_bookings_schema(db)
     # Only seed from CSV if tables are empty (preserve seeded accounts)
     if db.query(Tourist).count() == 0:
         _seed_tourists(db)
@@ -42,6 +44,29 @@ def init_db(db: Session) -> None:
     if db.query(Rating).count() == 0:
         _seed_ratings(db)
     db.commit()
+
+
+def _migrate_bookings_schema(db: Session) -> None:
+    """Add missing columns to existing tables (SQLite ALTER TABLE)."""
+    # Booking schema migrations
+    result = db.execute(text("PRAGMA table_info(bookings)")).fetchall()
+    existing_cols = {row[1] for row in result}
+    if "insurance_pct" not in existing_cols:
+        db.execute(text("ALTER TABLE bookings ADD COLUMN insurance_pct REAL DEFAULT 0.05"))
+    if "platform_commission_pct" not in existing_cols:
+        db.execute(text("ALTER TABLE bookings ADD COLUMN platform_commission_pct REAL DEFAULT 0.15"))
+
+    # Guide schema migrations (license fields for Singapore STB compliance)
+    guide_result = db.execute(text("PRAGMA table_info(guides)")).fetchall()
+    guide_cols = {row[1] for row in guide_result}
+    if "license_number" not in guide_cols:
+        db.execute(text("ALTER TABLE guides ADD COLUMN license_number TEXT"))
+    if "license_type" not in guide_cols:
+        db.execute(text("ALTER TABLE guides ADD COLUMN license_type TEXT"))
+    if "license_country" not in guide_cols:
+        db.execute(text("ALTER TABLE guides ADD COLUMN license_country TEXT"))
+    if "license_expiry" not in guide_cols:
+        db.execute(text("ALTER TABLE guides ADD COLUMN license_expiry TEXT"))
 
 
 def _seed_tourists(db: Session) -> None:
@@ -93,7 +118,16 @@ def _seed_guides(db: Session) -> None:
                 rating_history=float(row["rating_history"]),
                 rating_count=int(row["rating_count"]),
                 specialties=row["specialties"],
+                license_verified=row["license_verified"] == "True",
+                license_number=row["license_number"] or None,
+                license_type=row["license_type"] or None,
+                license_country=row["license_country"] or None,
+                license_expiry=None,  # populated below if present
             )
+            # Parse license_expiry from CSV if present and non-empty
+            if row.get("license_expiry"):
+                from datetime import datetime
+                guide.license_expiry = datetime.strptime(row["license_expiry"], "%Y-%m-%d")
             db.add(guide)
 
 

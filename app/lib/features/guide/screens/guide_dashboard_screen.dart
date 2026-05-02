@@ -513,7 +513,7 @@ class _JobCard extends StatelessWidget {
               ),
               const Spacer(),
               Text(
-                'Booking #${booking['id']}',
+                '#${booking['id']}',
                 style: AppText.caption,
               ),
             ],
@@ -523,13 +523,13 @@ class _JobCard extends StatelessWidget {
           Row(
             children: [
               Container(
-                width: 40,
-                height: 40,
+                width: 44,
+                height: 44,
                 decoration: BoxDecoration(
                   color: AppColors.surfaceSecondary,
                   borderRadius: BorderRadius.circular(AppRadius.sm),
                 ),
-                child: const Icon(Icons.person, color: AppColors.textTertiary, size: 20),
+                child: const Icon(Icons.person, color: AppColors.textTertiary, size: 22),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -539,7 +539,9 @@ class _JobCard extends StatelessWidget {
                     Text(
                       booking['tourist_name'] as String? ?? 'Unknown Tourist',
                       style: AppText.labelBold,
+                      overflow: TextOverflow.ellipsis,
                     ),
+                    const SizedBox(height: 2),
                     Text(
                       'Tourist',
                       style: AppText.caption,
@@ -547,6 +549,7 @@ class _JobCard extends StatelessWidget {
                   ],
                 ),
               ),
+              const SizedBox(width: AppSpacing.sm),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
@@ -554,6 +557,7 @@ class _JobCard extends StatelessWidget {
                     booking['tour_date'] as String? ?? 'TBD',
                     style: AppText.labelBold,
                   ),
+                  const SizedBox(height: 2),
                   Text(
                     '${(booking['duration_hours'] as num?)?.toStringAsFixed(1) ?? '0'}h',
                     style: AppText.caption,
@@ -572,12 +576,14 @@ class _JobCard extends StatelessWidget {
                 child: Text(
                   booking['destination'] as String? ?? 'TBD',
                   style: AppText.bodySmall,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
+              const SizedBox(width: AppSpacing.md),
               const Icon(Icons.group_outlined, size: 15, color: AppColors.textTertiary),
               const SizedBox(width: 4),
               Text(
-                '${booking['group_size'] ?? 1} people',
+                '${booking['group_size'] ?? 1}',
                 style: AppText.bodySmall,
               ),
             ],
@@ -622,7 +628,8 @@ class _JobCard extends StatelessWidget {
           if (isHistory && status == 'COMPLETED') ...[
             const SizedBox(height: AppSpacing.md),
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
               decoration: BoxDecoration(
                 color: AppColors.successBg,
                 borderRadius: BorderRadius.circular(AppRadius.sm),

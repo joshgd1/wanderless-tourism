@@ -374,11 +374,11 @@ class _GuideRegisterScreenState extends ConsumerState<GuideRegisterScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Specialties', style: AppText.bodySmall.copyWith(color: AppColors.textSecondary)),
-        const SizedBox(height: 8),
+        Text('Specialties', style: AppText.label),
+        const SizedBox(height: AppSpacing.sm),
         Wrap(
-          spacing: 8,
-          runSpacing: 8,
+          spacing: AppSpacing.sm,
+          runSpacing: AppSpacing.sm,
           children: allSpecialties.map((s) {
             final selected = _selectedSpecialties.contains(s);
             return GestureDetector(
@@ -391,17 +391,22 @@ class _GuideRegisterScreenState extends ConsumerState<GuideRegisterScreen> {
                   }
                 });
               },
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              child: AnimatedContainer(
+                duration: AppDurations.fast,
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                 decoration: BoxDecoration(
                   color: selected ? AppColors.brand : AppColors.surface,
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: selected ? AppColors.brand : AppColors.border),
+                  borderRadius: BorderRadius.circular(AppRadius.md),
+                  border: Border.all(
+                    color: selected ? AppColors.brand : AppColors.border,
+                    width: selected ? 1.5 : 1,
+                  ),
                 ),
                 child: Text(
                   specialtyLabels[s] ?? s,
-                  style: AppText.bodySmall.copyWith(
+                  style: AppText.label.copyWith(
                     color: selected ? Colors.white : AppColors.textSecondary,
+                    fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
                   ),
                 ),
               ),

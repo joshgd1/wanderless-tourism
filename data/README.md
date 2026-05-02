@@ -2,28 +2,35 @@
 
 Generated: generate_synthetic.py — seed=42
 
+## Destinations
+
+- **TH (Thailand (Chiang Mai)), SG (Singapore)**
+
 ## Files
 
 | File | Rows | Description |
 |------|------|-------------|
-| `tourist_profiles.csv` | 350 | Tourist feature vectors |
-| `guide_profiles.csv` | 50 | Guide feature vectors |
-| `synthetic_ratings.csv` | 500 | Tourist-Guide-Rating tuples |
+| `tourist_profiles.csv` | 400 | Tourist feature vectors |
+| `guide_profiles.csv` | 60 | Guide feature vectors (includes STB license fields for SG) |
+| `synthetic_ratings.csv` | 600 | Tourist-Guide-Rating tuples |
 
-## Schema: synthetic_ratings.csv
+## Schema: guide_profiles.csv (new Singapore fields)
 
 | Column | Type | Description |
 |--------|------|-------------|
-| `tourist_id` | string | FK → tourist_profiles.csv |
-| `guide_id` | string | FK → guide_profiles.csv |
-| `rating` | float [1, 5] | Synthetic rating (post-noise) |
-| `is_poor_experience` | bool | True if rating < 2.5 (per Phase 1 Frame: 1-2 stars) |
-| `norm_dot_product` | float [0, 1] | Normalized dot product similarity (noise-free) |
-| `language_match` | float {0, 1} | Binary: guide speaks tourist language |
-| `budget_alignment` | float [0, 1] | Budget compatibility score [0.6, 1.0] |
-| `pace_alignment` | float [0, 1] | Pace compatibility score [0.6, 1.0] |
-| `predicted_rating` | float [1, 5] | Noise-free rating (norm_dot × 6.5 + 1.2 + bonus) |
-| `rating_source` | string | Always "synthetic" |
+| `license_verified` | bool | Platform-verified credentials |
+| `license_number` | string | STB license number (SG licensed guides) |
+| `license_type` | string | "licensed" | "verified_expert" | "community_host" |
+| `license_country` | string | "SG" | "TH" |
+| `license_expiry` | string | ISO date for STB licenses |
+
+## Singapore License Tiers
+
+| Tier | STB Verified | Description |
+|------|-------------|-------------|
+| `licensed` | Yes (STB-XXXXXX) | Official STB-licensed tour guide |
+| `verified_expert` | Yes (VXP-XXXXX) | Background-checked local expert / experience host |
+| `community_host` | No | Community host — experience-led activities |
 
 ## Rating Model (from Chiang Mai Playbook §Cold Start Data Strategy)
 
@@ -39,10 +46,10 @@ rating = clamp(true_rating × 0.88 + gauss(0, 1.0) × 0.12, 1.0, 5.0)
 ## Poor Experience Rate
 
 Threshold: rating < 2.5
-Observed poor rate in this sample: 43/500 (8.6%)
+Observed poor rate in this sample: 28/600 (4.7%)
 
 Expected poor rate: 8-15% (Phase 1 Frame target for cold-start pilot data).
-Actual in this sample: 43/500 (8.6%)
+Actual in this sample: 28/600 (4.7%)
 
 ## Usage
 

@@ -233,17 +233,10 @@ class TravelStyleScreen extends ConsumerWidget {
           const SizedBox(height: AppSpacing.xl),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: Row(
+            child: Column(
               children: [
-                Expanded(
-                  child: SecondaryButton(
-                    label: 'Back',
-                    onPressed: () => context.go('/onboarding/language'),
-                  ),
-                ),
-                const SizedBox(width: AppSpacing.md),
-                Expanded(
-                  flex: 2,
+                SizedBox(
+                  width: double.infinity,
                   child: PrimaryButton(
                     label: 'Find My Guide',
                     onPressed: () async {
@@ -257,6 +250,14 @@ class TravelStyleScreen extends ConsumerWidget {
                         context.go('/discover');
                       }
                     },
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.sm),
+                SizedBox(
+                  width: double.infinity,
+                  child: GhostButton(
+                    label: 'Back',
+                    onPressed: () => context.go('/onboarding/language'),
                   ),
                 ),
               ],
@@ -330,32 +331,35 @@ class _ChoicePill extends StatefulWidget {
 }
 
 class _ChoicePillState extends State<_ChoicePill> {
-  bool _isHovered = false;
+  bool _isPressed = false;
 
   @override
   Widget build(BuildContext context) {
-    return MouseRegion(
-      onEnter: (_) => setState(() => _isHovered = true),
-      onExit: (_) => setState(() => _isHovered = false),
-      child: GestureDetector(
-        onTap: widget.onTap,
-        child: AnimatedContainer(
-          duration: AppDurations.fast,
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-          decoration: BoxDecoration(
-            color: widget.isSelected ? AppColors.brand : _isHovered ? AppColors.surfaceSecondary : AppColors.surface,
-            borderRadius: BorderRadius.circular(AppRadius.md),
-            border: Border.all(
-              color: widget.isSelected ? AppColors.brand : AppColors.border,
-              width: widget.isSelected ? 1.5 : 1,
-            ),
+    return GestureDetector(
+      onTapDown: (_) => setState(() => _isPressed = true),
+      onTapUp: (_) => setState(() => _isPressed = false),
+      onTapCancel: () => setState(() => _isPressed = false),
+      onTap: widget.onTap,
+      child: AnimatedContainer(
+        duration: AppDurations.fast,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: BoxDecoration(
+          color: widget.isSelected
+              ? AppColors.brand
+              : _isPressed
+                  ? AppColors.surfaceSecondary
+                  : AppColors.surface,
+          borderRadius: BorderRadius.circular(AppRadius.md),
+          border: Border.all(
+            color: widget.isSelected ? AppColors.brand : AppColors.border,
+            width: widget.isSelected ? 1.5 : 1,
           ),
-          child: Text(
-            widget.label,
-            style: AppText.label.copyWith(
-              color: widget.isSelected ? Colors.white : AppColors.textPrimary,
-              fontWeight: widget.isSelected ? FontWeight.w600 : FontWeight.w400,
-            ),
+        ),
+        child: Text(
+          widget.label,
+          style: AppText.label.copyWith(
+            color: widget.isSelected ? Colors.white : AppColors.textPrimary,
+            fontWeight: widget.isSelected ? FontWeight.w600 : FontWeight.w400,
           ),
         ),
       ),
@@ -380,6 +384,7 @@ class _BudgetSlider extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AppCard(
+      padding: const EdgeInsets.all(AppSpacing.md),
       child: Column(
         children: [
           Row(
@@ -418,7 +423,7 @@ class _BudgetSlider extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('Budget', style: AppText.caption),
+              Text('Economy', style: AppText.caption),
               Text('Premium', style: AppText.caption),
             ],
           ),

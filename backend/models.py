@@ -67,16 +67,21 @@ class Guide(Base):
     photo_url = Column(String)
     expertise_tags = Column(String)  # pipe-delimited
     personality_vector = Column(String)  # pipe-delimited
-    language_pairs = Column(String)  # pipe-delimited "en→th|ru→th"
+    language_pairs = Column(String)  # pipe-delimited "en→th|en→sg"
     pace_style = Column(Float)
     group_size_preferred = Column(Integer)
     budget_tier = Column(String)
-    location_coverage = Column(String)  # pipe-delimited
+    location_coverage = Column(String)  # pipe-delimited country→location pairs "SG:Marina Bay|SG:Orchard"
     availability = Column(JSON)
     rating_history = Column(Float)
     rating_count = Column(Integer)
     specialties = Column(String)  # pipe-delimited
     license_verified = Column(Boolean, default=False)
+    # Singapore STB licensing fields
+    license_number = Column(String, nullable=True)  # STB-XXXXXX format
+    license_type = Column(String, nullable=True)  # "licensed" | "verified_expert" | "community_host"
+    license_country = Column(String, nullable=True)  # "SG" | "TH"
+    license_expiry = Column(DateTime, nullable=True)
     owner_id = Column(String, ForeignKey("business_owners.id"), nullable=True)  # nullable: independent guides
     created_at = Column(DateTime, default=datetime.utcnow)
 

@@ -1552,23 +1552,58 @@ async def list_trip_plans(
     tourist_id: str | None = None,
     guide_id: str | None = None,
     status: str | None = None,
-    auth_tourist_id: str = Depends(_get_tourist_id),
+    auth_tourist_id: str | None = Depends(_get_tourist_id_optional),
+    auth_guide_id: str | None = Depends(_get_guide_id_optional),
     db: Session = Depends(get_db),
 ):
     """
     List trip plans. Authenticated tourists see their own plans.
-    Guides (guide_id in query) see OPEN plans from all tourists.
+    Guides can see OPEN plans from all tourists (for job discovery).
     """
     query = db.query(models.TripPlan)
+
+    # Guide auth — guide browsing for work (job discovery)
+    if auth_guide_id and not auth_tourist_id:
+        # Guides see OPEN plans by default for job discovery
+        query = query.filter_by(status=status if status else "OPEN")
+        if guide_id:
+            query = query.filter_by(guide_id=guide_id)
+        plans = query.order_by(models.TripPlan.created_at.desc()).all()
+        return [
+            {
+                "id": p.id,
+                "tourist_id": p.tourist_id,
+                "destination": p.destination,
+                "interests": p.interests.split("|") if p.interests else [],
+                "proposed_stops": p.proposed_stops,
+                "status": p.status,
+                "guide_id": p.guide_id,
+                "tour_date": p.tour_date,
+                "duration_hours": p.duration_hours,
+                "group_size": p.group_size,
+                "negotiation_rounds": p.negotiation_rounds or 0,
+                "alternatives": p.alternatives,
+                "guide_proposed_stops": p.guide_proposed_stops,
+                "created_at": p.created_at.isoformat() if p.created_at else None,
+            }
+            for p in plans
+        ]
+
+    # Tourist auth
+    if auth_tourist_id:
+        if tourist_id:
+            if tourist_id != auth_tourist_id:
+                raise HTTPException(status_code=403, detail="Cannot view another tourist's plans")
+        else:
+            tourist_id = auth_tourist_id
+
     if tourist_id:
-        # Tourists can only see their own plans
-        if tourist_id != auth_tourist_id:
-            raise HTTPException(status_code=403, detail="Cannot view another tourist's plans")
         query = query.filter_by(tourist_id=tourist_id)
     if guide_id:
         query = query.filter_by(guide_id=guide_id)
     if status:
         query = query.filter_by(status=status)
+
     plans = query.order_by(models.TripPlan.created_at.desc()).all()
 
     return [

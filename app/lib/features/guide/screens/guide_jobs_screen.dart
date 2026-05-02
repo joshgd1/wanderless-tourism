@@ -205,7 +205,7 @@ class _SortDropdown extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(AppRadius.sm),
@@ -217,9 +217,9 @@ class _SortDropdown extends StatelessWidget {
           isDense: true,
           style: AppText.bodySmall,
           items: const [
-            DropdownMenuItem(value: 'date', child: Text('Sort by Date', style: TextStyle(fontSize: 13))),
-            DropdownMenuItem(value: 'amount', child: Text('Sort by Amount', style: TextStyle(fontSize: 13))),
-            DropdownMenuItem(value: 'tourist', child: Text('Sort by Tourist', style: TextStyle(fontSize: 13))),
+            DropdownMenuItem(value: 'date', child: Text('Date', style: TextStyle(fontSize: 13))),
+            DropdownMenuItem(value: 'amount', child: Text('Amount', style: TextStyle(fontSize: 13))),
+            DropdownMenuItem(value: 'tourist', child: Text('Tourist', style: TextStyle(fontSize: 13))),
           ],
           onChanged: onChanged,
         ),
@@ -236,7 +236,7 @@ class _FilterDropdown extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(AppRadius.sm),
@@ -248,8 +248,8 @@ class _FilterDropdown extends StatelessWidget {
           isDense: true,
           style: AppText.bodySmall,
           items: const [
-            DropdownMenuItem(value: 'all', child: Text('All Status', style: TextStyle(fontSize: 13))),
-            DropdownMenuItem(value: 'REQUESTED', child: Text('Requested', style: TextStyle(fontSize: 13))),
+            DropdownMenuItem(value: 'all', child: Text('All', style: TextStyle(fontSize: 13))),
+            DropdownMenuItem(value: 'REQUESTED', child: Text('New', style: TextStyle(fontSize: 13))),
             DropdownMenuItem(value: 'CONFIRMED', child: Text('Confirmed', style: TextStyle(fontSize: 13))),
             DropdownMenuItem(value: 'COMPLETED', child: Text('Completed', style: TextStyle(fontSize: 13))),
             DropdownMenuItem(value: 'CANCELLED', child: Text('Cancelled', style: TextStyle(fontSize: 13))),
@@ -320,6 +320,7 @@ class _BookingRow extends StatelessWidget {
     final statusColor = _statusColor(status);
 
     return AppCard(
+      padding: const EdgeInsets.all(AppSpacing.md),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -327,51 +328,73 @@ class _BookingRow extends StatelessWidget {
             children: [
               StatusBadge(label: _statusLabel(status), color: statusColor),
               const Spacer(),
-              Text('Booking #${booking['id']}', style: AppText.caption),
+              Text('#${booking['id']}', style: AppText.caption),
             ],
           ),
-          const SizedBox(height: AppSpacing.sm),
+          const SizedBox(height: AppSpacing.md),
           Row(
             children: [
               Container(
-                width: 36,
-                height: 36,
+                width: 40,
+                height: 40,
                 decoration: BoxDecoration(
                   color: AppColors.surfaceSecondary,
                   borderRadius: BorderRadius.circular(AppRadius.sm),
                 ),
                 child: Center(
                   child: Text(
-                    (booking['tourist_name'] as String? ?? 'T')[0],
+                    (booking['tourist_name'] as String? ?? 'T')[0].toUpperCase(),
                     style: AppText.labelBold.copyWith(color: AppColors.brand),
                   ),
                 ),
               ),
-              const SizedBox(width: 10),
+              const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(booking['tourist_name'] ?? 'Tourist', style: AppText.labelBold),
-                    Text(booking['tour_type'] as String? ?? '', style: AppText.caption),
+                    Text(
+                      booking['tourist_name'] ?? 'Tourist',
+                      style: AppText.labelBold,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      booking['tour_type'] as String? ?? '',
+                      style: AppText.caption,
+                    ),
                   ],
                 ),
               ),
+              const SizedBox(width: AppSpacing.sm),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  Text(booking['tour_date'] as String? ?? '', style: AppText.labelBold),
-                  Text('${booking['group_size'] ?? 0} pax · \$${(booking['gross_value'] ?? 0).toStringAsFixed(0)}', style: AppText.caption),
+                  Text(
+                    booking['tour_date'] as String? ?? '',
+                    style: AppText.labelBold,
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    '${booking['group_size'] ?? 0}p · \$${(booking['gross_value'] ?? 0).toStringAsFixed(0)}',
+                    style: AppText.caption,
+                  ),
                 ],
               ),
             ],
           ),
-          const SizedBox(height: AppSpacing.sm),
+          const SizedBox(height: AppSpacing.md),
           Row(
             children: [
               const Icon(Icons.location_on_outlined, size: 14, color: AppColors.textTertiary),
               const SizedBox(width: 4),
-              Expanded(child: Text(booking['destination'] as String? ?? '', style: AppText.bodySmall)),
+              Expanded(
+                child: Text(
+                  booking['destination'] as String? ?? '',
+                  style: AppText.bodySmall,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
             ],
           ),
         ],

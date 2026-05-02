@@ -213,8 +213,9 @@ class InterestsScreen extends ConsumerWidget {
                     onPressed: () => context.go('/onboarding/experience-type'),
                   ),
                 ),
-                const SizedBox(height: AppSpacing.md),
-                Center(
+                const SizedBox(height: AppSpacing.sm),
+                SizedBox(
+                  width: double.infinity,
                   child: GhostButton(
                     label: 'Skip',
                     onPressed: () => context.go('/onboarding/experience-type'),
