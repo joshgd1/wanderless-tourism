@@ -152,7 +152,7 @@ class _CreateTripPlanScreenState extends ConsumerState<CreateTripPlanScreen> {
                   child: Stack(
                     children: [
                       Positioned.fill(
-                        child: CustomPaint(painter: _DarkGridPainter()),
+                        child: CustomPaint(painter: GridPainter()),
                       ),
                       Padding(
                         padding: const EdgeInsets.fromLTRB(20, 8, 12, 0),
@@ -802,21 +802,4 @@ class _AddStopSheetState extends State<_AddStopSheet> {
   }
 }
 
-class _DarkGridPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = Colors.white.withOpacity(0.03)
-      ..strokeWidth = 1;
-    const step = 40.0;
-    for (double x = 0; x < size.width; x += step) {
-      canvas.drawLine(Offset(x, 0), Offset(x, size.height), paint);
-    }
-    for (double y = 0; y < size.height; y += step) {
-      canvas.drawLine(Offset(0, y), Offset(size.width, y), paint);
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

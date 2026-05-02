@@ -106,7 +106,7 @@ class _GuideJobsScreenState extends ConsumerState<GuideJobsScreen>
                     child: Stack(
                       children: [
                         Positioned.fill(
-                          child: CustomPaint(painter: _DarkGridPainter()),
+                          child: CustomPaint(painter: GridPainter()),
                         ),
                         Padding(
                           padding: const EdgeInsets.fromLTRB(20, 8, 12, 0),
@@ -127,8 +127,8 @@ class _GuideJobsScreenState extends ConsumerState<GuideJobsScreen>
                                 ],
                               ),
                               const Spacer(),
-                              _IconBtn(icon: Icons.notifications_outlined, onPressed: () {}),
-                              _IconBtn(icon: Icons.person_outline, onPressed: () {}),
+                              IconBtn(icon: Icons.notifications_outlined, onPressed: () {}),
+                              IconBtn(icon: Icons.person_outline, onPressed: () {}),
                             ],
                           ),
                         ),
@@ -191,39 +191,6 @@ class _GuideJobsScreenState extends ConsumerState<GuideJobsScreen>
               ),
             ),
           ],
-        ),
-      ),
-    );
-  }
-}
-
-class _IconBtn extends StatefulWidget {
-  final IconData icon;
-  final VoidCallback onPressed;
-  const _IconBtn({required this.icon, required this.onPressed});
-
-  @override
-  State<_IconBtn> createState() => _IconBtnState();
-}
-
-class _IconBtnState extends State<_IconBtn> {
-  bool _isHovered = false;
-
-  @override
-  Widget build(BuildContext context) {
-    return MouseRegion(
-      onEnter: (_) => setState(() => _isHovered = true),
-      onExit: (_) => setState(() => _isHovered = false),
-      child: GestureDetector(
-        onTap: widget.onPressed,
-        child: AnimatedContainer(
-          duration: AppDurations.fast,
-          padding: const EdgeInsets.all(6),
-          decoration: BoxDecoration(
-            color: _isHovered ? Colors.white.withOpacity(0.1) : Colors.transparent,
-            borderRadius: BorderRadius.circular(AppRadius.sm),
-          ),
-          child: Icon(widget.icon, color: Colors.white.withOpacity(_isHovered ? 1 : 0.7), size: 20),
         ),
       ),
     );
@@ -411,23 +378,4 @@ class _BookingRow extends StatelessWidget {
       ),
     );
   }
-}
-
-class _DarkGridPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = Colors.white.withOpacity(0.03)
-      ..strokeWidth = 1;
-    const step = 40.0;
-    for (double x = 0; x < size.width; x += step) {
-      canvas.drawLine(Offset(x, 0), Offset(x, size.height), paint);
-    }
-    for (double y = 0; y < size.height; y += step) {
-      canvas.drawLine(Offset(0, y), Offset(size.width, y), paint);
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

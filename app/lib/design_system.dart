@@ -38,7 +38,7 @@ class AppColors {
 
   // Guide status colors
   static const statusRequested = Color(0xFFF59E0B);
-  static const statusConfirmed = Color(0xFFED8A19);
+  static const statusConfirmed = Color(0xFF10B981);
   static const statusPaid = Color(0xFF3B82F6);
   static const statusInProgress = Color(0xFF8B5CF6);
   static const statusCompleted = Color(0xFF10B981);
@@ -1063,4 +1063,59 @@ class CountryFlags {
     }
     return false;
   }
+}
+
+/// Icon button for app bars — hover glow on desktop.
+class IconBtn extends StatefulWidget {
+  final IconData icon;
+  final VoidCallback onPressed;
+
+  const IconBtn({super.key, required this.icon, required this.onPressed});
+
+  @override
+  State<IconBtn> createState() => _IconBtnState();
+}
+
+class _IconBtnState extends State<IconBtn> {
+  bool _isHovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return MouseRegion(
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
+      child: GestureDetector(
+        onTap: widget.onPressed,
+        child: AnimatedContainer(
+          duration: AppDurations.fast,
+          padding: const EdgeInsets.all(6),
+          decoration: BoxDecoration(
+            color: _isHovered ? Colors.white.withOpacity(0.1) : Colors.transparent,
+            borderRadius: BorderRadius.circular(AppRadius.sm),
+          ),
+          child: Icon(widget.icon, color: Colors.white.withOpacity(_isHovered ? 1 : 0.7), size: 20),
+        ),
+      ),
+    );
+  }
+}
+
+/// Grid background painter for dark-themed wide-layout screens.
+class GridPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = Colors.white.withOpacity(0.03)
+      ..strokeWidth = 1;
+    const step = 40.0;
+    for (double x = 0; x < size.width; x += step) {
+      canvas.drawLine(Offset(x, 0), Offset(x, size.height), paint);
+    }
+    for (double y = 0; y < size.height; y += step) {
+      canvas.drawLine(Offset(0, y), Offset(size.width, y), paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

@@ -44,7 +44,7 @@ class BookingsScreen extends ConsumerWidget {
                           style: AppText.h2.copyWith(color: Colors.white),
                         ),
                         const Spacer(),
-                        _IconBtn(
+                        IconBtn(
                           icon: Icons.notifications_outlined,
                           onPressed: () {},
                         ),
@@ -183,40 +183,6 @@ class BookingsScreen extends ConsumerWidget {
         );
       }
     }
-  }
-}
-
-class _IconBtn extends StatefulWidget {
-  final IconData icon;
-  final VoidCallback onPressed;
-
-  const _IconBtn({required this.icon, required this.onPressed});
-
-  @override
-  State<_IconBtn> createState() => _IconBtnState();
-}
-
-class _IconBtnState extends State<_IconBtn> {
-  bool _isHovered = false;
-
-  @override
-  Widget build(BuildContext context) {
-    return MouseRegion(
-      onEnter: (_) => setState(() => _isHovered = true),
-      onExit: (_) => setState(() => _isHovered = false),
-      child: GestureDetector(
-        onTap: widget.onPressed,
-        child: AnimatedContainer(
-          duration: AppDurations.fast,
-          padding: const EdgeInsets.all(6),
-          decoration: BoxDecoration(
-            color: _isHovered ? Colors.white.withOpacity(0.1) : Colors.transparent,
-            borderRadius: BorderRadius.circular(AppRadius.sm),
-          ),
-          child: Icon(widget.icon, color: Colors.white.withOpacity(_isHovered ? 1 : 0.7), size: 20),
-        ),
-      ),
-    );
   }
 }
 
