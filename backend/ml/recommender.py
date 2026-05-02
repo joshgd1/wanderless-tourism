@@ -114,7 +114,7 @@ def _build_guide_features(g: Guide) -> np.ndarray:
     """Build numerical feature vector from guide attributes."""
     # Aggregate expertise tags → (food, culture, adventure)
     ev = np.array([0.0, 0.0, 0.0], dtype=np.float32)
-    for tag in g.expertise_tags.split("|"):
+    for tag in (g.expertise_tags or "").split("|"):
         if tag in _EXPERTISE_TAG_VECS:
             ev = np.maximum(ev, _EXPERTISE_TAG_VECS[tag])
 
