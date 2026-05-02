@@ -229,16 +229,16 @@ class _TourTrackingScreenState extends ConsumerState<TourTrackingScreen> {
                                       child: Container(
                                         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
                                         decoration: BoxDecoration(
-                                          color: AppColors.warning.withOpacity(0.95),
+                                          color: AppColors.info.withOpacity(0.92),
                                           borderRadius: BorderRadius.circular(20),
                                         ),
                                         child: Row(
                                           mainAxisSize: MainAxisSize.min,
                                           children: [
-                                            const Icon(Icons.science, color: Colors.white, size: 16),
+                                            const Icon(Icons.map_outlined, color: Colors.white, size: 16),
                                             const SizedBox(width: 6),
                                             Text(
-                                              'Demo Mode — Example Tour Route',
+                                              'Preview — Sample tour for illustration',
                                               style: AppText.captionBold.copyWith(color: Colors.white),
                                             ),
                                           ],

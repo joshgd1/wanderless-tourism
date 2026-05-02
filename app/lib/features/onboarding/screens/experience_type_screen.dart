@@ -109,14 +109,6 @@ class ExperienceTypeScreen extends ConsumerWidget {
                         onPressed: () => context.go('/onboarding/language'),
                       ),
                     ),
-                    const SizedBox(height: AppSpacing.md),
-                    Center(
-                      child: GhostButton(
-                        label: 'Skip',
-                        onPressed: () => context.go('/onboarding/language'),
-                        color: AppColors.textTertiary,
-                      ),
-                    ),
                   ],
                 ),
               ),
@@ -193,15 +185,6 @@ class ExperienceTypeScreen extends ConsumerWidget {
                   child: PrimaryButton(
                     label: 'Continue',
                     onPressed: () => context.go('/onboarding/language'),
-                  ),
-                ),
-                const SizedBox(height: AppSpacing.sm),
-                SizedBox(
-                  width: double.infinity,
-                  child: GhostButton(
-                    label: 'Skip',
-                    onPressed: () => context.go('/onboarding/language'),
-                    color: AppColors.textTertiary,
                   ),
                 ),
               ],

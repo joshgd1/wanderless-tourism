@@ -42,8 +42,8 @@ final _selectedFilterProvider = StateProvider<String>((_) => 'Recommended');
 final _smartModeProvider = StateProvider<bool>((_) => false);
 final _searchQueryProvider = StateProvider<String>((_) => '');
 
-// Static destination data for featured carousel
-final _featuredDestinations = [
+// Static fallback destinations (Chiang Mai area) — used when API fails
+final _staticDestinations = [
   _Destination(
     name: 'Chiang Mai',
     country: 'Thailand',
@@ -73,6 +73,30 @@ final _featuredDestinations = [
     tag: 'Café & Culture',
   ),
 ];
+
+final destinationsProvider = FutureProvider<List<_Destination>>((ref) async {
+  final authState = ref.watch(authProvider);
+  final touristId = authState.touristId;
+  if (touristId == null) return _staticDestinations;
+  try {
+    final api = ApiClient();
+    final data = await api.getMlDestinationRecommendations(touristId);
+    if (data.isEmpty) return _staticDestinations;
+    return data.map((d) {
+      final map = d as Map<String, dynamic>;
+      return _Destination(
+        name: map['destination'] as String? ?? 'Chiang Mai',
+        country: map['region'] as String? ?? 'Thailand',
+        imageUrl: map['image_url'] as String? ??
+            'https://images.unsplash.com/photo-1512553269940-b59cc4c7a3c5?w=800&q=80',
+        guideCount: map['guide_count'] as int? ?? 20,
+        tag: map['tag'] as String? ?? 'Popular',
+      );
+    }).toList();
+  } catch (_) {
+    return _staticDestinations;
+  }
+});
 
 class DiscoverScreen extends ConsumerWidget {
   const DiscoverScreen({super.key});
@@ -183,20 +207,24 @@ class DiscoverScreen extends ConsumerWidget {
                 ),
                 SizedBox(
                   height: 190,
-                  child: ListView.separated(
-                    scrollDirection: Axis.horizontal,
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    itemCount: _featuredDestinations.length,
-                    separatorBuilder: (_, __) => const SizedBox(width: 12),
-                    itemBuilder: (context, index) {
-                      final dest = _featuredDestinations[index];
-                      return _DestinationCard(
-                        destination: dest,
-                        onTap: () {
-                          ref.read(_selectedFilterProvider.notifier).state = 'All';
-                        },
-                      );
-                    },
+                  child: ref.watch(destinationsProvider).when(
+                    loading: () => const Center(child: AppLoading()),
+                    error: (_, __) => const SizedBox.shrink(),
+                    data: (dests) => ListView.separated(
+                      scrollDirection: Axis.horizontal,
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      itemCount: dests.length,
+                      separatorBuilder: (_, __) => const SizedBox(width: 12),
+                      itemBuilder: (context, index) {
+                        final dest = dests[index];
+                        return _DestinationCard(
+                          destination: dest,
+                          onTap: () {
+                            ref.read(_selectedFilterProvider.notifier).state = 'All';
+                          },
+                        );
+                      },
+                    ),
                   ),
                 ),
                 const SizedBox(height: AppSpacing.md),
@@ -320,6 +348,57 @@ class DiscoverScreen extends ConsumerWidget {
               ),
             ),
           ),
+
+          // ── Smart Match explanation banner ────────────────────────────
+          if (isSmart)
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, AppSpacing.sm, 16, 0),
+                child: Container(
+                  padding: const EdgeInsets.all(AppSpacing.md),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        AppColors.info.withOpacity(0.12),
+                        AppColors.info.withOpacity(0.05),
+                      ],
+                    ),
+                    borderRadius: BorderRadius.circular(AppRadius.md),
+                    border: Border.all(color: AppColors.info.withOpacity(0.25)),
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 36,
+                        height: 36,
+                        decoration: BoxDecoration(
+                          color: AppColors.info.withOpacity(0.15),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(Icons.auto_awesome, color: AppColors.info, size: 18),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Matched to your preferences',
+                              style: AppText.labelBold.copyWith(color: AppColors.info),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              'These guides are ranked by how well their expertise, language, and travel style match your interests — set during onboarding.',
+                              style: AppText.caption.copyWith(height: 1.4),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
 
           // ── Guide List ─────────────────────────────────────────────────
           matchesAsync.when(

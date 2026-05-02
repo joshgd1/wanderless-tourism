@@ -118,14 +118,6 @@ class InterestsScreen extends ConsumerWidget {
                         onPressed: () => context.go('/onboarding/experience-type'),
                       ),
                     ),
-                    const SizedBox(height: AppSpacing.md),
-                    Center(
-                      child: GhostButton(
-                        label: 'Skip',
-                        onPressed: () => context.go('/onboarding/experience-type'),
-                        color: AppColors.textTertiary,
-                      ),
-                    ),
                   ],
                 ),
               ),
@@ -211,15 +203,6 @@ class InterestsScreen extends ConsumerWidget {
                   child: PrimaryButton(
                     label: 'Continue',
                     onPressed: () => context.go('/onboarding/experience-type'),
-                  ),
-                ),
-                const SizedBox(height: AppSpacing.sm),
-                SizedBox(
-                  width: double.infinity,
-                  child: GhostButton(
-                    label: 'Skip',
-                    onPressed: () => context.go('/onboarding/experience-type'),
-                    color: AppColors.textTertiary,
                   ),
                 ),
               ],

@@ -234,7 +234,7 @@ class GuideDetailScreen extends ConsumerWidget {
           left: 0,
           right: 0,
           bottom: 0,
-          child: _BookNowBar(guideId: guide.id),
+          child: _BookNowBar(guideId: guide.id, budgetTier: guide.budgetTier),
         ),
       ],
     );
@@ -243,7 +243,18 @@ class GuideDetailScreen extends ConsumerWidget {
 
 class _BookNowBar extends StatelessWidget {
   final String guideId;
-  const _BookNowBar({required this.guideId});
+  final String budgetTier;
+
+  const _BookNowBar({required this.guideId, required this.budgetTier});
+
+  String get _dailyRate {
+    switch (budgetTier.toLowerCase()) {
+      case 'budget': return '1,500';
+      case 'premium': return '6,000';
+      case 'mid':
+      default: return '3,000';
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -271,9 +282,9 @@ class _BookNowBar extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text('Starting from', style: AppText.caption),
+                Text('From', style: AppText.caption),
                 Text(
-                  '\$45 / person',
+                  '฿$_dailyRate / day',
                   style: AppText.h3.copyWith(color: AppColors.brand),
                 ),
               ],
