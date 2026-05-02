@@ -49,7 +49,7 @@ class _GuideLoginScreenState extends ConsumerState<GuideLoginScreen> {
     );
   }
 
-  Widget _buildWideLayout(AuthState authState) {
+  Widget _buildWideLayout(GuideAuthState authState) {
     return Row(
       children: [
         // Left brand panel — dark
@@ -133,7 +133,7 @@ class _GuideLoginScreenState extends ConsumerState<GuideLoginScreen> {
     );
   }
 
-  Widget _buildMobileLayout(AuthState authState) {
+  Widget _buildMobileLayout(GuideAuthState authState) {
     return SingleChildScrollView(
       child: Column(
         children: [
@@ -198,7 +198,7 @@ class _GuideLoginScreenState extends ConsumerState<GuideLoginScreen> {
     );
   }
 
-  Widget _buildForm(AuthState authState) {
+  Widget _buildForm(GuideAuthState authState) {
     return Form(
       key: _formKey,
       child: Column(

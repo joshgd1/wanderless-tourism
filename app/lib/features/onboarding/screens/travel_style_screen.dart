@@ -165,7 +165,7 @@ class TravelStyleScreen extends ConsumerWidget {
             padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
             child: Row(
               children: [
-                _buildBackButton(),
+                _buildBackButton(context),
                 const Spacer(),
                 _OnboardingStepper(currentStep: 3, totalSteps: 4),
               ],
@@ -268,7 +268,7 @@ class TravelStyleScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildBackButton() {
+  Widget _buildBackButton(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
         color: AppColors.surface,
