@@ -49,7 +49,7 @@ class _BusinessLoginScreenState extends ConsumerState<BusinessLoginScreen> {
     );
   }
 
-  Widget _buildWideLayout(AuthState authState) {
+  Widget _buildWideLayout(BusinessAuthState authState) {
     return Row(
       children: [
         Expanded(
@@ -131,7 +131,7 @@ class _BusinessLoginScreenState extends ConsumerState<BusinessLoginScreen> {
     );
   }
 
-  Widget _buildMobileLayout(AuthState authState) {
+  Widget _buildMobileLayout(BusinessAuthState authState) {
     return SingleChildScrollView(
       child: Column(
         children: [
@@ -196,7 +196,7 @@ class _BusinessLoginScreenState extends ConsumerState<BusinessLoginScreen> {
     );
   }
 
-  Widget _buildForm(AuthState authState) {
+  Widget _buildForm(BusinessAuthState authState) {
     return Form(
       key: _formKey,
       child: Column(

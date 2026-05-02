@@ -192,10 +192,8 @@ class ItineraryScreen extends ConsumerWidget {
                             ),
                             const SizedBox(width: 14),
                             Expanded(
-                              child: Padding(
-                                padding: EdgeInsets.only(bottom: isLast ? 0 : AppSpacing.md),
-                                child: AppCard(
-                                  child: Column(
+                              child: AppCard(
+                                child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(stop.name, style: AppText.labelBold),
@@ -214,7 +212,7 @@ class ItineraryScreen extends ConsumerWidget {
                                 ),
                               ),
                             ),
-                          ),
+                          ],
                         );
                       }),
                       const SizedBox(height: 100),
