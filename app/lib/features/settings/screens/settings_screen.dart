@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../../../core/config.dart';
 import '../../../../core/api_client.dart';
+import '../../../../design_system.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
@@ -49,180 +51,192 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isWide = MediaQuery.of(context).size.width > 600;
+
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F5F5),
-      appBar: AppBar(
-        title: const Text('Settings'),
-        backgroundColor: const Color(0xFF1A2E1A),
-        foregroundColor: Colors.white,
-        elevation: 0,
-      ),
-      body: ListView(
-        padding: const EdgeInsets.all(20),
-        children: [
-          // Backend Server Section
-          Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(20),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.04),
-                  blurRadius: 12,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF25D366).withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(12),
+      backgroundColor: AppColors.background,
+      body: CustomScrollView(
+        slivers: [
+          SliverAppBar(
+            expandedHeight: 100,
+            pinned: true,
+            backgroundColor: AppColors.textPrimary,
+            leadingWidth: 0,
+            leading: const SizedBox.shrink(),
+            flexibleSpace: FlexibleSpaceBar(
+              background: Container(
+                color: AppColors.textPrimary,
+                child: SafeArea(
+                  child: Stack(
+                    children: [
+                      Positioned.fill(
+                        child: CustomPaint(painter: _DarkGridPainter()),
                       ),
-                      child: const Icon(Icons.cloud_outlined, color: Color(0xFF25D366), size: 24),
-                    ),
-                    const SizedBox(width: 12),
-                    const Text(
-                      'Backend Server',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF1A2E1A),
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(20, 8, 12, 0),
+                        child: Row(
+                          children: [
+                            _BackBtn(onTap: () => context.pop()),
+                            const SizedBox(width: 12),
+                            Text(
+                              'Settings',
+                              style: AppText.h3.copyWith(color: Colors.white),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  'Change this to match your backend server IP address.',
-                  style: TextStyle(color: Colors.grey[600], fontSize: 13),
-                ),
-                const SizedBox(height: 16),
-                TextField(
-                  controller: _urlController,
-                  keyboardType: TextInputType.url,
-                  decoration: InputDecoration(
-                    labelText: 'Backend URL',
-                    hintText: 'http://192.168.1.100:8000',
-                    prefixIcon: const Icon(Icons.link, color: Color(0xFF25D366)),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(14),
-                      borderSide: BorderSide(color: Colors.grey[300]!),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(14),
-                      borderSide: const BorderSide(color: Color(0xFF25D366), width: 2),
-                    ),
-                    filled: true,
-                    fillColor: Colors.grey[50],
+                    ],
                   ),
                 ),
-                const SizedBox(height: 16),
-                SizedBox(
-                  width: double.infinity,
-                  height: 50,
-                  child: ElevatedButton(
-                    onPressed: _save,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF25D366),
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                      elevation: 0,
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
+              ),
+            ),
+          ),
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: EdgeInsets.all(isWide ? AppSpacing.lg : AppSpacing.md),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _SectionHeader(
+                    icon: Icons.cloud_outlined,
+                    color: AppColors.success,
+                    title: 'Backend Server',
+                    description: 'Change this to match your backend server IP address.',
+                  ),
+                  const SizedBox(height: AppSpacing.md),
+                  AppCard(
+                    child: Column(
                       children: [
-                        Icon(_saved ? Icons.check : Icons.save_outlined, size: 20),
-                        const SizedBox(width: 8),
-                        Text(
-                          _saved ? 'Saved!' : 'Save & Reconnect',
-                          style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                        AppTextField(
+                          controller: _urlController,
+                          label: 'Backend URL',
+                          hint: 'http://192.168.1.100:8000',
+                          prefix: const Icon(Icons.link, size: 18, color: AppColors.textTertiary),
+                          keyboardType: TextInputType.url,
+                        ),
+                        const SizedBox(height: AppSpacing.md),
+                        SizedBox(
+                          width: double.infinity,
+                          child: PrimaryButton(
+                            label: _saved ? 'Saved!' : 'Save & Reconnect',
+                            icon: _saved ? Icons.check : Icons.save_outlined,
+                            onPressed: _save,
+                          ),
                         ),
                       ],
                     ),
                   ),
-                ),
-              ],
-            ),
-          ),
-
-          const SizedBox(height: 24),
-
-          // Connection Guide Section
-          Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(20),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.04),
-                  blurRadius: 12,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF6B4EFF).withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: const Icon(Icons.help_outline, color: Color(0xFF6B4EFF), size: 24),
-                    ),
-                    const SizedBox(width: 12),
-                    const Text(
-                      'Connection Guide',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF1A2E1A),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                _ConnectionGuideTile(
-                  icon: Icons.phone_android,
-                  title: 'Android Emulator',
-                  description: 'Use the special emulator localhost address',
-                  code: 'http://10.0.2.2:8000',
-                ),
-                const Divider(height: 24),
-                _ConnectionGuideTile(
-                  icon: Icons.laptop,
-                  title: 'Same WiFi',
-                  description: 'Find your PC IP in network settings',
-                  code: 'http://<your-pc-ip>:8000',
-                ),
-                const Divider(height: 24),
-                _ConnectionGuideTile(
-                  icon: Icons.cloud,
-                  title: 'Cloud / Remote',
-                  description: 'Use your cloud server public IP',
-                  code: 'http://<remote-ip>:8000',
-                ),
-              ],
+                  const SizedBox(height: AppSpacing.xl),
+                  _SectionHeader(
+                    icon: Icons.help_outline,
+                    color: AppColors.info,
+                    title: 'Connection Guide',
+                    description: null,
+                  ),
+                  const SizedBox(height: AppSpacing.md),
+                  _ConnectionGuideTile(
+                    icon: Icons.phone_android,
+                    title: 'Android Emulator',
+                    description: 'Use the special emulator localhost address',
+                    code: 'http://10.0.2.2:8000',
+                  ),
+                  const Divider(height: AppSpacing.lg),
+                  _ConnectionGuideTile(
+                    icon: Icons.laptop,
+                    title: 'Same WiFi',
+                    description: 'Find your PC IP in network settings',
+                    code: 'http://<your-pc-ip>:8000',
+                  ),
+                  const Divider(height: AppSpacing.lg),
+                  _ConnectionGuideTile(
+                    icon: Icons.cloud,
+                    title: 'Cloud / Remote',
+                    description: 'Use your cloud server public IP',
+                    code: 'http://<remote-ip>:8000',
+                  ),
+                  const SizedBox(height: 100),
+                ],
+              ),
             ),
           ),
         ],
       ),
+    );
+  }
+}
+
+class _BackBtn extends StatefulWidget {
+  final VoidCallback onTap;
+  const _BackBtn({required this.onTap});
+
+  @override
+  State<_BackBtn> createState() => _BackBtnState();
+}
+
+class _BackBtnState extends State<_BackBtn> {
+  bool _isHovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return MouseRegion(
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
+      child: GestureDetector(
+        onTap: widget.onTap,
+        child: AnimatedContainer(
+          duration: AppDurations.fast,
+          padding: const EdgeInsets.all(6),
+          decoration: BoxDecoration(
+            color: _isHovered ? Colors.white.withOpacity(0.1) : Colors.transparent,
+            borderRadius: BorderRadius.circular(AppRadius.sm),
+          ),
+          child: Icon(Icons.arrow_back, color: Colors.white.withOpacity(_isHovered ? 1 : 0.7), size: 20),
+        ),
+      ),
+    );
+  }
+}
+
+class _SectionHeader extends StatelessWidget {
+  final IconData icon;
+  final Color color;
+  final String title;
+  final String? description;
+
+  const _SectionHeader({
+    required this.icon,
+    required this.color,
+    required this.title,
+    this.description,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Container(
+          width: 40,
+          height: 40,
+          decoration: BoxDecoration(
+            color: color.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(AppRadius.sm),
+          ),
+          child: Icon(icon, size: 20, color: color),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(title, style: AppText.h3),
+              if (description != null) ...[
+                const SizedBox(height: 2),
+                Text(description!, style: AppText.bodySmall),
+              ],
+            ],
+          ),
+        ),
+      ],
     );
   }
 }
@@ -245,45 +259,34 @@ class _ConnectionGuideTile extends StatelessWidget {
     return Row(
       children: [
         Container(
-          padding: const EdgeInsets.all(8),
+          width: 40,
+          height: 40,
           decoration: BoxDecoration(
-            color: Colors.grey[100],
-            borderRadius: BorderRadius.circular(10),
+            color: AppColors.surfaceSecondary,
+            borderRadius: BorderRadius.circular(AppRadius.sm),
           ),
-          child: Icon(icon, color: Colors.grey[600], size: 20),
+          child: Icon(icon, size: 20, color: AppColors.textTertiary),
         ),
         const SizedBox(width: 14),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                title,
-                style: const TextStyle(
-                  fontWeight: FontWeight.w600,
-                  fontSize: 14,
-                  color: Color(0xFF1A2E1A),
-                ),
-              ),
-              Text(
-                description,
-                style: TextStyle(color: Colors.grey[500], fontSize: 12),
-              ),
+              Text(title, style: AppText.labelBold),
+              Text(description, style: AppText.caption),
             ],
           ),
         ),
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
           decoration: BoxDecoration(
-            color: const Color(0xFF25D366).withOpacity(0.08),
-            borderRadius: BorderRadius.circular(8),
+            color: AppColors.success.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(AppRadius.sm),
           ),
           child: Text(
             code,
-            style: const TextStyle(
-              fontSize: 11,
-              color: Color(0xFF25D366),
-              fontWeight: FontWeight.w600,
+            style: AppText.caption.copyWith(
+              color: AppColors.success,
               fontFamily: 'monospace',
             ),
           ),
@@ -291,4 +294,23 @@ class _ConnectionGuideTile extends StatelessWidget {
       ],
     );
   }
+}
+
+class _DarkGridPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = Colors.white.withOpacity(0.03)
+      ..strokeWidth = 1;
+    const step = 40.0;
+    for (double x = 0; x < size.width; x += step) {
+      canvas.drawLine(Offset(x, 0), Offset(x, size.height), paint);
+    }
+    for (double y = 0; y < size.height; y += step) {
+      canvas.drawLine(Offset(0, y), Offset(size.width, y), paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

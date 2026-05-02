@@ -2,157 +2,286 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/onboarding_provider.dart';
-import '../widgets/onboarding_shell.dart';
+import '../../../../design_system.dart';
 
 class LanguageScreen extends ConsumerWidget {
   const LanguageScreen({super.key});
 
   static const _languages = [
-    ('en', 'English', '🇬🇧'),
-    ('zh', 'Chinese', '🇨🇳'),
-    ('ko', 'Korean', '🇰🇷'),
-    ('ja', 'Japanese', '🇯🇵'),
-    ('de', 'German', '🇩🇪'),
-    ('fr', 'French', '🇫🇷'),
-    ('ru', 'Russian', '🇷🇺'),
-    ('th', 'Thai', '🇹🇭'),
+    ('en', 'English'),
+    ('zh', 'Chinese'),
+    ('ko', 'Korean'),
+    ('ja', 'Japanese'),
+    ('de', 'German'),
+    ('fr', 'French'),
+    ('ru', 'Russian'),
+    ('th', 'Thai'),
   ];
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(onboardingProvider);
     final notifier = ref.read(onboardingProvider.notifier);
+    final isWide = MediaQuery.of(context).size.width > 600;
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.background,
       body: SafeArea(
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.all(24.0),
+        child: isWide
+            ? _buildWideLayout(context, state, notifier)
+            : _buildMobileLayout(context, state, notifier),
+      ),
+    );
+  }
+
+  Widget _buildWideLayout(BuildContext context, OnboardingState state, OnboardingNotifier notifier) {
+    return Row(
+      children: [
+        Expanded(
+          flex: 5,
+          child: Container(
+            color: AppColors.textPrimary,
+            child: Stack(
+              children: [
+                Positioned.fill(
+                  child: CustomPaint(painter: _DarkGridPainter()),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(AppSpacing.xxxl),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      _buildBrandMark(),
+                      const SizedBox(height: AppSpacing.xl),
+                      Text(
+                        'Preferred\nLanguage',
+                        style: AppText.display.copyWith(
+                          color: Colors.white,
+                          fontSize: 40,
+                          height: 1.1,
+                        ),
+                      ),
+                      const SizedBox(height: AppSpacing.lg),
+                      Text(
+                        'Which language would\nyou like your guide\nto speak?',
+                        style: AppText.body.copyWith(
+                          color: Colors.white.withOpacity(0.6),
+                          height: 1.6,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        Expanded(
+          flex: 4,
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 500),
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(AppSpacing.xxl),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(height: AppSpacing.xl),
+                    Text('Preferred Language', style: AppText.h1),
+                    const SizedBox(height: 6),
+                    Text(
+                      'Which language would you like your guide to speak?',
+                      style: AppText.bodySmall,
+                    ),
+                    const SizedBox(height: AppSpacing.xl),
+                    _buildLanguageGrid(state, notifier),
+                    const SizedBox(height: AppSpacing.xl),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: SecondaryButton(
+                            label: 'Back',
+                            onPressed: () => context.go('/onboarding/experience-type'),
+                          ),
+                        ),
+                        const SizedBox(width: AppSpacing.md),
+                        Expanded(
+                          flex: 2,
+                          child: PrimaryButton(
+                            label: 'Continue',
+                            onPressed: () => context.go('/onboarding/travel-style'),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMobileLayout(BuildContext context, OnboardingState state, OnboardingNotifier notifier) {
+    return SingleChildScrollView(
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+            child: Row(
+              children: [
+                _buildBackButton(),
+                const Spacer(),
+                _OnboardingStepper(currentStep: 2, totalSteps: 4),
+              ],
+            ),
+          ),
+          const SizedBox(height: AppSpacing.xl),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF25D366).withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: const Icon(
-                        Icons.explore,
-                        color: Color(0xFF25D366),
-                        size: 28,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    const Text(
-                      'WanderLess',
-                      style: TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF1A2E1A),
-                      ),
-                    ),
-                    const Spacer(),
-                    OnboardingStepper(
-                      currentStep: 2,
-                      totalSteps: 4,
-                      activeColor: const Color(0xFF25D366),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 28),
-
-                // Hero visual
-                const OnboardingHeroVisual(screenIndex: 2),
-
-                const SizedBox(height: 32),
-
-                Text(
-                  'Preferred Language',
-                  style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: const Color(0xFF1A2E1A),
-                      ),
-                ),
-                const SizedBox(height: 8),
+                _buildBrandMark(),
+                const SizedBox(height: AppSpacing.lg),
+                Text('Preferred Language', style: AppText.display),
+                const SizedBox(height: 6),
                 Text(
                   'Which language would you like your guide to speak?',
-                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                        color: Colors.grey[600],
-                      ),
+                  style: AppText.body.copyWith(color: AppColors.textSecondary),
                 ),
-                const SizedBox(height: 24),
-
-                Wrap(
-                  spacing: 10,
-                  runSpacing: 10,
-                  children: _languages.map((lang) {
-                    final selected = state.languages.contains(lang.$1);
-                    return _LanguagePill(
-                      label: lang.$2,
-                      flag: lang.$3,
-                      isSelected: selected,
-                      onTap: () {
-                        final current = List<String>.from(state.languages);
-                        if (selected) {
-                          current.remove(lang.$1);
-                        } else {
-                          current.add(lang.$1);
-                        }
-                        if (current.isEmpty) current.add(lang.$1);
-                        notifier.setLanguages(current);
-                      },
-                    );
-                  }).toList(),
-                ),
-
-                const SizedBox(height: 32),
-
-                Row(
-                  children: [
-                    Expanded(
-                      child: OutlinedButton(
-                        onPressed: () => context.go('/onboarding/experience-type'),
-                        style: OutlinedButton.styleFrom(
-                          minimumSize: const Size.fromHeight(52),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(14),
-                          ),
-                        ),
-                        child: const Text(
-                          'Back',
-                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      flex: 2,
-                      child: ElevatedButton(
-                        onPressed: () => context.go('/onboarding/travel-style'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF25D366),
-                          foregroundColor: Colors.white,
-                          minimumSize: const Size.fromHeight(52),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(14),
-                          ),
-                          elevation: 0,
-                        ),
-                        child: const Text(
-                          'Continue',
-                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
               ],
+            ),
+          ),
+          const SizedBox(height: AppSpacing.xl),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: _buildLanguageGrid(state, notifier),
+          ),
+          const SizedBox(height: AppSpacing.xl),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Row(
+              children: [
+                Expanded(
+                  child: SecondaryButton(
+                    label: 'Back',
+                    onPressed: () => context.go('/onboarding/experience-type'),
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.md),
+                Expanded(
+                  flex: 2,
+                  child: PrimaryButton(
+                    label: 'Continue',
+                    onPressed: () => context.go('/onboarding/travel-style'),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: AppSpacing.xl),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLanguageGrid(OnboardingState state, OnboardingNotifier notifier) {
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: _languages.map((lang) {
+        final selected = state.languages.contains(lang.$1);
+        return _LanguagePill(
+          label: lang.$2,
+          isSelected: selected,
+          onTap: () {
+            final current = List<String>.from(state.languages);
+            if (selected) {
+              current.remove(lang.$1);
+            } else {
+              current.add(lang.$1);
+            }
+            if (current.isEmpty) current.add(lang.$1);
+            notifier.setLanguages(current);
+          },
+        );
+      }).toList(),
+    );
+  }
+
+  Widget _buildBackButton() {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(AppRadius.sm),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: IconButton(
+        onPressed: () => context.go('/onboarding/experience-type'),
+        icon: const Icon(Icons.arrow_back, size: 18),
+        color: AppColors.textSecondary,
+      ),
+    );
+  }
+
+  Widget _buildBrandMark() {
+    return Container(
+      width: 48,
+      height: 48,
+      decoration: BoxDecoration(
+        color: AppColors.brand,
+        borderRadius: BorderRadius.circular(AppRadius.md),
+      ),
+      child: const Icon(Icons.translate, color: Colors.white, size: 26),
+    );
+  }
+}
+
+class _LanguagePill extends StatefulWidget {
+  final String label;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  const _LanguagePill({
+    required this.label,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  @override
+  State<_LanguagePill> createState() => _LanguagePillState();
+}
+
+class _LanguagePillState extends State<_LanguagePill> {
+  bool _isHovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return MouseRegion(
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
+      child: GestureDetector(
+        onTap: widget.onTap,
+        child: AnimatedContainer(
+          duration: AppDurations.fast,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          decoration: BoxDecoration(
+            color: widget.isSelected ? AppColors.brand : _isHovered ? AppColors.surfaceSecondary : AppColors.surface,
+            borderRadius: BorderRadius.circular(AppRadius.md),
+            border: Border.all(
+              color: widget.isSelected ? AppColors.brand : AppColors.border,
+              width: widget.isSelected ? 1.5 : 1,
+            ),
+          ),
+          child: Text(
+            widget.label,
+            style: AppText.label.copyWith(
+              color: widget.isSelected ? Colors.white : AppColors.textPrimary,
+              fontWeight: widget.isSelected ? FontWeight.w600 : FontWeight.w400,
             ),
           ),
         ),
@@ -161,62 +290,54 @@ class LanguageScreen extends ConsumerWidget {
   }
 }
 
-class _LanguagePill extends StatelessWidget {
-  final String label;
-  final String flag;
-  final bool isSelected;
-  final VoidCallback onTap;
+class _OnboardingStepper extends StatelessWidget {
+  final int currentStep;
+  final int totalSteps;
 
-  const _LanguagePill({
-    required this.label,
-    required this.flag,
-    required this.isSelected,
-    required this.onTap,
-  });
+  const _OnboardingStepper({required this.currentStep, required this.totalSteps});
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFF25D366) : Colors.white,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(
-            color: isSelected ? const Color(0xFF25D366) : Colors.grey[300]!,
-            width: isSelected ? 1.5 : 1,
-          ),
-          boxShadow: isSelected
-              ? [
-                  BoxShadow(
-                    color: const Color(0xFF25D366).withOpacity(0.25),
-                    blurRadius: 8,
-                    offset: const Offset(0, 3),
-                  ),
-                ]
-              : null,
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: List.generate(totalSteps, (index) {
+        final isCompleted = index < currentStep;
+        final isCurrent = index == currentStep;
+
+        return Row(
           children: [
-            Text(
-              flag,
-              style: const TextStyle(fontSize: 18),
-            ),
-            const SizedBox(width: 8),
-            Text(
-              label,
-              style: TextStyle(
-                color: isSelected ? Colors.white : Colors.grey[700],
-                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                fontSize: 14,
+            AnimatedContainer(
+              duration: AppDurations.fast,
+              width: isCurrent ? 24 : 8,
+              height: 8,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(AppRadius.sm),
+                color: isCompleted || isCurrent ? AppColors.brand : AppColors.border,
               ),
             ),
+            if (index < totalSteps - 1) const SizedBox(width: 6),
           ],
-        ),
-      ),
+        );
+      }),
     );
   }
+}
+
+class _DarkGridPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = Colors.white.withOpacity(0.03)
+      ..strokeWidth = 1;
+    const step = 40.0;
+    for (double x = 0; x < size.width; x += step) {
+      canvas.drawLine(Offset(x, 0), Offset(x, size.height), paint);
+    }
+    for (double y = 0; y < size.height; y += step) {
+      canvas.drawLine(Offset(0, y), Offset(size.width, y), paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

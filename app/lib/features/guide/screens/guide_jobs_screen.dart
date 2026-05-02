@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/guide_auth_provider.dart';
 import '../../../../core/api_client.dart';
+import '../../../../design_system.dart';
 
 final _syntheticGuideBookings = [
   {'id': 1, 'tourist_name': 'Sarah Johnson', 'tour_date': '2026-05-15', 'destination': 'Mount Batur Sunrise Trek', 'group_size': 4, 'duration_hours': 6.0, 'status': 'CONFIRMED', 'gross_value': 240.0, 'tour_type': 'Adventure'},
@@ -59,17 +60,12 @@ class _GuideJobsScreenState extends ConsumerState<GuideJobsScreen>
       if (_filterStatus == 'all') return true;
       return b['status'] == _filterStatus;
     }).toList();
-
     filtered.sort((a, b) {
       switch (_sortBy) {
-        case 'date':
-          return (b['tour_date'] ?? '').compareTo(a['tour_date'] ?? '');
-        case 'amount':
-          return ((b['gross_value'] ?? 0) as num).compareTo((a['gross_value'] ?? 0) as num);
-        case 'tourist':
-          return (a['tourist_name'] ?? '').compareTo(b['tourist_name'] ?? '');
-        default:
-          return 0;
+        case 'date': return (b['tour_date'] ?? '').compareTo(a['tour_date'] ?? '');
+        case 'amount': return ((b['gross_value'] ?? 0) as num).compareTo((a['gross_value'] ?? 0) as num);
+        case 'tourist': return (a['tourist_name'] ?? '').compareTo(b['tourist_name'] ?? '');
+        default: return 0;
       }
     });
     return filtered;
@@ -79,6 +75,7 @@ class _GuideJobsScreenState extends ConsumerState<GuideJobsScreen>
   Widget build(BuildContext context) {
     final authState = ref.watch(guideAuthProvider);
     final bookingsAsync = ref.watch(guideBookingsProvider);
+    final isWide = MediaQuery.of(context).size.width > 600;
 
     final allBookings = bookingsAsync.when(
       data: (data) => data.isEmpty ? _syntheticGuideBookings : data,
@@ -92,178 +89,141 @@ class _GuideJobsScreenState extends ConsumerState<GuideJobsScreen>
         .fold(0.0, (sum, b) => sum + ((b['gross_value'] ?? 0) as num).toDouble());
 
     return Scaffold(
-      backgroundColor: const Color(0xFFFAF5F0),
-      appBar: AppBar(
-        backgroundColor: const Color(0xFFED8A19),
-        foregroundColor: Colors.white,
-        elevation: 0,
-        title: Text(authState.guideName ?? 'Guide Portal', style: const TextStyle(fontWeight: FontWeight.bold)),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.notifications_outlined),
-            onPressed: () {},
-          ),
-          IconButton(
-            icon: const Icon(Icons.person_outline),
-            onPressed: () {},
-          ),
-        ],
-        bottom: TabBar(
-          controller: _tabController,
-          indicatorColor: Colors.white,
-          labelColor: Colors.white,
-          unselectedLabelColor: Colors.white60,
-          tabs: const [
-            Tab(text: 'All Jobs'),
-            Tab(text: 'Upcoming'),
-            Tab(text: 'History'),
-          ],
-        ),
-      ),
-      body: Column(
-        children: [
-          // Stats Row
-          Container(
-            color: Colors.white,
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              children: [
-                _StatCard(
-                  title: 'Total Jobs',
-                  value: '$totalJobs',
-                  icon: Icons.work_outline,
-                  color: const Color(0xFFED8A19),
-                ),
-                const SizedBox(width: 12),
-                _StatCard(
-                  title: 'Earnings',
-                  value: '\$${totalEarnings.toStringAsFixed(0)}',
-                  icon: Icons.attach_money,
-                  color: Colors.green[600]!,
-                ),
-                const SizedBox(width: 12),
-                _StatCard(
-                  title: 'Rating',
-                  value: '4.9',
-                  icon: Icons.star,
-                  color: Colors.amber[600]!,
-                ),
-              ],
-            ),
-          ),
-          // Sort and Filter
-          Container(
-            color: Colors.white,
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-            child: Row(
-              children: [
-                Expanded(
-                  child: _SortDropdown(
-                    value: _sortBy,
-                    onChanged: (v) => setState(() => _sortBy = v ?? 'date'),
+      backgroundColor: AppColors.background,
+      body: NestedScrollView(
+        headerSliverBuilder: (context, innerBoxIsScrolled) {
+          return [
+            SliverAppBar(
+              expandedHeight: 130,
+              pinned: true,
+              backgroundColor: AppColors.textPrimary,
+              leadingWidth: 0,
+              leading: const SizedBox.shrink(),
+              flexibleSpace: FlexibleSpaceBar(
+                background: Container(
+                  color: AppColors.textPrimary,
+                  child: SafeArea(
+                    child: Stack(
+                      children: [
+                        Positioned.fill(
+                          child: CustomPaint(painter: _DarkGridPainter()),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(20, 8, 12, 0),
+                          child: Row(
+                            children: [
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    authState.guideName ?? 'Guide Portal',
+                                    style: AppText.h3.copyWith(color: Colors.white, fontSize: 18),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    '$totalJobs jobs · \$${totalEarnings.toStringAsFixed(0)} earned',
+                                    style: AppText.caption.copyWith(color: Colors.white70),
+                                  ),
+                                ],
+                              ),
+                              const Spacer(),
+                              _IconBtn(icon: Icons.notifications_outlined, onPressed: () {}),
+                              _IconBtn(icon: Icons.person_outline, onPressed: () {}),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: _FilterDropdown(
-                    value: _filterStatus,
-                    onChanged: (v) => setState(() => _filterStatus = v ?? 'all'),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 8),
-          // Booking Table Header
-          Container(
-            color: const Color(0xFFED8A19).withOpacity(0.1),
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            child: const Row(
-              children: [
-                SizedBox(width: 100, child: Text('Tourist', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 12, color: Color(0xFF3C3830)))),
-                SizedBox(width: 70, child: Text('Date', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 12, color: Color(0xFF3C3830)))),
-                Expanded(child: Text('Tour Type', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 12, color: Color(0xFF3C3830)))),
-                SizedBox(width: 50, child: Text('Pax', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 12, color: Color(0xFF3C3830)), textAlign: TextAlign.center)),
-                SizedBox(width: 80, child: Text('Status', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 12, color: Color(0xFF3C3830)))),
-                SizedBox(width: 70, child: Text('Amount', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 12, color: Color(0xFF3C3830)), textAlign: TextAlign.right)),
-              ],
-            ),
-          ),
-          // Booking List
-          Expanded(
-            child: bookingsAsync.when(
-              loading: () => const Center(child: CircularProgressIndicator()),
-              error: (e, _) => Center(child: Text('Error: $e')),
-              data: (_) => TabBarView(
+              ),
+              bottom: TabBar(
                 controller: _tabController,
-                children: [
-                  _BookingList(
-                    bookings: _filterAndSort(allBookings),
-                    filter: null,
-                  ),
-                  _BookingList(
-                    bookings: _filterAndSort(allBookings.where((b) {
-                      final s = b['status'] as String;
-                      return s == 'REQUESTED' || s == 'CONFIRMED' || s == 'IN_PROGRESS';
-                    }).toList()),
-                    filter: 'upcoming',
-                  ),
-                  _BookingList(
-                    bookings: _filterAndSort(allBookings.where((b) {
-                      final s = b['status'] as String;
-                      return s == 'COMPLETED' || s == 'CANCELLED';
-                    }).toList()),
-                    filter: 'history',
-                  ),
+                indicatorColor: AppColors.brand,
+                labelColor: Colors.white,
+                unselectedLabelColor: Colors.white60,
+                indicatorWeight: 2.5,
+                dividerColor: Colors.transparent,
+                tabs: const [
+                  Tab(text: 'All Jobs'),
+                  Tab(text: 'Upcoming'),
+                  Tab(text: 'History'),
                 ],
               ),
             ),
-          ),
-        ],
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: 1,
-        selectedItemColor: const Color(0xFFED8A19),
-        unselectedItemColor: Colors.grey,
-        onTap: (i) {
-          if (i == 0) context.go('/guide/dashboard');
+          ];
         },
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home_outlined), label: 'Home'),
-          BottomNavigationBarItem(icon: Icon(Icons.work), label: 'Jobs'),
-          BottomNavigationBarItem(icon: Icon(Icons.add_circle_outline), label: 'New'),
-          BottomNavigationBarItem(icon: Icon(Icons.star_outline), label: 'Reviews'),
-          BottomNavigationBarItem(icon: Icon(Icons.person_outline), label: 'Profile'),
-        ],
+        body: Column(
+          children: [
+            Container(
+              color: AppColors.surface,
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+              child: Row(
+                children: [
+                  Expanded(child: _SortDropdown(value: _sortBy, onChanged: (v) => setState(() => _sortBy = v ?? 'date'))),
+                  const SizedBox(width: 8),
+                  Expanded(child: _FilterDropdown(value: _filterStatus, onChanged: (v) => setState(() => _filterStatus = v ?? 'all'))),
+                ],
+              ),
+            ),
+            Expanded(
+              child: bookingsAsync.when(
+                loading: () => const AppLoading(message: 'Loading jobs...'),
+                error: (e, _) => EmptyState(
+                  icon: Icons.error_outline,
+                  title: 'Failed to load jobs',
+                  subtitle: e.toString(),
+                ),
+                data: (_) => TabBarView(
+                  controller: _tabController,
+                  children: [
+                    _BookingList(bookings: _filterAndSort(allBookings)),
+                    _BookingList(bookings: _filterAndSort(allBookings.where((b) {
+                      final s = b['status'] as String;
+                      return s == 'REQUESTED' || s == 'CONFIRMED' || s == 'IN_PROGRESS';
+                    }).toList())),
+                    _BookingList(bookings: _filterAndSort(allBookings.where((b) {
+                      final s = b['status'] as String;
+                      return s == 'COMPLETED' || s == 'CANCELLED';
+                    }).toList())),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 }
 
-class _StatCard extends StatelessWidget {
-  final String title;
-  final String value;
+class _IconBtn extends StatefulWidget {
   final IconData icon;
-  final Color color;
+  final VoidCallback onPressed;
+  const _IconBtn({required this.icon, required this.onPressed});
 
-  const _StatCard({required this.title, required this.value, required this.icon, required this.color});
+  @override
+  State<_IconBtn> createState() => _IconBtnState();
+}
+
+class _IconBtnState extends State<_IconBtn> {
+  bool _isHovered = false;
 
   @override
   Widget build(BuildContext context) {
-    return Expanded(
-      child: Container(
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: color.withOpacity(0.1),
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Column(
-          children: [
-            Icon(icon, color: color, size: 24),
-            const SizedBox(height: 4),
-            Text(value, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: color)),
-            Text(title, style: TextStyle(fontSize: 11, color: Colors.grey[600])),
-          ],
+    return MouseRegion(
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
+      child: GestureDetector(
+        onTap: widget.onPressed,
+        child: AnimatedContainer(
+          duration: AppDurations.fast,
+          padding: const EdgeInsets.all(6),
+          decoration: BoxDecoration(
+            color: _isHovered ? Colors.white.withOpacity(0.1) : Colors.transparent,
+            borderRadius: BorderRadius.circular(AppRadius.sm),
+          ),
+          child: Icon(widget.icon, color: Colors.white.withOpacity(_isHovered ? 1 : 0.7), size: 20),
         ),
       ),
     );
@@ -280,13 +240,15 @@ class _SortDropdown extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12),
       decoration: BoxDecoration(
-        border: Border.all(color: Colors.grey[300]!),
-        borderRadius: BorderRadius.circular(8),
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(AppRadius.sm),
+        border: Border.all(color: AppColors.border),
       ),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String>(
           value: value,
           isDense: true,
+          style: AppText.bodySmall,
           items: const [
             DropdownMenuItem(value: 'date', child: Text('Sort by Date', style: TextStyle(fontSize: 13))),
             DropdownMenuItem(value: 'amount', child: Text('Sort by Amount', style: TextStyle(fontSize: 13))),
@@ -309,13 +271,15 @@ class _FilterDropdown extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12),
       decoration: BoxDecoration(
-        border: Border.all(color: Colors.grey[300]!),
-        borderRadius: BorderRadius.circular(8),
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(AppRadius.sm),
+        border: Border.all(color: AppColors.border),
       ),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String>(
           value: value,
           isDense: true,
+          style: AppText.bodySmall,
           items: const [
             DropdownMenuItem(value: 'all', child: Text('All Status', style: TextStyle(fontSize: 13))),
             DropdownMenuItem(value: 'REQUESTED', child: Text('Requested', style: TextStyle(fontSize: 13))),
@@ -332,31 +296,26 @@ class _FilterDropdown extends StatelessWidget {
 
 class _BookingList extends StatelessWidget {
   final List<Map<String, dynamic>> bookings;
-  final String? filter;
-
-  const _BookingList({required this.bookings, this.filter});
+  const _BookingList({required this.bookings});
 
   @override
   Widget build(BuildContext context) {
     if (bookings.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.work_off_outlined, size: 64, color: Colors.grey[300]),
-            const SizedBox(height: 16),
-            Text('No jobs found', style: TextStyle(fontSize: 16, color: Colors.grey[600])),
-          ],
-        ),
+      return EmptyState(
+        icon: Icons.work_outline,
+        title: 'No jobs found',
+        subtitle: 'Bookings will appear here',
       );
     }
-
     return ListView.builder(
-      padding: const EdgeInsets.only(bottom: 80),
+      padding: const EdgeInsets.all(AppSpacing.md),
       itemCount: bookings.length,
       itemBuilder: (context, index) {
         final b = bookings[index];
-        return _BookingRow(booking: b);
+        return Padding(
+          padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+          child: _BookingRow(booking: b),
+        );
       },
     );
   }
@@ -364,17 +323,16 @@ class _BookingList extends StatelessWidget {
 
 class _BookingRow extends StatelessWidget {
   final Map<String, dynamic> booking;
-
   const _BookingRow({required this.booking});
 
   Color _statusColor(String status) {
     switch (status) {
-      case 'REQUESTED': return Colors.orange;
-      case 'CONFIRMED': return Colors.blue;
-      case 'IN_PROGRESS': return Colors.purple;
-      case 'COMPLETED': return Colors.green;
-      case 'CANCELLED': return Colors.red;
-      default: return Colors.grey;
+      case 'REQUESTED': return AppColors.statusRequested;
+      case 'CONFIRMED': return AppColors.statusConfirmed;
+      case 'IN_PROGRESS': return AppColors.statusInProgress;
+      case 'COMPLETED': return AppColors.statusCompleted;
+      case 'CANCELLED': return AppColors.statusCancelled;
+      default: return AppColors.textTertiary;
     }
   }
 
@@ -394,93 +352,82 @@ class _BookingRow extends StatelessWidget {
     final status = booking['status'] as String;
     final statusColor = _statusColor(status);
 
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border(bottom: BorderSide(color: Colors.grey[200]!)),
-      ),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      child: Row(
+    return AppCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(
-            width: 100,
-            child: Row(
-              children: [
-                CircleAvatar(
-                  radius: 14,
-                  backgroundColor: const Color(0xFFED8A19).withOpacity(0.1),
+          Row(
+            children: [
+              StatusBadge(label: _statusLabel(status), color: statusColor),
+              const Spacer(),
+              Text('Booking #${booking['id']}', style: AppText.caption),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          Row(
+            children: [
+              Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: AppColors.surfaceSecondary,
+                  borderRadius: BorderRadius.circular(AppRadius.sm),
+                ),
+                child: Center(
                   child: Text(
                     (booking['tourist_name'] as String? ?? 'T')[0],
-                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFFED8A19)),
+                    style: AppText.labelBold.copyWith(color: AppColors.brand),
                   ),
                 ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    booking['tourist_name'] ?? 'Tourist',
-                    style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          SizedBox(
-            width: 70,
-            child: Text(
-              (booking['tour_date'] as String? ?? '').substring(5),
-              style: const TextStyle(fontSize: 12),
-            ),
-          ),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  booking['destination'] as String? ?? 'Tour',
-                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
-                  overflow: TextOverflow.ellipsis,
-                ),
-                Text(
-                  booking['tour_type'] as String? ?? '',
-                  style: TextStyle(fontSize: 11, color: Colors.grey[500]),
-                ),
-              ],
-            ),
-          ),
-          SizedBox(
-            width: 50,
-            child: Text(
-              '${booking['group_size'] ?? 0}',
-              style: const TextStyle(fontSize: 12),
-              textAlign: TextAlign.center,
-            ),
-          ),
-          SizedBox(
-            width: 80,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-              decoration: BoxDecoration(
-                color: statusColor.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(12),
               ),
-              child: Text(
-                _statusLabel(status),
-                style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: statusColor),
-                textAlign: TextAlign.center,
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(booking['tourist_name'] ?? 'Tourist', style: AppText.labelBold),
+                    Text(booking['tour_type'] as String? ?? '', style: AppText.caption),
+                  ],
+                ),
               ),
-            ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(booking['tour_date'] as String? ?? '', style: AppText.labelBold),
+                  Text('${booking['group_size'] ?? 0} pax · \$${(booking['gross_value'] ?? 0).toStringAsFixed(0)}', style: AppText.caption),
+                ],
+              ),
+            ],
           ),
-          SizedBox(
-            width: 70,
-            child: Text(
-              '\$${(booking['gross_value'] ?? 0).toStringAsFixed(0)}',
-              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
-              textAlign: TextAlign.right,
-            ),
+          const SizedBox(height: AppSpacing.sm),
+          Row(
+            children: [
+              const Icon(Icons.location_on_outlined, size: 14, color: AppColors.textTertiary),
+              const SizedBox(width: 4),
+              Expanded(child: Text(booking['destination'] as String? ?? '', style: AppText.bodySmall)),
+            ],
           ),
         ],
       ),
     );
   }
+}
+
+class _DarkGridPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = Colors.white.withOpacity(0.03)
+      ..strokeWidth = 1;
+    const step = 40.0;
+    for (double x = 0; x < size.width; x += step) {
+      canvas.drawLine(Offset(x, 0), Offset(x, size.height), paint);
+    }
+    for (double y = 0; y < size.height; y += step) {
+      canvas.drawLine(Offset(0, y), Offset(size.width, y), paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

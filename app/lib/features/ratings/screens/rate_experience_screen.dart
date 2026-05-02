@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/api_client.dart';
 import '../../../../core/auth_provider.dart';
+import '../../../../design_system.dart';
 
 final ratingProvider = StateProvider<double>((_) => 4.0);
 
@@ -31,7 +32,12 @@ class _RateExperienceScreenState extends ConsumerState<RateExperienceScreen> {
       if (touristId == null) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Please sign in to rate')),
+            SnackBar(
+              content: const Text('Please sign in to rate'),
+              backgroundColor: AppColors.error,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.sm)),
+            ),
           );
         }
         return;
@@ -46,9 +52,11 @@ class _RateExperienceScreenState extends ConsumerState<RateExperienceScreen> {
       });
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Thank you for your rating!'),
-            backgroundColor: Color(0xFF25D366),
+          SnackBar(
+            content: const Text('Thank you for your rating!'),
+            backgroundColor: AppColors.success,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.sm)),
           ),
         );
         context.go('/discover');
@@ -56,7 +64,12 @@ class _RateExperienceScreenState extends ConsumerState<RateExperienceScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to submit rating: $e')),
+          SnackBar(
+            content: Text('Failed to submit rating: $e'),
+            backgroundColor: AppColors.error,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.sm)),
+          ),
         );
       }
     } finally {
@@ -67,105 +80,110 @@ class _RateExperienceScreenState extends ConsumerState<RateExperienceScreen> {
   @override
   Widget build(BuildContext context) {
     final rating = ref.watch(ratingProvider);
+    final isWide = MediaQuery.of(context).size.width > 600;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F5F5),
-      appBar: AppBar(
-        backgroundColor: const Color(0xFF1A2E1A),
-        foregroundColor: Colors.white,
-        title: const Text('Rate Your Experience'),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => context.pop(),
-        ),
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          children: [
-            const SizedBox(height: 12),
-            Text(
-              'How was your tour?',
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: const Color(0xFF1A2E1A),
-                  ),
-            ),
-            const SizedBox(height: 32),
-            // Main star rating
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: List.generate(5, (i) {
-                final starValue = i + 1;
-                return IconButton(
-                  iconSize: 48,
-                  icon: Icon(
-                    rating >= starValue ? Icons.star : Icons.star_border,
-                    color: const Color(0xFF25D366),
-                  ),
-                  onPressed: () =>
-                      ref.read(ratingProvider.notifier).state = starValue.toDouble(),
-                );
-              }),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              _ratingLabel(rating),
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    color: Colors.grey[600],
-                  ),
-            ),
-            const SizedBox(height: 40),
-            // Dimension ratings card
-            Card(
-              elevation: 0,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  children: [
-                    _RatingDimension(label: 'Communication', initial: 4.0),
-                    const SizedBox(height: 12),
-                    _RatingDimension(label: 'Knowledge', initial: 4.0),
-                    const SizedBox(height: 12),
-                    _RatingDimension(label: 'Punctuality', initial: 4.0),
-                    const SizedBox(height: 12),
-                    _RatingDimension(label: 'Friendliness', initial: 4.0),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 40),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: _loading ? null : _submitRating,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF25D366),
-                  foregroundColor: Colors.white,
-                  minimumSize: const Size.fromHeight(52),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                  elevation: 0,
-                ),
-                child: _loading
-                    ? const SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Colors.white,
-                        ),
-                      )
-                    : const Text(
-                        'Submit Rating',
-                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+      backgroundColor: AppColors.background,
+      body: CustomScrollView(
+        slivers: [
+          SliverAppBar(
+            expandedHeight: 100,
+            pinned: true,
+            backgroundColor: AppColors.textPrimary,
+            leadingWidth: 0,
+            leading: const SizedBox.shrink(),
+            flexibleSpace: FlexibleSpaceBar(
+              background: Container(
+                color: AppColors.textPrimary,
+                child: SafeArea(
+                  child: Stack(
+                    children: [
+                      Positioned.fill(
+                        child: CustomPaint(painter: _DarkGridPainter()),
                       ),
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(20, 8, 12, 0),
+                        child: Row(
+                          children: [
+                            _BackBtn(onTap: () => context.pop()),
+                            const SizedBox(width: 12),
+                            Text(
+                              'Rate Experience',
+                              style: AppText.h3.copyWith(color: Colors.white),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ),
             ),
-          ],
-        ),
+          ),
+          SliverToBoxAdapter(
+            child: Center(
+              child: ConstrainedBox(
+                constraints: BoxConstraints(maxWidth: isWide ? 500 : double.infinity),
+                child: Padding(
+                  padding: EdgeInsets.all(isWide ? AppSpacing.xl : AppSpacing.lg),
+                  child: Column(
+                    children: [
+                      const SizedBox(height: AppSpacing.xl),
+                      Text('How was your tour?', style: AppText.h1),
+                      const SizedBox(height: AppSpacing.xl),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: List.generate(5, (i) {
+                          final starValue = i + 1;
+                          return IconButton(
+                            iconSize: 48,
+                            icon: Icon(
+                              rating >= starValue ? Icons.star : Icons.star_border,
+                              color: AppColors.brand,
+                            ),
+                            onPressed: () =>
+                                ref.read(ratingProvider.notifier).state = starValue.toDouble(),
+                          );
+                        }),
+                      ),
+                      const SizedBox(height: AppSpacing.sm),
+                      Text(
+                        _ratingLabel(rating),
+                        style: AppText.label,
+                      ),
+                      const SizedBox(height: AppSpacing.xl),
+                      AppCard(
+                        child: Column(
+                          children: [
+                            _RatingDimension(label: 'Communication', initial: 4.0),
+                            const SizedBox(height: AppSpacing.sm),
+                            _RatingDimension(label: 'Knowledge', initial: 4.0),
+                            const SizedBox(height: AppSpacing.sm),
+                            _RatingDimension(label: 'Punctuality', initial: 4.0),
+                            const SizedBox(height: AppSpacing.sm),
+                            _RatingDimension(label: 'Friendliness', initial: 4.0),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: AppSpacing.xl),
+                      if (_loading)
+                        const AppLoading()
+                      else
+                        SizedBox(
+                          width: double.infinity,
+                          child: PrimaryButton(
+                            label: 'Submit Rating',
+                            icon: Icons.check,
+                            onPressed: _submitRating,
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -179,30 +197,94 @@ class _RateExperienceScreenState extends ConsumerState<RateExperienceScreen> {
   }
 }
 
-class _RatingDimension extends StatelessWidget {
+class _BackBtn extends StatefulWidget {
+  final VoidCallback onTap;
+  const _BackBtn({required this.onTap});
+
+  @override
+  State<_BackBtn> createState() => _BackBtnState();
+}
+
+class _BackBtnState extends State<_BackBtn> {
+  bool _isHovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return MouseRegion(
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
+      child: GestureDetector(
+        onTap: widget.onTap,
+        child: AnimatedContainer(
+          duration: AppDurations.fast,
+          padding: const EdgeInsets.all(6),
+          decoration: BoxDecoration(
+            color: _isHovered ? Colors.white.withOpacity(0.1) : Colors.transparent,
+            borderRadius: BorderRadius.circular(AppRadius.sm),
+          ),
+          child: Icon(Icons.arrow_back, color: Colors.white.withOpacity(_isHovered ? 1 : 0.7), size: 20),
+        ),
+      ),
+    );
+  }
+}
+
+class _RatingDimension extends StatefulWidget {
   final String label;
   final double initial;
 
   const _RatingDimension({required this.label, required this.initial});
 
   @override
+  State<_RatingDimension> createState() => _RatingDimensionState();
+}
+
+class _RatingDimensionState extends State<_RatingDimension> {
+  late double _rating;
+
+  @override
+  void initState() {
+    super.initState();
+    _rating = widget.initial;
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Expanded(child: Text(label)),
+        Expanded(child: Text(widget.label, style: AppText.label)),
         ...List.generate(5, (i) {
           return IconButton(
             iconSize: 24,
             padding: EdgeInsets.zero,
             constraints: const BoxConstraints(),
             icon: Icon(
-              i < initial ? Icons.star : Icons.star_border,
-              color: const Color(0xFF25D366),
+              i < _rating ? Icons.star : Icons.star_border,
+              color: AppColors.brand,
             ),
-            onPressed: () {},
+            onPressed: () => setState(() => _rating = (i + 1).toDouble()),
           );
         }),
       ],
     );
   }
+}
+
+class _DarkGridPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = Colors.white.withOpacity(0.03)
+      ..strokeWidth = 1;
+    const step = 40.0;
+    for (double x = 0; x < size.width; x += step) {
+      canvas.drawLine(Offset(x, 0), Offset(x, size.height), paint);
+    }
+    for (double y = 0; y < size.height; y += step) {
+      canvas.drawLine(Offset(0, y), Offset(size.width, y), paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

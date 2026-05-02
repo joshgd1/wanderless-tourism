@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/guide_auth_provider.dart';
+import '../../../../design_system.dart';
 
 class GuideLoginScreen extends ConsumerStatefulWidget {
   const GuideLoginScreen({super.key});
@@ -27,9 +28,9 @@ class _GuideLoginScreenState extends ConsumerState<GuideLoginScreen> {
     if (!_formKey.currentState!.validate()) return;
     ref.read(guideAuthProvider.notifier).clearError();
     final success = await ref.read(guideAuthProvider.notifier).login(
-      email: _emailController.text.trim(),
-      password: _passwordController.text,
-    );
+          email: _emailController.text.trim(),
+          password: _passwordController.text,
+        );
     if (success && mounted) {
       context.go('/guide/dashboard');
     }
@@ -38,215 +39,320 @@ class _GuideLoginScreenState extends ConsumerState<GuideLoginScreen> {
   @override
   Widget build(BuildContext context) {
     final authState = ref.watch(guideAuthProvider);
+    final isWide = MediaQuery.of(context).size.width > 600;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F5F5),
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Colors.grey[700]),
-          onPressed: () => context.go('/login'),
-        ),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.settings, color: Colors.grey[600]),
-            onPressed: () => context.push('/settings'),
-          ),
-        ],
-      ),
+      backgroundColor: AppColors.background,
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const SizedBox(height: 24),
-              Center(
-                child: Container(
-                  width: 72,
-                  height: 72,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFED8A19).withOpacity(0.1),
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(
-                    Icons.person,
-                    size: 36,
-                    color: Color(0xFFED8A19),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 24),
-              Center(
-                child: Text(
-                  'Guide Portal',
-                  style: TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.grey[800],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 8),
-              Center(
-                child: Text(
-                  'Sign in to manage your guided tours',
-                  style: TextStyle(fontSize: 15, color: Colors.grey[600]),
-                ),
-              ),
-              const SizedBox(height: 48),
+        child: isWide ? _buildWideLayout(authState) : _buildMobileLayout(authState),
+      ),
+    );
+  }
 
-              if (authState.error != null)
-                Container(
-                  margin: const EdgeInsets.only(bottom: 16),
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.red[50],
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.red[200]!),
-                  ),
-                  child: Row(
+  Widget _buildWideLayout(AuthState authState) {
+    return Row(
+      children: [
+        // Left brand panel — dark
+        Expanded(
+          flex: 5,
+          child: Container(
+            color: AppColors.textPrimary,
+            child: Stack(
+              children: [
+                Positioned.fill(
+                  child: CustomPaint(painter: _GridPainter()),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(AppSpacing.xxxl),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.error_outline, color: Colors.red[700], size: 20),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          authState.error!.replaceAll('Exception: ', ''),
-                          style: TextStyle(color: Colors.red[700], fontSize: 13),
+                      _buildBrandMark(),
+                      const SizedBox(height: AppSpacing.xl),
+                      Text(
+                        'Manage your\nguides.',
+                        style: AppText.display.copyWith(
+                          color: Colors.white,
+                          fontSize: 40,
+                          height: 1.1,
+                        ),
+                      ),
+                      const SizedBox(height: AppSpacing.lg),
+                      Text(
+                        'Track bookings, manage your schedule,\nand grow your tourism business\nacross Southeast Asia.',
+                        style: AppText.body.copyWith(
+                          color: Colors.white.withOpacity(0.6),
+                          height: 1.6,
                         ),
                       ),
                     ],
                   ),
                 ),
-
-              Form(
-                key: _formKey,
-                child: Column(
-                  children: [
-                    TextFormField(
-                      controller: _emailController,
-                      keyboardType: TextInputType.emailAddress,
-                      decoration: InputDecoration(
-                        labelText: 'Guide Email',
-                        hintText: 'guide@example.com',
-                        prefixIcon: const Icon(Icons.email_outlined),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        filled: true,
-                        fillColor: Colors.white,
-                      ),
-                      validator: (v) {
-                        if (v == null || v.trim().isEmpty) return 'Email is required';
-                        if (!v.contains('@')) return 'Enter a valid email';
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 16),
-                    TextFormField(
-                      controller: _passwordController,
-                      obscureText: _obscurePassword,
-                      decoration: InputDecoration(
-                        labelText: 'Password',
-                        prefixIcon: const Icon(Icons.lock_outline),
-                        suffixIcon: IconButton(
-                          icon: Icon(
-                            _obscurePassword ? Icons.visibility_off : Icons.visibility,
-                          ),
-                          onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
-                        ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        filled: true,
-                        fillColor: Colors.white,
-                      ),
-                      validator: (v) {
-                        if (v == null || v.isEmpty) return 'Password is required';
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 24),
-                    SizedBox(
-                      width: double.infinity,
-                      height: 52,
-                      child: ElevatedButton(
-                        onPressed: authState.isLoading ? null : _login,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFFED8A19),
-                          foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(14),
-                          ),
-                          elevation: 0,
-                        ),
-                        child: authState.isLoading
-                            ? const SizedBox(
-                                width: 24,
-                                height: 24,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  color: Colors.white,
-                                ),
-                              )
-                            : const Text(
-                                'Sign In',
-                                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-                              ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 24),
-              Center(
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      'Are you a tourist? ',
-                      style: TextStyle(color: Colors.grey[600]),
-                    ),
-                    TextButton(
-                      onPressed: () => context.go('/login'),
-                      child: const Text(
-                        'Sign In as Tourist',
-                        style: TextStyle(
-                          color: Color(0xFF25D366),
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 8),
-              Center(
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Text(
-                      "Don't have an account? ",
-                      style: TextStyle(color: Color(0xFF6B6560)),
-                    ),
-                    TextButton(
-                      onPressed: () => context.go('/guide/register'),
-                      child: const Text(
-                        'Register as Guide',
-                        style: TextStyle(
-                          color: Color(0xFFED8A19),
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
+        // Right form
+        Expanded(
+          flex: 4,
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 400),
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(AppSpacing.xxl),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(height: AppSpacing.xl),
+                    _buildBackButton(),
+                    const SizedBox(height: AppSpacing.xl),
+                    Text('Guide Portal', style: AppText.h1),
+                    const SizedBox(height: 6),
+                    Text(
+                      'Sign in to manage your guided tours.',
+                      style: AppText.bodySmall,
+                    ),
+                    const SizedBox(height: AppSpacing.xl),
+                    if (authState.error != null) ...[
+                      _ErrorBanner(message: authState.error!),
+                      const SizedBox(height: AppSpacing.md),
+                    ],
+                    _buildForm(authState),
+                    const SizedBox(height: AppSpacing.lg),
+                    const AppDivider(),
+                    const SizedBox(height: AppSpacing.md),
+                    _buildAltActions(),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMobileLayout(AuthState authState) {
+    return SingleChildScrollView(
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+            child: Row(
+              children: [
+                _buildBackButton(),
+                const Spacer(),
+                IconButton(
+                  onPressed: () => context.push('/settings'),
+                  icon: const Icon(Icons.settings_outlined, size: 20),
+                  color: AppColors.textSecondary,
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: AppSpacing.xl),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildBrandMark(),
+                const SizedBox(height: AppSpacing.lg),
+                Text('Guide Portal', style: AppText.display),
+                const SizedBox(height: 6),
+                Text(
+                  'Sign in to manage your guided tours.',
+                  style: AppText.body.copyWith(color: AppColors.textSecondary),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: AppSpacing.xl),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Column(
+              children: [
+                if (authState.error != null) ...[
+                  _ErrorBanner(message: authState.error!),
+                  const SizedBox(height: AppSpacing.md),
+                ],
+                _buildForm(authState),
+              ],
+            ),
+          ),
+          const SizedBox(height: AppSpacing.lg),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Column(
+              children: [
+                const AppDivider(),
+                const SizedBox(height: AppSpacing.md),
+                _buildAltActions(),
+                const SizedBox(height: AppSpacing.xl),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
+
+  Widget _buildForm(AuthState authState) {
+    return Form(
+      key: _formKey,
+      child: Column(
+        children: [
+          AppTextField(
+            controller: _emailController,
+            label: 'Guide Email',
+            hint: 'guide@example.com',
+            prefix: const Icon(Icons.mail_outline, size: 18, color: AppColors.textTertiary),
+            keyboardType: TextInputType.emailAddress,
+            validator: (v) {
+              if (v == null || v.trim().isEmpty) return 'Email is required';
+              if (!v.contains('@')) return 'Enter a valid email';
+              return null;
+            },
+          ),
+          const SizedBox(height: AppSpacing.md),
+          AppTextField(
+            controller: _passwordController,
+            label: 'Password',
+            prefix: const Icon(Icons.lock_outline, size: 18, color: AppColors.textTertiary),
+            obscureText: _obscurePassword,
+            suffix: IconButton(
+              icon: Icon(
+                _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                size: 18,
+                color: AppColors.textTertiary,
+              ),
+              onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+            ),
+            validator: (v) {
+              if (v == null || v.isEmpty) return 'Password is required';
+              return null;
+            },
+          ),
+          const SizedBox(height: AppSpacing.lg),
+          SizedBox(
+            width: double.infinity,
+            child: PrimaryButton(
+              label: 'Sign in',
+              isLoading: authState.isLoading,
+              onPressed: _login,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAltActions() {
+    return Column(
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text('Are you a tourist?', style: AppText.bodySmall),
+            const SizedBox(width: 4),
+            GhostButton(
+              label: 'Sign In as Tourist',
+              onPressed: () => context.go('/login'),
+              color: const Color(0xFF25D366),
+            ),
+          ],
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text("Don't have an account?", style: AppText.bodySmall),
+            const SizedBox(width: 4),
+            GhostButton(
+              label: 'Register as Guide',
+              onPressed: () => context.go('/guide/register'),
+              color: AppColors.brand,
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildBackButton() {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(AppRadius.sm),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: IconButton(
+        onPressed: () => context.go('/login'),
+        icon: const Icon(Icons.arrow_back, size: 18),
+        color: AppColors.textSecondary,
+      ),
+    );
+  }
+
+  Widget _buildBrandMark() {
+    return Container(
+      width: 48,
+      height: 48,
+      decoration: BoxDecoration(
+        color: AppColors.brand,
+        borderRadius: BorderRadius.circular(AppRadius.md),
+      ),
+      child: const Icon(Icons.person, color: Colors.white, size: 26),
+    );
+  }
+}
+
+class _ErrorBanner extends StatelessWidget {
+  final String message;
+
+  const _ErrorBanner({required this.message});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppColors.errorBg,
+        borderRadius: BorderRadius.circular(AppRadius.sm),
+        border: Border.all(color: AppColors.error.withOpacity(0.2)),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.error_outline, color: AppColors.error, size: 16),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              message.replaceAll('Exception: ', ''),
+              style: AppText.bodySmall.copyWith(color: AppColors.error),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _GridPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = Colors.white.withOpacity(0.03)
+      ..strokeWidth = 1;
+    const step = 40.0;
+    for (double x = 0; x < size.width; x += step) {
+      canvas.drawLine(Offset(x, 0), Offset(x, size.height), paint);
+    }
+    for (double y = 0; y < size.height; y += step) {
+      canvas.drawLine(Offset(0, y), Offset(size.width, y), paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

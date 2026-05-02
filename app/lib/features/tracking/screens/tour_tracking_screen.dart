@@ -1,14 +1,14 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import '../../../../core/api_client.dart';
 import '../../../../core/auth_provider.dart';
 import '../../../../core/guide_auth_provider.dart';
+import '../../../../design_system.dart';
 
-/// Real-time tour tracking screen — shows guide and tourist as circle icons on a map.
-/// Apple Maps-style: blue circle for guide, green circle for tourist.
 class TourTrackingScreen extends ConsumerStatefulWidget {
   final int bookingId;
 
@@ -23,14 +23,11 @@ class _TourTrackingScreenState extends ConsumerState<TourTrackingScreen> {
   Map<String, dynamic>? _locationData;
   bool _loading = true;
   String? _error;
-  bool _isGuide = false;
 
   @override
   void initState() {
     super.initState();
-    _isGuide = ref.read(guideAuthProvider).isAuthenticated;
     _fetchLocation();
-    // Refresh every 5 seconds for live tracking
     _refreshTimer = Timer.periodic(const Duration(seconds: 5), (_) => _fetchLocation());
   }
 
@@ -84,18 +81,15 @@ class _TourTrackingScreenState extends ConsumerState<TourTrackingScreen> {
         (guide.longitude + tourist.longitude) / 2,
       );
     }
-    return guide ?? tourist ?? const LatLng(18.7883, 98.9853); // Default: Chiang Mai
+    return guide ?? tourist ?? const LatLng(18.7883, 98.9853);
   }
 
   double get _zoom {
     final guide = _guideLocation;
     final tourist = _touristLocation;
     if (guide == null || tourist == null) return 15.0;
-    final dist = _Distance().distance(
-      LatLng(guide.latitude, guide.longitude),
-      LatLng(tourist.latitude, tourist.longitude),
-    );
-    // Zoom to fit both markers with padding
+    const distance = Distance();
+    final dist = distance.as(LengthUnit.Meter, guide, tourist);
     if (dist < 500) return 16;
     if (dist < 2000) return 14;
     if (dist < 10000) return 12;
@@ -105,229 +99,156 @@ class _TourTrackingScreenState extends ConsumerState<TourTrackingScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F5F5),
-      appBar: AppBar(
-        backgroundColor: const Color(0xFF1A2E1A),
-        foregroundColor: Colors.white,
-        title: const Text('Live Tour Tracking'),
-        elevation: 0,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: () {
-              setState(() => _loading = true);
-              _fetchLocation();
-            },
-          ),
-        ],
-      ),
-      body: _loading && _locationData == null
-          ? const Center(child: CircularProgressIndicator(color: Color(0xFF25D366)))
-          : _error != null && _locationData == null
-              ? Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
+      backgroundColor: AppColors.background,
+      body: CustomScrollView(
+        slivers: [
+          SliverAppBar(
+            expandedHeight: 100,
+            pinned: true,
+            backgroundColor: AppColors.textPrimary,
+            leadingWidth: 0,
+            leading: const SizedBox.shrink(),
+            flexibleSpace: FlexibleSpaceBar(
+              background: Container(
+                color: AppColors.textPrimary,
+                child: SafeArea(
+                  child: Stack(
                     children: [
-                      const Icon(Icons.location_off, size: 48, color: Colors.grey),
-                      const SizedBox(height: 16),
-                      Text(_error!, style: const TextStyle(color: Colors.grey)),
-                      const SizedBox(height: 16),
-                      ElevatedButton(
-                        onPressed: () {
-                          setState(() => _loading = true);
-                          _fetchLocation();
-                        },
-                        child: const Text('Retry'),
+                      Positioned.fill(
+                        child: CustomPaint(painter: _DarkGridPainter()),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(20, 8, 12, 0),
+                        child: Row(
+                          children: [
+                            _BackBtn(onTap: () => context.pop()),
+                            const SizedBox(width: 12),
+                            Text(
+                              'Live Tour Tracking',
+                              style: AppText.h3.copyWith(color: Colors.white),
+                            ),
+                            const Spacer(),
+                            IconButton(
+                              icon: const Icon(Icons.refresh, color: Colors.white70),
+                              onPressed: () {
+                                setState(() => _loading = true);
+                                _fetchLocation();
+                              },
+                            ),
+                          ],
+                        ),
                       ),
                     ],
                   ),
-                )
-              : Column(
-                  children: [
-                    // Map
-                    Expanded(
-                      child: FlutterMap(
-                        options: MapOptions(
-                          initialCenter: _center,
-                          initialZoom: _zoom,
-                        ),
-                        children: [
-                          TileLayer(
-                            urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                            userAgentPackageName: 'com.wanderless.app',
-                          ),
-                          MarkerLayer(markers: [
-                            // Guide marker — blue circle
-                            if (_guideLocation != null)
-                              Marker(
-                                point: _guideLocation!,
-                                width: 48,
-                                height: 48,
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFF2196F3).withOpacity(0.9),
-                                    shape: BoxShape.circle,
-                                    border: Border.all(color: Colors.white, width: 3),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: Colors.black.withOpacity(0.3),
-                                        blurRadius: 6,
-                                        offset: const Offset(0, 2),
-                                      ),
-                                    ],
-                                  ),
-                                  child: const Icon(
-                                    Icons.person,
-                                    color: Colors.white,
-                                    size: 24,
-                                  ),
-                                ),
-                              ),
-                            // Tourist marker — green circle
-                            if (_touristLocation != null)
-                              Marker(
-                                point: _touristLocation!,
-                                width: 48,
-                                height: 48,
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFF25D366).withOpacity(0.9),
-                                    shape: BoxShape.circle,
-                                    border: Border.all(color: Colors.white, width: 3),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: Colors.black.withOpacity(0.3),
-                                        blurRadius: 6,
-                                        offset: const Offset(0, 2),
-                                      ),
-                                    ],
-                                  ),
-                                  child: const Icon(
-                                    Icons.person,
-                                    color: Colors.white,
-                                    size: 24,
-                                  ),
-                                ),
-                              ),
-                          ]),
-                        ],
-                      ),
-                    ),
-                    // Legend panel
-                    Container(
-                      color: Colors.white,
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        children: [
-                          Row(
-                            children: [
-                              _legendDot(const Color(0xFF2196F3), 'Guide'),
-                              const SizedBox(width: 24),
-                              _legendDot(const Color(0xFF25D366), 'Tourist'),
-                              const Spacer(),
-                              if (_locationData?['updated_at'] != null)
-                                Text(
-                                  'Updated ${_formatTime(_locationData!['updated_at'])}',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: Colors.grey[600],
-                                  ),
-                                ),
-                            ],
-                          ),
-                          const SizedBox(height: 12),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: _participantCard(
-                                  icon: Icons.person,
-                                  color: const Color(0xFF2196F3),
-                                  label: 'Guide',
-                                  lat: _locationData?['guide_lat'],
-                                  lng: _locationData?['guide_lng'],
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: _participantCard(
-                                  icon: Icons.person,
-                                  color: const Color(0xFF25D366),
-                                  label: 'Tourist',
-                                  lat: _locationData?['tourist_lat'],
-                                  lng: _locationData?['tourist_lng'],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-    );
-  }
-
-  Widget _legendDot(Color color, String label) {
-    return Row(
-      children: [
-        Container(
-          width: 16,
-          height: 16,
-          decoration: BoxDecoration(
-            color: color,
-            shape: BoxShape.circle,
-            border: Border.all(color: Colors.white, width: 2),
-          ),
-        ),
-        const SizedBox(width: 8),
-        Text(label, style: const TextStyle(fontWeight: FontWeight.w500)),
-      ],
-    );
-  }
-
-  Widget _participantCard({
-    required IconData icon,
-    required Color color,
-    required String label,
-    required dynamic lat,
-    required dynamic lng,
-  }) {
-    final hasLocation = lat != null && lng != null;
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withOpacity(0.3)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(icon, color: color, size: 18),
-              const SizedBox(width: 6),
-              Text(
-                label,
-                style: TextStyle(
-                  color: color,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 14,
                 ),
               ),
-            ],
-          ),
-          const SizedBox(height: 6),
-          if (hasLocation)
-            Text(
-              '${(lat as double).toStringAsFixed(5)}, ${(lng as double).toStringAsFixed(5)}',
-              style: TextStyle(fontSize: 11, color: Colors.grey[700]),
-            )
-          else
-            Text(
-              'Location not shared',
-              style: TextStyle(fontSize: 11, color: Colors.grey[500], fontStyle: FontStyle.italic),
             ),
+          ),
+          SliverFillRemaining(
+            child: _loading && _locationData == null
+                ? const AppLoading(message: 'Loading location...')
+                : _error != null && _locationData == null
+                    ? EmptyState(
+                        icon: Icons.location_off,
+                        title: 'Unable to load location',
+                        subtitle: _error,
+                        action: PrimaryButton(
+                          label: 'Retry',
+                          onPressed: () {
+                            setState(() => _loading = true);
+                            _fetchLocation();
+                          },
+                        ),
+                      )
+                    : Column(
+                        children: [
+                          Expanded(
+                            child: FlutterMap(
+                              options: MapOptions(
+                                initialCenter: _center,
+                                initialZoom: _zoom,
+                              ),
+                              children: [
+                                TileLayer(
+                                  urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                                  userAgentPackageName: 'com.wanderless.app',
+                                ),
+                                MarkerLayer(markers: [
+                                  if (_guideLocation != null)
+                                    Marker(
+                                      point: _guideLocation!,
+                                      width: 48,
+                                      height: 48,
+                                      child: _LocationMarker(
+                                        color: AppColors.info,
+                                        icon: Icons.person,
+                                      ),
+                                    ),
+                                  if (_touristLocation != null)
+                                    Marker(
+                                      point: _touristLocation!,
+                                      width: 48,
+                                      height: 48,
+                                      child: _LocationMarker(
+                                        color: AppColors.success,
+                                        icon: Icons.person,
+                                      ),
+                                    ),
+                                ]),
+                              ],
+                            ),
+                          ),
+                          Container(
+                            padding: const EdgeInsets.all(AppSpacing.md),
+                            decoration: BoxDecoration(
+                              color: AppColors.surface,
+                              border: Border(top: BorderSide(color: AppColors.border)),
+                            ),
+                            child: Column(
+                              children: [
+                                Row(
+                                  children: [
+                                    _LegendDot(color: AppColors.info, label: 'Guide'),
+                                    const SizedBox(width: 24),
+                                    _LegendDot(color: AppColors.success, label: 'Tourist'),
+                                    const Spacer(),
+                                    if (_locationData?['updated_at'] != null)
+                                      Text(
+                                        'Updated ${_formatTime(_locationData!['updated_at'])}',
+                                        style: AppText.caption,
+                                      ),
+                                  ],
+                                ),
+                                const SizedBox(height: AppSpacing.md),
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: _ParticipantCard(
+                                        icon: Icons.person,
+                                        color: AppColors.info,
+                                        label: 'Guide',
+                                        lat: _locationData?['guide_lat'],
+                                        lng: _locationData?['guide_lng'],
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: _ParticipantCard(
+                                        icon: Icons.person,
+                                        color: AppColors.success,
+                                        label: 'Tourist',
+                                        lat: _locationData?['tourist_lat'],
+                                        lng: _locationData?['tourist_lng'],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+          ),
         ],
       ),
     );
@@ -347,49 +268,160 @@ class _TourTrackingScreenState extends ConsumerState<TourTrackingScreen> {
   }
 }
 
-// Distance utility using Haversine
-class _Distance {
-  static const double _earthRadius = 6371000; // meters
+class _LocationMarker extends StatelessWidget {
+  final Color color;
+  final IconData icon;
 
-  double distance(LatLng p1, LatLng p2) {
-    final lat1Rad = p1.latitude * 3.141592653589793 / 180;
-    final lat2Rad = p2.latitude * 3.141592653589793 / 180;
-    final deltaLat = (p2.latitude - p1.latitude) * 3.141592653589793 / 180;
-    final deltaLng = (p2.longitude - p1.longitude) * 3.141592653589793 / 180;
+  const _LocationMarker({required this.color, required this.icon});
 
-    final a = _sin(deltaLat / 2) * _sin(deltaLat / 2) +
-        _cos(lat1Rad) * _cos(lat2Rad) * _sin(deltaLng / 2) * _sin(deltaLng / 2);
-    final c = 2 * _atan2(_sqrt(a), _sqrt(1 - a));
-
-    return _earthRadius * c;
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.9),
+        shape: BoxShape.circle,
+        border: Border.all(color: Colors.white, width: 3),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.3),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Icon(icon, color: Colors.white, size: 24),
+    );
   }
+}
 
-  double _sin(double x) => x - (x * x * x) / 6 + (x * x * x * x * x) / 120;
-  double _cos(double x) => 1 - (x * x) / 2 + (x * x * x * x) / 24 - (x * x * x * x * x * x) / 720;
-  double _sqrt(double x) => x > 0 ? _newtonSqrt(x, x / 2, 10) : 0;
-  double _newtonSqrt(double x, double guess, int n) {
-    for (int i = 0; i < n; i++) {
-      final next = (guess + x / guess) / 2;
-      if ((next - guess).abs() < 1e-10) break;
-      guess = next;
+class _LegendDot extends StatelessWidget {
+  final Color color;
+  final String label;
+
+  const _LegendDot({required this.color, required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Container(
+          width: 16,
+          height: 16,
+          decoration: BoxDecoration(
+            color: color,
+            shape: BoxShape.circle,
+            border: Border.all(color: Colors.white, width: 2),
+          ),
+        ),
+        const SizedBox(width: 8),
+        Text(label, style: AppText.label),
+      ],
+    );
+  }
+}
+
+class _ParticipantCard extends StatelessWidget {
+  final IconData icon;
+  final Color color;
+  final String label;
+  final dynamic lat;
+  final dynamic lng;
+
+  const _ParticipantCard({
+    required this.icon,
+    required this.color,
+    required this.label,
+    required this.lat,
+    required this.lng,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final hasLocation = lat != null && lng != null;
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.md),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(AppRadius.md),
+        border: Border.all(color: color.withOpacity(0.3)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(icon, color: color, size: 18),
+              const SizedBox(width: 6),
+              Text(
+                label,
+                style: AppText.labelBold.copyWith(color: color),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          if (hasLocation)
+            Text(
+              '${(lat as double).toStringAsFixed(5)}, ${(lng as double).toStringAsFixed(5)}',
+              style: AppText.caption,
+            )
+          else
+            Text(
+              'Location not shared',
+              style: AppText.caption.copyWith(fontStyle: FontStyle.italic),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _BackBtn extends StatefulWidget {
+  final VoidCallback onTap;
+  const _BackBtn({required this.onTap});
+
+  @override
+  State<_BackBtn> createState() => _BackBtnState();
+}
+
+class _BackBtnState extends State<_BackBtn> {
+  bool _isHovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return MouseRegion(
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
+      child: GestureDetector(
+        onTap: widget.onTap,
+        child: AnimatedContainer(
+          duration: AppDurations.fast,
+          padding: const EdgeInsets.all(6),
+          decoration: BoxDecoration(
+            color: _isHovered ? Colors.white.withOpacity(0.1) : Colors.transparent,
+            borderRadius: BorderRadius.circular(AppRadius.sm),
+          ),
+          child: Icon(Icons.arrow_back, color: Colors.white.withOpacity(_isHovered ? 1 : 0.7), size: 20),
+        ),
+      ),
+    );
+  }
+}
+
+class _DarkGridPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = Colors.white.withOpacity(0.03)
+      ..strokeWidth = 1;
+    const step = 40.0;
+    for (double x = 0; x < size.width; x += step) {
+      canvas.drawLine(Offset(x, 0), Offset(x, size.height), paint);
     }
-    return guess;
-  }
-  double _atan2(double y, double x) {
-    if (x > 0) return _atan(y / x);
-    if (x < 0 && y >= 0) return _atan(y / x) + 3.141592653589793;
-    if (x < 0 && y < 0) return _atan(y / x) - 3.141592653589793;
-    if (x == 0 && y > 0) return 3.141592653589793 / 2;
-    if (x == 0 && y < 0) return -3.141592653589793 / 2;
-    return 0;
-  }
-  double _atan(double x) {
-    double result = 0;
-    double term = x;
-    for (int n = 0; n < 20; n++) {
-      result += term / (2 * n + 1) * (n % 2 == 0 ? 1 : -1);
-      term *= x * x;
+    for (double y = 0; y < size.height; y += step) {
+      canvas.drawLine(Offset(0, y), Offset(size.width, y), paint);
     }
-    return result;
   }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

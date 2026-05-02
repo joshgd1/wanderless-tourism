@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import '../../../../core/api_client.dart';
 import '../../../../core/business_auth_provider.dart';
+import '../../../../design_system.dart';
 
 final businessDashboardProvider = FutureProvider<Map<String, dynamic>>((ref) async {
   final authState = ref.watch(businessAuthProvider);
@@ -19,48 +19,43 @@ class BusinessDashboardScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final authState = ref.watch(businessAuthProvider);
     final dashboardAsync = ref.watch(businessDashboardProvider);
+    final isWide = MediaQuery.of(context).size.width > 600;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F5F5),
+      backgroundColor: AppColors.background,
       body: NestedScrollView(
         headerSliverBuilder: (context, innerBoxIsScrolled) {
           return [
             SliverAppBar(
-              expandedHeight: 160,
+              expandedHeight: 130,
               pinned: true,
-              backgroundColor: const Color(0xFFED8A19),
+              backgroundColor: AppColors.textPrimary,
               leadingWidth: 0,
               leading: const SizedBox.shrink(),
               flexibleSpace: FlexibleSpaceBar(
                 background: Container(
-                  decoration: const BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [Color(0xFFED8A19), Color(0xFFEF9B2A)],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
-                  ),
+                  color: AppColors.textPrimary,
                   child: SafeArea(
                     child: Stack(
                       children: [
-                        // Floating business card
-                        Positioned(
-                          left: 16,
-                          top: 12,
-                          child: _BusinessFloatingCard(
-                            businessName: authState.businessName ?? 'Business',
-                          ),
+                        Positioned.fill(
+                          child: CustomPaint(painter: _DarkGridPainter()),
                         ),
-                        // Top-right logout button
-                        Positioned(
-                          right: 8,
-                          top: 8,
-                          child: IconButton(
-                            icon: const Icon(Icons.logout, color: Colors.white),
-                            onPressed: () async {
-                              await ref.read(businessAuthProvider.notifier).logout();
-                              if (context.mounted) context.go('/business/login');
-                            },
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(20, 8, 12, 0),
+                          child: Row(
+                            children: [
+                              _BusinessFloatingCard(
+                                businessName: authState.businessName ?? 'Business',
+                              ),
+                              const Spacer(),
+                              _LogoutBtn(
+                                onPressed: () async {
+                                  await ref.read(businessAuthProvider.notifier).logout();
+                                  if (context.mounted) context.go('/business/login');
+                                },
+                              ),
+                            ],
                           ),
                         ),
                       ],
@@ -72,153 +67,120 @@ class BusinessDashboardScreen extends ConsumerWidget {
           ];
         },
         body: dashboardAsync.when(
-          loading: () => const Center(child: CircularProgressIndicator()),
-          error: (e, _) => Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.error_outline, size: 48, color: Colors.grey[400]),
-                const SizedBox(height: 16),
-                Text('Failed to load dashboard', style: TextStyle(color: Colors.grey[600])),
-                const SizedBox(height: 12),
-                ElevatedButton(
-                  onPressed: () => ref.refresh(businessDashboardProvider),
-                  child: const Text('Retry'),
-                ),
-              ],
+          loading: () => const AppLoading(message: 'Loading dashboard...'),
+          error: (e, _) => EmptyState(
+            icon: Icons.error_outline,
+            title: 'Failed to load dashboard',
+            subtitle: e.toString(),
+            action: PrimaryButton(
+              label: 'Retry',
+              onPressed: () => ref.refresh(businessDashboardProvider),
             ),
           ),
           data: (data) {
             if (data.isEmpty) {
-              return Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.business_outlined, size: 72, color: Colors.grey[300]),
-                    const SizedBox(height: 20),
-                    Text(
-                      'No dashboard data available',
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: Colors.grey[700]),
-                    ),
-                  ],
-                ),
+              return EmptyState(
+                icon: Icons.business_outlined,
+                title: 'No dashboard data available',
+                subtitle: 'Data will appear once guides start accepting bookings',
               );
             }
-
             final totalBookings = data['total_bookings'] ?? 0;
             final totalRevenue = (data['total_revenue'] ?? 0.0).toDouble();
             final totalCommission = (data['total_commission'] ?? 0.0).toDouble();
             final guides = data['guides'] as List? ?? [];
             final recentBookings = data['recent_bookings'] as List? ?? [];
 
-            return SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Summary cards
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _SummaryCard(
-                          title: 'Total Bookings',
-                          value: '$totalBookings',
-                          icon: Icons.calendar_today,
-                          color: const Color(0xFFED8A19),
-                        ),
+            return ListView(
+              padding: EdgeInsets.all(isWide ? AppSpacing.lg : AppSpacing.md),
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: _StatCard(
+                        title: 'Total Bookings',
+                        value: '$totalBookings',
+                        icon: Icons.calendar_today_outlined,
+                        color: AppColors.brand,
                       ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: _SummaryCard(
-                          title: 'Revenue',
-                          value: '\$${totalRevenue.toStringAsFixed(2)}',
-                          icon: Icons.attach_money,
-                          color: Colors.blue[600]!,
-                        ),
+                    ),
+                    const SizedBox(width: AppSpacing.sm),
+                    Expanded(
+                      child: _StatCard(
+                        title: 'Revenue',
+                        value: '\$${totalRevenue.toStringAsFixed(0)}',
+                        icon: Icons.attach_money_outlined,
+                        color: AppColors.success,
                       ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  _SummaryCard(
-                    title: 'Platform Commission Earned',
-                    value: '\$${totalCommission.toStringAsFixed(2)}',
-                    icon: Icons.account_balance_wallet,
-                    color: const Color(0xFFED8A19),
-                    subtitle: '15% of gross booking value',
-                  ),
-                  const SizedBox(height: 24),
-
-                  // Guides section
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text(
-                        'Your Guides',
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                      ),
-                      TextButton.icon(
-                        onPressed: () {},
-                        icon: const Icon(Icons.person_add, size: 18),
-                        label: const Text('Add Guide'),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  if (guides.isEmpty)
-                    Container(
-                      padding: const EdgeInsets.all(24),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: Center(
+                    ),
+                  ],
+                ),
+                const SizedBox(height: AppSpacing.sm),
+                _StatCard(
+                  title: 'Platform Commission Earned',
+                  value: '\$${totalCommission.toStringAsFixed(2)}',
+                  icon: Icons.account_balance_wallet_outlined,
+                  color: AppColors.brand,
+                  subtitle: '15% of gross booking value',
+                ),
+                const SizedBox(height: AppSpacing.xl),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text('Your Guides', style: AppText.h3),
+                    GhostButton(
+                      label: 'Add Guide',
+                      icon: Icons.person_add_outlined,
+                      onPressed: () {},
+                    ),
+                  ],
+                ),
+                const SizedBox(height: AppSpacing.sm),
+                if (guides.isEmpty)
+                  AppCard(
+                    child: Center(
+                      child: Padding(
+                        padding: const EdgeInsets.all(AppSpacing.lg),
                         child: Column(
                           children: [
-                            Icon(Icons.person_outline, size: 40, color: Colors.grey[400]),
+                            Icon(Icons.group_outlined, size: 40, color: AppColors.textTertiary),
                             const SizedBox(height: 8),
-                            Text(
-                              'No guides yet',
-                              style: TextStyle(color: Colors.grey[600]),
-                            ),
+                            Text('No guides yet', style: AppText.bodySmall),
                           ],
                         ),
                       ),
-                    )
-                  else
-                    ...guides.map((guide) => _GuideCard(guide: guide)),
-
-                  const SizedBox(height: 24),
-
-                  // Recent bookings
-                  const Text(
-                    'Recent Bookings',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 8),
-                  if (recentBookings.isEmpty)
-                    Container(
-                      padding: const EdgeInsets.all(24),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: Center(
+                    ),
+                  )
+                else
+                  ...guides.map((guide) => Padding(
+                    padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+                    child: _GuideCard(guide: guide),
+                  )),
+                const SizedBox(height: AppSpacing.xl),
+                Text('Recent Bookings', style: AppText.h3),
+                const SizedBox(height: AppSpacing.sm),
+                if (recentBookings.isEmpty)
+                  AppCard(
+                    child: Center(
+                      child: Padding(
+                        padding: const EdgeInsets.all(AppSpacing.lg),
                         child: Column(
                           children: [
-                            Icon(Icons.calendar_today_outlined, size: 40, color: Colors.grey[400]),
+                            Icon(Icons.calendar_today_outlined, size: 40, color: AppColors.textTertiary),
                             const SizedBox(height: 8),
-                            Text(
-                              'No bookings yet',
-                              style: TextStyle(color: Colors.grey[600]),
-                            ),
+                            Text('No bookings yet', style: AppText.bodySmall),
                           ],
                         ),
                       ),
-                    )
-                  else
-                    ...recentBookings.take(5).map((booking) => _BookingCard(booking: booking)),
-                ],
-              ),
+                    ),
+                  )
+                else
+                  ...recentBookings.take(5).map((booking) => Padding(
+                    padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+                    child: _BookingCard(booking: booking),
+                  )),
+                const SizedBox(height: 100),
+              ],
             );
           },
         ),
@@ -227,14 +189,46 @@ class BusinessDashboardScreen extends ConsumerWidget {
   }
 }
 
-class _SummaryCard extends StatelessWidget {
+class _LogoutBtn extends StatefulWidget {
+  final VoidCallback onPressed;
+  const _LogoutBtn({required this.onPressed});
+
+  @override
+  State<_LogoutBtn> createState() => _LogoutBtnState();
+}
+
+class _LogoutBtnState extends State<_LogoutBtn> {
+  bool _isHovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return MouseRegion(
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
+      child: GestureDetector(
+        onTap: widget.onPressed,
+        child: AnimatedContainer(
+          duration: AppDurations.fast,
+          padding: const EdgeInsets.all(6),
+          decoration: BoxDecoration(
+            color: _isHovered ? Colors.white.withOpacity(0.1) : Colors.transparent,
+            borderRadius: BorderRadius.circular(AppRadius.sm),
+          ),
+          child: Icon(Icons.logout, color: Colors.white.withOpacity(_isHovered ? 1 : 0.7), size: 20),
+        ),
+      ),
+    );
+  }
+}
+
+class _StatCard extends StatelessWidget {
   final String title;
   final String value;
   final IconData icon;
   final Color color;
   final String? subtitle;
 
-  const _SummaryCard({
+  const _StatCard({
     required this.title,
     required this.value,
     required this.icon,
@@ -244,55 +238,28 @@ class _SummaryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
+    return AppCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: color.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Icon(icon, color: color, size: 20),
-              ),
-              const Spacer(),
-            ],
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(AppRadius.sm),
+            ),
+            child: Icon(icon, color: color, size: 18),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: AppSpacing.sm),
           Text(
             value,
-            style: TextStyle(
-              fontSize: 22,
-              fontWeight: FontWeight.bold,
-              color: color,
-            ),
+            style: AppText.h2.copyWith(color: color),
           ),
-          const SizedBox(height: 4),
-          Text(
-            title,
-            style: TextStyle(fontSize: 13, color: Colors.grey[600]),
-          ),
+          const SizedBox(height: 2),
+          Text(title, style: AppText.label),
           if (subtitle != null) ...[
             const SizedBox(height: 2),
-            Text(
-              subtitle!,
-              style: TextStyle(fontSize: 11, color: Colors.grey[400]),
-            ),
+            Text(subtitle!, style: AppText.caption),
           ],
         ],
       ),
@@ -313,23 +280,17 @@ class _GuideCard extends StatelessWidget {
     final ratingHistory = (guide['rating_history'] ?? 0.0).toDouble();
     final licenseVerified = guide['license_verified'] ?? false;
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-      ),
+    return AppCard(
       child: Row(
         children: [
           Container(
-            width: 48,
-            height: 48,
+            width: 44,
+            height: 44,
             decoration: BoxDecoration(
-              color: const Color(0xFFED8A19).withOpacity(0.1),
-              shape: BoxShape.circle,
+              color: AppColors.surfaceSecondary,
+              borderRadius: BorderRadius.circular(AppRadius.sm),
             ),
-            child: const Icon(Icons.person, color: Color(0xFFED8A19)),
+            child: const Icon(Icons.person, color: AppColors.textTertiary, size: 20),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -338,38 +299,30 @@ class _GuideCard extends StatelessWidget {
               children: [
                 Row(
                   children: [
-                    Text(
-                      name,
-                      style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
-                    ),
+                    Text(name, style: AppText.labelBold),
                     if (licenseVerified) ...[
-                      const SizedBox(width: 6),
-                      const Icon(Icons.verified, color: Color(0xFFED8A19), size: 16),
+                      const SizedBox(width: 4),
+                      const Icon(Icons.verified, color: AppColors.success, size: 14),
                     ],
                   ],
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: 2),
                 Row(
                   children: [
-                    Icon(Icons.star, color: Colors.amber[600], size: 16),
+                    const Icon(Icons.star, color: Color(0xFFFBBF24), size: 12),
                     const SizedBox(width: 4),
                     Text(
                       '${ratingHistory.toStringAsFixed(1)} ($ratingCount)',
-                      style: TextStyle(fontSize: 13, color: Colors.grey[600]),
+                      style: AppText.caption,
                     ),
                   ],
                 ),
               ],
             ),
           ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text(
-                guideId,
-                style: TextStyle(fontSize: 12, color: Colors.grey[500]),
-              ),
-            ],
+          Text(
+            guideId,
+            style: AppText.caption,
           ),
         ],
       ),
@@ -382,6 +335,15 @@ class _BookingCard extends StatelessWidget {
 
   const _BookingCard({required this.booking});
 
+  Color _statusColor(String status) {
+    switch (status.toUpperCase()) {
+      case 'CONFIRMED': return AppColors.statusConfirmed;
+      case 'COMPLETED': return AppColors.statusCompleted;
+      case 'CANCELLED': return AppColors.statusCancelled;
+      default: return AppColors.statusRequested;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final status = booking['status'] ?? 'PENDING';
@@ -389,59 +351,20 @@ class _BookingCard extends StatelessWidget {
     final destination = booking['destination'] ?? 'Unknown';
     final guideName = booking['guide_name'] ?? 'Guide';
 
-    Color statusColor;
-    switch (status.toString().toUpperCase()) {
-      case 'CONFIRMED':
-        statusColor = const Color(0xFFED8A19);
-        break;
-      case 'COMPLETED':
-        statusColor = Colors.blue[600]!;
-        break;
-      case 'CANCELLED':
-        statusColor = Colors.red[400]!;
-        break;
-      default:
-        statusColor = Colors.amber[700]!;
-    }
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-      ),
+    return AppCard(
       child: Row(
         children: [
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                      decoration: BoxDecoration(
-                        color: statusColor.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Text(
-                        status.toString().toUpperCase(),
-                        style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: statusColor),
-                      ),
-                    ),
-                  ],
+                StatusBadge(
+                  label: status.toUpperCase(),
+                  color: _statusColor(status),
                 ),
                 const SizedBox(height: 8),
-                Text(
-                  destination,
-                  style: const TextStyle(fontWeight: FontWeight.w600),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'Guide: $guideName',
-                  style: TextStyle(fontSize: 13, color: Colors.grey[600]),
-                ),
+                Text(destination, style: AppText.labelBold),
+                Text('Guide: $guideName', style: AppText.caption),
               ],
             ),
           ),
@@ -450,13 +373,9 @@ class _BookingCard extends StatelessWidget {
             children: [
               Text(
                 '\$${grossValue.toStringAsFixed(2)}',
-                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                style: AppText.labelBold,
               ),
-              const SizedBox(height: 4),
-              Text(
-                'gross',
-                style: TextStyle(fontSize: 11, color: Colors.grey[400]),
-              ),
+              Text('gross', style: AppText.caption),
             ],
           ),
         ],
@@ -472,92 +391,71 @@ class _BusinessFloatingCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.black.withOpacity(0.55),
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.25),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
+    return Row(
+      children: [
+        Container(
+          width: 44,
+          height: 44,
+          decoration: BoxDecoration(
+            color: AppColors.brand,
+            borderRadius: BorderRadius.circular(AppRadius.sm),
           ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 56,
-            height: 56,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              border: Border.all(color: Colors.white, width: 2.5),
-              color: const Color(0xFFED8A19),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.3),
-                  blurRadius: 8,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            child: Center(
-              child: Text(
-                businessName.isNotEmpty ? businessName[0].toUpperCase() : 'B',
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
+          child: Center(
+            child: Text(
+              businessName.isNotEmpty ? businessName[0].toUpperCase() : 'B',
+              style: AppText.h3.copyWith(color: Colors.white),
             ),
           ),
-          const SizedBox(width: 12),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 140),
-                child: Text(
-                  businessName,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                ),
+        ),
+        const SizedBox(width: 10),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              businessName,
+              style: AppText.labelBold.copyWith(color: Colors.white, fontSize: 15),
+            ),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+              decoration: BoxDecoration(
+                color: AppColors.success.withOpacity(0.2),
+                borderRadius: BorderRadius.circular(AppRadius.full),
+                border: Border.all(color: AppColors.success.withOpacity(0.3)),
               ),
-              const SizedBox(height: 4),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFF25D366), Color(0xFF128C7E)],
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.verified, size: 10, color: AppColors.success),
+                  const SizedBox(width: 3),
+                  Text(
+                    'Business',
+                    style: AppText.caption.copyWith(color: AppColors.success, fontSize: 10),
                   ),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: const Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.verified, size: 10, color: Colors.white),
-                    SizedBox(width: 3),
-                    Text(
-                      'Business',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 9,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
-                ),
+                ],
               ),
-            ],
-          ),
-        ],
-      ),
+            ),
+          ],
+        ),
+      ],
     );
   }
+}
+
+class _DarkGridPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = Colors.white.withOpacity(0.03)
+      ..strokeWidth = 1;
+    const step = 40.0;
+    for (double x = 0; x < size.width; x += step) {
+      canvas.drawLine(Offset(x, 0), Offset(x, size.height), paint);
+    }
+    for (double y = 0; y < size.height; y += step) {
+      canvas.drawLine(Offset(0, y), Offset(size.width, y), paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

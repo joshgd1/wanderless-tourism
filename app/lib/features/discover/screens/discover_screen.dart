@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/api_client.dart';
 import '../../../../core/auth_provider.dart';
+import '../../../../design_system.dart';
 import '../../../../shared/models/guide.dart';
 import '../widgets/match_card.dart';
 
@@ -15,7 +16,6 @@ final _filterDestinationMap = {
   'Wellness': 'Nimman',
 };
 
-/// Rules-based match provider
 final matchesProvider = FutureProvider<List<MatchedGuide>>((ref) async {
   final authState = ref.watch(authProvider);
   final touristId = authState.touristId;
@@ -27,7 +27,6 @@ final matchesProvider = FutureProvider<List<MatchedGuide>>((ref) async {
   return data.map((e) => MatchedGuide.fromJson(e as Map<String, dynamic>)).toList();
 });
 
-/// ML-powered recommendation provider
 final mlMatchesProvider = FutureProvider<List<MatchedGuide>>((ref) async {
   final authState = ref.watch(authProvider);
   final touristId = authState.touristId;
@@ -51,123 +50,88 @@ class DiscoverScreen extends ConsumerWidget {
     final isMl = ref.watch(_mlModeProvider);
     final matchesAsync = isMl ? ref.watch(mlMatchesProvider) : ref.watch(matchesProvider);
     final selectedFilter = ref.watch(_selectedFilterProvider);
+    final isWide = MediaQuery.of(context).size.width > 600;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F5F5),
+      backgroundColor: AppColors.background,
       body: CustomScrollView(
         slivers: [
-          // Dark App Bar
           SliverAppBar(
             expandedHeight: 130,
             pinned: true,
-            backgroundColor: const Color(0xFF1A2E1A),
+            backgroundColor: AppColors.textPrimary,
             flexibleSpace: FlexibleSpaceBar(
               background: Container(
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [Color(0xFF1A2E1A), Color(0xFF2D4A2D)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                ),
+                color: AppColors.textPrimary,
                 child: SafeArea(
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
+                  child: Stack(
+                    children: [
+                      Positioned.fill(
+                        child: CustomPaint(painter: _DarkGridPainter()),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            GestureDetector(
-                              onTap: () => context.go('/discover'),
-                              child: const Text(
-                                'WanderLess',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 22,
-                                  fontWeight: FontWeight.bold,
-                                  letterSpacing: 0.5,
+                            Row(
+                              children: [
+                                GestureDetector(
+                                  onTap: () => context.go('/discover'),
+                                  child: Row(
+                                    children: [
+                                      Container(
+                                        width: 32,
+                                        height: 32,
+                                        decoration: BoxDecoration(
+                                          color: AppColors.brand,
+                                          borderRadius: BorderRadius.circular(AppRadius.sm),
+                                        ),
+                                        child: const Icon(Icons.explore, color: Colors.white, size: 18),
+                                      ),
+                                      const SizedBox(width: 10),
+                                      Text(
+                                        'WanderLess',
+                                        style: AppText.h3.copyWith(color: Colors.white, fontSize: 18),
+                                      ),
+                                    ],
+                                  ),
                                 ),
-                              ),
+                                const Spacer(),
+                                _IconBtn(
+                                  icon: Icons.notifications_outlined,
+                                  onPressed: () {},
+                                ),
+                              ],
                             ),
-                            const Spacer(),
-                            Container(
-                              decoration: BoxDecoration(
-                                color: Colors.white.withOpacity(0.15),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: IconButton(
-                                icon: const Icon(Icons.notifications_outlined, color: Colors.white, size: 22),
-                                onPressed: () {},
-                              ),
+                            const SizedBox(height: 12),
+                            _SearchBar(
+                              onChanged: (value) {
+                                ref.read(_searchQueryProvider.notifier).state = value;
+                              },
                             ),
                           ],
                         ),
-                        const SizedBox(height: 14),
-                        // Search Bar
-                        Container(
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(14),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.1),
-                                blurRadius: 10,
-                                offset: const Offset(0, 2),
-                              ),
-                            ],
-                          ),
-                          child: TextField(
-                            onChanged: (value) {
-                              ref.read(_searchQueryProvider.notifier).state = value;
-                            },
-                            decoration: InputDecoration(
-                              hintText: 'Search destinations, experiences...',
-                              hintStyle: TextStyle(color: Colors.grey[500], fontSize: 14),
-                              prefixIcon: Icon(Icons.search, color: Colors.grey[500]),
-                              suffixIcon: Container(
-                                margin: const EdgeInsets.only(right: 8),
-                                padding: const EdgeInsets.all(6),
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFF25D366).withOpacity(0.1),
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: const Icon(Icons.tune, color: Color(0xFF25D366), size: 18),
-                              ),
-                              border: InputBorder.none,
-                              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                 ),
               ),
             ),
           ),
-
-          // Filter + Mode section
           SliverToBoxAdapter(
             child: Container(
-              color: const Color(0xFFF5F5F5),
+              color: AppColors.background,
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // ML Toggle Row — premium pill toggle
                   Container(
                     padding: const EdgeInsets.all(4),
                     decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(14),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.06),
-                          blurRadius: 8,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
+                      color: AppColors.surface,
+                      borderRadius: BorderRadius.circular(AppRadius.md),
+                      border: Border.all(color: AppColors.border),
                     ),
                     child: Row(
                       children: [
@@ -180,7 +144,6 @@ class DiscoverScreen extends ConsumerWidget {
                               ref.read(_mlModeProvider.notifier).state = false;
                               ref.invalidate(matchesProvider);
                             },
-                            activeColor: const Color(0xFF25D366),
                           ),
                         ),
                         Expanded(
@@ -192,16 +155,12 @@ class DiscoverScreen extends ConsumerWidget {
                               ref.read(_mlModeProvider.notifier).state = true;
                               ref.invalidate(mlMatchesProvider);
                             },
-                            activeColor: const Color(0xFF6B4EFF),
                           ),
                         ),
                       ],
                     ),
                   ),
-
                   const SizedBox(height: 14),
-
-                  // Category filter chips
                   SingleChildScrollView(
                     scrollDirection: Axis.horizontal,
                     child: Row(
@@ -209,7 +168,7 @@ class DiscoverScreen extends ConsumerWidget {
                         final isSelected = selectedFilter == filter;
                         return Padding(
                           padding: const EdgeInsets.only(right: 8),
-                          child: _PremiumFilterChip(
+                          child: _FilterChip(
                             label: filter,
                             isSelected: isSelected,
                             onTap: () {
@@ -229,8 +188,6 @@ class DiscoverScreen extends ConsumerWidget {
               ),
             ),
           ),
-
-          // Section Header
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
@@ -240,35 +197,33 @@ class DiscoverScreen extends ConsumerWidget {
                     width: 4,
                     height: 20,
                     decoration: BoxDecoration(
-                      color: const Color(0xFF25D366),
+                      color: AppColors.brand,
                       borderRadius: BorderRadius.circular(2),
                     ),
                   ),
                   const SizedBox(width: 8),
                   Text(
                     'Top Guides for You',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.grey[800],
-                    ),
+                    style: AppText.h3,
                   ),
                 ],
               ),
             ),
           ),
-
-          // Guide Cards
           matchesAsync.when(
-            loading: () => const SliverFillRemaining(
+            loading: () => SliverFillRemaining(
               child: Center(
-                child: _LoadingCard(),
+                child: AppLoading(message: 'Finding your perfect guides...'),
               ),
             ),
             error: (err, _) => SliverFillRemaining(
-              child: Center(
-                child: _ErrorCard(
-                  onRetry: () => isMl
+              child: EmptyState(
+                icon: Icons.cloud_off,
+                title: 'Connection issue',
+                subtitle: 'Could not load guides. Check your connection.',
+                action: PrimaryButton(
+                  label: 'Try Again',
+                  onPressed: () => isMl
                       ? ref.refresh(mlMatchesProvider)
                       : ref.refresh(matchesProvider),
                 ),
@@ -290,38 +245,21 @@ class DiscoverScreen extends ConsumerWidget {
                     }).toList();
               if (filtered.isEmpty) {
                 return SliverFillRemaining(
-                  child: Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.search_off, size: 64, color: Colors.grey[300]),
-                        const SizedBox(height: 16),
-                        Text(
-                          'No guides found',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.grey[700],
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Try a different search term',
-                          style: TextStyle(color: Colors.grey[500]),
-                        ),
-                      ],
-                    ),
+                  child: EmptyState(
+                    icon: Icons.search_off,
+                    title: 'No guides found',
+                    subtitle: 'Try a different search term',
                   ),
                 );
               }
               return SliverPadding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
+                padding: EdgeInsets.symmetric(horizontal: isWide ? 24 : 16),
                 sliver: SliverList(
                   delegate: SliverChildBuilderDelegate(
                     (context, index) {
                       final guide = filtered[index];
                       return Padding(
-                        padding: const EdgeInsets.only(bottom: 16),
+                        padding: const EdgeInsets.only(bottom: AppSpacing.md),
                         child: MatchCard(
                           guide: guide,
                           onTap: () => context.push('/guide/${guide.guideId}'),
@@ -334,9 +272,44 @@ class DiscoverScreen extends ConsumerWidget {
               );
             },
           ),
-
           const SliverPadding(padding: EdgeInsets.only(bottom: 100)),
         ],
+      ),
+    );
+  }
+}
+
+class _SearchBar extends StatelessWidget {
+  final void Function(String) onChanged;
+
+  const _SearchBar({required this.onChanged});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(AppRadius.sm),
+      ),
+      child: TextField(
+        onChanged: onChanged,
+        style: AppText.body,
+        decoration: InputDecoration(
+          hintText: 'Search destinations, experiences...',
+          hintStyle: AppText.body.copyWith(color: AppColors.textTertiary),
+          prefixIcon: const Icon(Icons.search, color: AppColors.textTertiary, size: 18),
+          suffixIcon: Container(
+            margin: const EdgeInsets.only(right: 8),
+            padding: const EdgeInsets.all(6),
+            decoration: BoxDecoration(
+              color: AppColors.brand.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(AppRadius.sm),
+            ),
+            child: const Icon(Icons.tune, color: AppColors.brand, size: 18),
+          ),
+          border: InputBorder.none,
+          contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        ),
       ),
     );
   }
@@ -347,14 +320,12 @@ class _ModeToggle extends StatelessWidget {
   final String sublabel;
   final bool isSelected;
   final VoidCallback onTap;
-  final Color activeColor;
 
   const _ModeToggle({
     required this.label,
     required this.sublabel,
     required this.isSelected,
     required this.onTap,
-    required this.activeColor,
   });
 
   @override
@@ -362,17 +333,11 @@ class _ModeToggle extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
+        duration: AppDurations.fast,
         padding: const EdgeInsets.symmetric(vertical: 10),
         decoration: BoxDecoration(
-          gradient: isSelected
-              ? LinearGradient(
-                  colors: [activeColor, activeColor.withOpacity(0.8)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                )
-              : null,
-          borderRadius: BorderRadius.circular(10),
+          color: isSelected ? AppColors.brand : Colors.transparent,
+          borderRadius: BorderRadius.circular(AppRadius.sm),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -387,20 +352,19 @@ class _ModeToggle extends StatelessWidget {
             ],
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
                   label,
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.bold,
-                    color: isSelected ? Colors.white : Colors.grey[600],
+                  style: AppText.labelBold.copyWith(
+                    color: isSelected ? Colors.white : AppColors.textSecondary,
                   ),
                 ),
                 Text(
                   sublabel,
-                  style: TextStyle(
+                  style: AppText.caption.copyWith(
+                    color: isSelected ? Colors.white70 : AppColors.textTertiary,
                     fontSize: 10,
-                    color: isSelected ? Colors.white70 : Colors.grey[400],
                   ),
                 ),
               ],
@@ -412,12 +376,12 @@ class _ModeToggle extends StatelessWidget {
   }
 }
 
-class _PremiumFilterChip extends StatelessWidget {
+class _FilterChip extends StatelessWidget {
   final String label;
   final bool isSelected;
   final VoidCallback onTap;
 
-  const _PremiumFilterChip({
+  const _FilterChip({
     required this.label,
     required this.isSelected,
     required this.onTap,
@@ -425,20 +389,13 @@ class _PremiumFilterChip extends StatelessWidget {
 
   IconData get _icon {
     switch (label) {
-      case 'Recommended':
-        return Icons.recommend;
-      case 'All':
-        return Icons.apps;
-      case 'Cultural':
-        return Icons.museum;
-      case 'Nature':
-        return Icons.terrain;
-      case 'Adventure':
-        return Icons.bolt;
-      case 'Wellness':
-        return Icons.spa;
-      default:
-        return Icons.place;
+      case 'Recommended': return Icons.recommend;
+      case 'All': return Icons.apps;
+      case 'Cultural': return Icons.museum;
+      case 'Nature': return Icons.terrain;
+      case 'Adventure': return Icons.bolt;
+      case 'Wellness': return Icons.spa;
+      default: return Icons.place;
     }
   }
 
@@ -447,45 +404,29 @@ class _PremiumFilterChip extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
+        duration: AppDurations.fast,
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFF25D366) : Colors.white,
-          borderRadius: BorderRadius.circular(20),
+          color: isSelected ? AppColors.brand : AppColors.surface,
+          borderRadius: BorderRadius.circular(AppRadius.full),
           border: Border.all(
-            color: isSelected ? const Color(0xFF25D366) : Colors.grey[300]!,
+            color: isSelected ? AppColors.brand : AppColors.border,
           ),
-          boxShadow: isSelected
-              ? [
-                  BoxShadow(
-                    color: const Color(0xFF25D366).withOpacity(0.3),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
-                  ),
-                ]
-              : [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.04),
-                    blurRadius: 4,
-                    offset: const Offset(0, 1),
-                  ),
-                ],
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(
               _icon,
-              size: 15,
-              color: isSelected ? Colors.white : Colors.grey[600],
+              size: 14,
+              color: isSelected ? Colors.white : AppColors.textTertiary,
             ),
             const SizedBox(width: 5),
             Text(
               label,
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                color: isSelected ? Colors.white : Colors.grey[700],
+              style: AppText.labelBold.copyWith(
+                fontSize: 12,
+                color: isSelected ? Colors.white : AppColors.textSecondary,
               ),
             ),
           ],
@@ -495,196 +436,55 @@ class _PremiumFilterChip extends StatelessWidget {
   }
 }
 
-class _LoadingCard extends StatelessWidget {
-  const _LoadingCard();
+class _IconBtn extends StatefulWidget {
+  final IconData icon;
+  final VoidCallback onPressed;
+
+  const _IconBtn({required this.icon, required this.onPressed});
+
+  @override
+  State<_IconBtn> createState() => _IconBtnState();
+}
+
+class _IconBtnState extends State<_IconBtn> {
+  bool _isHovered = false;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16),
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const SizedBox(
-            width: 32,
-            height: 32,
-            child: CircularProgressIndicator(
-              strokeWidth: 2.5,
-              valueColor: AlwaysStoppedAnimation(Color(0xFF25D366)),
-            ),
+    return MouseRegion(
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
+      child: GestureDetector(
+        onTap: widget.onPressed,
+        child: AnimatedContainer(
+          duration: AppDurations.fast,
+          padding: const EdgeInsets.all(6),
+          decoration: BoxDecoration(
+            color: _isHovered ? Colors.white.withOpacity(0.1) : Colors.transparent,
+            borderRadius: BorderRadius.circular(AppRadius.sm),
           ),
-          const SizedBox(height: 16),
-          Text(
-            'Finding your perfect guides...',
-            style: TextStyle(
-              color: Colors.grey[600],
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ],
+          child: Icon(widget.icon, color: Colors.white.withOpacity(_isHovered ? 1 : 0.7), size: 20),
+        ),
       ),
     );
   }
 }
 
-class _ErrorCard extends StatelessWidget {
-  final VoidCallback onRetry;
-
-  const _ErrorCard({required this.onRetry});
+class _DarkGridPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = Colors.white.withOpacity(0.03)
+      ..strokeWidth = 1;
+    const step = 40.0;
+    for (double x = 0; x < size.width; x += step) {
+      canvas.drawLine(Offset(x, 0), Offset(x, size.height), paint);
+    }
+    for (double y = 0; y < size.height; y += step) {
+      canvas.drawLine(Offset(0, y), Offset(size.width, y), paint);
+    }
+  }
 
   @override
-  Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16),
-      padding: const EdgeInsets.all(32),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.red[50],
-              shape: BoxShape.circle,
-            ),
-            child: Icon(Icons.cloud_off, color: Colors.red[400], size: 32),
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'Connection issue',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: Colors.grey[800],
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            'Could not load guides. Check your connection.',
-            style: TextStyle(color: Colors.grey[600], fontSize: 13),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 20),
-          ElevatedButton(
-            onPressed: onRetry,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF25D366),
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            ),
-            child: const Text('Try Again'),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _EmptyStateCard extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16),
-      padding: const EdgeInsets.all(40),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 16,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // Illustration-style icon
-          Container(
-            width: 100,
-            height: 100,
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [Color(0xFF25D366), Color(0xFF128C7E)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: const Color(0xFF25D366).withOpacity(0.25),
-                  blurRadius: 20,
-                  offset: const Offset(0, 8),
-                ),
-              ],
-            ),
-            child: const Icon(
-              Icons.explore_outlined,
-              color: Colors.white,
-              size: 48,
-            ),
-          ),
-          const SizedBox(height: 24),
-          Text(
-            'Your adventure awaits!',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: Colors.grey[800],
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Complete the onboarding to get personalized\nguide recommendations just for you.',
-            style: TextStyle(
-              color: Colors.grey[600],
-              fontSize: 14,
-              height: 1.5,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 24),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-            decoration: BoxDecoration(
-              color: const Color(0xFF25D366).withOpacity(0.1),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(Icons.lightbulb_outline, color: const Color(0xFF25D366), size: 18),
-                const SizedBox(width: 8),
-                Text(
-                  'Answer a few questions to get started',
-                  style: TextStyle(
-                    color: const Color(0xFF25D366),
-                    fontWeight: FontWeight.w600,
-                    fontSize: 13,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

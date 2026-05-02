@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/api_client.dart';
 import '../../../../shared/models/booking.dart';
+import '../../../../design_system.dart';
 
 final itineraryProvider = FutureProvider.family<Itinerary, int>((ref, bookingId) async {
   final api = ApiClient();
@@ -23,183 +24,136 @@ class ItineraryScreen extends ConsumerWidget {
   Color _statusColor(String status) {
     switch (status.toUpperCase()) {
       case 'CONFIRMED':
-        return const Color(0xFF25D366);
+        return AppColors.success;
       case 'PENDING':
       case 'PROPOSED':
-        return Colors.amber[700]!;
+        return AppColors.warning;
+      case 'IN_PROGRESS':
+        return AppColors.info;
       case 'COMPLETED':
-        return Colors.blue[600]!;
+        return AppColors.success;
       default:
-        return Colors.grey[600]!;
+        return AppColors.textTertiary;
     }
   }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final itineraryAsync = ref.watch(itineraryProvider(bookingId));
-    final guideId = this.guideId;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F5F5),
+      backgroundColor: AppColors.background,
       body: CustomScrollView(
         slivers: [
-          // Dark header
           SliverAppBar(
             expandedHeight: 100,
             pinned: true,
-            backgroundColor: const Color(0xFF1A2E1A),
-            leading: IconButton(
-              icon: const Icon(Icons.arrow_back, color: Colors.white),
-              onPressed: () => context.pop(),
-            ),
+            backgroundColor: AppColors.textPrimary,
+            leadingWidth: 0,
+            leading: const SizedBox.shrink(),
             flexibleSpace: FlexibleSpaceBar(
               background: Container(
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [Color(0xFF1A2E1A), Color(0xFF2D4A2D)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                ),
+                color: AppColors.textPrimary,
                 child: SafeArea(
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
-                    child: Row(
-                      children: [
-                        const Text(
-                          'My Trip',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                          ),
+                  child: Stack(
+                    children: [
+                      Positioned.fill(
+                        child: CustomPaint(painter: _DarkGridPainter()),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(20, 8, 12, 0),
+                        child: Row(
+                          children: [
+                            _BackBtn(onTap: () => context.pop()),
+                            const SizedBox(width: 12),
+                            Text(
+                              'My Trip',
+                              style: AppText.h3.copyWith(color: Colors.white),
+                            ),
+                            const Spacer(),
+                            IconButton(
+                              icon: const Icon(Icons.notifications_outlined, color: Colors.white70),
+                              onPressed: () {},
+                            ),
+                          ],
                         ),
-                        const Spacer(),
-                        IconButton(
-                          icon: const Icon(Icons.notifications_outlined, color: Colors.white),
-                          onPressed: () {},
-                        ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                 ),
               ),
             ),
           ),
-
           SliverToBoxAdapter(
             child: itineraryAsync.when(
               loading: () => const Padding(
                 padding: EdgeInsets.all(40),
-                child: Center(child: CircularProgressIndicator()),
+                child: AppLoading(message: 'Loading itinerary...'),
               ),
               error: (e, _) => Padding(
                 padding: const EdgeInsets.all(40),
-                child: Center(child: Text('Error: $e')),
+                child: EmptyState(
+                  icon: Icons.error_outline,
+                  title: 'Failed to load',
+                  subtitle: e.toString(),
+                ),
               ),
               data: (itinerary) {
                 return Padding(
-                  padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.all(AppSpacing.md),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Status card
-                      Card(
-                        elevation: 0,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.all(16),
-                          child: Column(
-                            children: [
-                              Row(
-                                children: [
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 12,
-                                      vertical: 6,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: _statusColor(itinerary.status).withOpacity(0.1),
-                                      borderRadius: BorderRadius.circular(20),
-                                    ),
-                                    child: Text(
-                                      itinerary.status.toUpperCase(),
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w600,
-                                        color: _statusColor(itinerary.status),
-                                      ),
-                                    ),
+                      AppCard(
+                        child: Column(
+                          children: [
+                            Row(
+                              children: [
+                                StatusBadge(
+                                  label: itinerary.status.toUpperCase(),
+                                  color: _statusColor(itinerary.status),
+                                ),
+                                const Spacer(),
+                                Text('Booking #$bookingId', style: AppText.caption),
+                              ],
+                            ),
+                            const SizedBox(height: AppSpacing.md),
+                            Row(
+                              children: [
+                                Container(
+                                  width: 52,
+                                  height: 52,
+                                  decoration: BoxDecoration(
+                                    color: AppColors.brand.withOpacity(0.1),
+                                    shape: BoxShape.circle,
                                   ),
-                                  const Spacer(),
-                                  Text(
-                                    'Booking #$bookingId',
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      color: Colors.grey[500],
-                                    ),
+                                  child: const Icon(Icons.tour, color: AppColors.brand, size: 26),
+                                ),
+                                const SizedBox(width: 14),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text('Planned by the Guide', style: AppText.caption),
+                                      const SizedBox(height: 2),
+                                      Text('Guide $guideId', style: AppText.h3),
+                                    ],
                                   ),
-                                ],
-                              ),
-                              const SizedBox(height: 16),
-                              Row(
-                                children: [
-                                  Container(
-                                    width: 52,
-                                    height: 52,
-                                    decoration: BoxDecoration(
-                                      color: const Color(0xFF25D366).withOpacity(0.1),
-                                      shape: BoxShape.circle,
-                                    ),
-                                    child: const Icon(
-                                      Icons.tour,
-                                      color: Color(0xFF25D366),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 14),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        const Text(
-                                          'Planned by the Guide',
-                                          style: TextStyle(
-                                            fontSize: 11,
-                                            color: Colors.grey,
-                                          ),
-                                        ),
-                                        Text(
-                                          'Guide $guideId',
-                                          style: const TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 16,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
+                                ),
+                              ],
+                            ),
+                          ],
                         ),
                       ),
-
-                      const SizedBox(height: 24),
-
-                      // Itinerary stops
-                      Text(
-                        'Itinerary',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.grey[800],
-                        ),
+                      const SizedBox(height: AppSpacing.lg),
+                      Row(
+                        children: [
+                          Icon(Icons.route_outlined, size: 18, color: AppColors.brand),
+                          const SizedBox(width: 6),
+                          Text('Itinerary', style: AppText.h3),
+                        ],
                       ),
-                      const SizedBox(height: 16),
-
+                      const SizedBox(height: AppSpacing.md),
                       ...itinerary.stops.asMap().entries.map((entry) {
                         final stop = entry.value;
                         final index = entry.key;
@@ -208,14 +162,13 @@ class ItineraryScreen extends ConsumerWidget {
                         return Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            // Timeline indicator
                             Column(
                               children: [
                                 Container(
                                   width: 36,
                                   height: 36,
                                   decoration: BoxDecoration(
-                                    color: const Color(0xFF25D366),
+                                    color: AppColors.brand,
                                     shape: BoxShape.circle,
                                   ),
                                   child: Center(
@@ -233,58 +186,36 @@ class ItineraryScreen extends ConsumerWidget {
                                   Container(
                                     width: 2,
                                     height: 60,
-                                    color: const Color(0xFF25D366).withOpacity(0.3),
+                                    color: AppColors.brand.withOpacity(0.3),
                                   ),
                               ],
                             ),
                             const SizedBox(width: 14),
-                            // Stop card
                             Expanded(
-                              child: Card(
-                                elevation: 0,
-                                margin: EdgeInsets.only(bottom: isLast ? 0 : 12),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(14),
-                                ),
-                                child: Padding(
-                                  padding: const EdgeInsets.all(14),
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        stop.name,
-                                        style: const TextStyle(
-                                          fontWeight: FontWeight.w600,
-                                          fontSize: 15,
+                              child: AppCard(
+                                margin: EdgeInsets.only(bottom: isLast ? 0 : AppSpacing.md),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(stop.name, style: AppText.labelBold),
+                                    const SizedBox(height: 4),
+                                    Row(
+                                      children: [
+                                        Icon(Icons.schedule, size: 14, color: AppColors.textTertiary),
+                                        const SizedBox(width: 4),
+                                        Text(
+                                          '${stop.durationHours.toStringAsFixed(1)} hours',
+                                          style: AppText.caption,
                                         ),
-                                      ),
-                                      const SizedBox(height: 4),
-                                      Row(
-                                        children: [
-                                          Icon(
-                                            Icons.schedule,
-                                            size: 14,
-                                            color: Colors.grey[500],
-                                          ),
-                                          const SizedBox(width: 4),
-                                          Text(
-                                            '${stop.durationHours.toStringAsFixed(1)} hours',
-                                            style: TextStyle(
-                                              fontSize: 12,
-                                              color: Colors.grey[600],
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ],
-                                  ),
+                                      ],
+                                    ),
+                                  ],
                                 ),
                               ),
                             ),
                           ],
                         );
                       }),
-
                       const SizedBox(height: 100),
                     ],
                   ),
@@ -296,16 +227,10 @@ class ItineraryScreen extends ConsumerWidget {
       ),
       bottomNavigationBar: SafeArea(
         child: Container(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(AppSpacing.md),
           decoration: BoxDecoration(
-            color: Colors.white,
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.05),
-                blurRadius: 10,
-                offset: const Offset(0, -2),
-              ),
-            ],
+            color: AppColors.surface,
+            border: Border(top: BorderSide(color: AppColors.border)),
           ),
           child: itineraryAsync.when(
             loading: () => const SizedBox(height: 52),
@@ -316,52 +241,19 @@ class ItineraryScreen extends ConsumerWidget {
                 children: [
                   if (isInProgress) ...[
                     Expanded(
-                      child: ElevatedButton(
-                        onPressed: () {
-                          context.go('/track/$bookingId');
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF2196F3),
-                          foregroundColor: Colors.white,
-                          minimumSize: const Size.fromHeight(52),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(14),
-                          ),
-                          elevation: 0,
-                        ),
-                        child: const Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(Icons.location_on, size: 20),
-                            SizedBox(width: 6),
-                            Text(
-                              'Track Tour',
-                              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-                            ),
-                          ],
-                        ),
+                      child: PrimaryButton(
+                        label: 'Track Tour',
+                        icon: Icons.location_on,
+                        onPressed: () => context.go('/track/$bookingId'),
                       ),
                     ),
-                    const SizedBox(width: 12),
+                    const SizedBox(width: AppSpacing.md),
                   ],
                   Expanded(
-                    child: ElevatedButton(
-                      onPressed: () {
-                        context.go('/rate/$bookingId?guideId=$guideId');
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF25D366),
-                        foregroundColor: Colors.white,
-                        minimumSize: const Size.fromHeight(52),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14),
-                        ),
-                        elevation: 0,
-                      ),
-                      child: const Text(
-                        'Rate Experience',
-                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-                      ),
+                    child: PrimaryButton(
+                      label: 'Rate Experience',
+                      icon: Icons.star,
+                      onPressed: () => context.go('/rate/$bookingId?guideId=$guideId'),
                     ),
                   ),
                 ],
@@ -372,4 +264,55 @@ class ItineraryScreen extends ConsumerWidget {
       ),
     );
   }
+}
+
+class _BackBtn extends StatefulWidget {
+  final VoidCallback onTap;
+  const _BackBtn({required this.onTap});
+
+  @override
+  State<_BackBtn> createState() => _BackBtnState();
+}
+
+class _BackBtnState extends State<_BackBtn> {
+  bool _isHovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return MouseRegion(
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
+      child: GestureDetector(
+        onTap: widget.onTap,
+        child: AnimatedContainer(
+          duration: AppDurations.fast,
+          padding: const EdgeInsets.all(6),
+          decoration: BoxDecoration(
+            color: _isHovered ? Colors.white.withOpacity(0.1) : Colors.transparent,
+            borderRadius: BorderRadius.circular(AppRadius.sm),
+          ),
+          child: Icon(Icons.arrow_back, color: Colors.white.withOpacity(_isHovered ? 1 : 0.7), size: 20),
+        ),
+      ),
+    );
+  }
+}
+
+class _DarkGridPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = Colors.white.withOpacity(0.03)
+      ..strokeWidth = 1;
+    const step = 40.0;
+    for (double x = 0; x < size.width; x += step) {
+      canvas.drawLine(Offset(x, 0), Offset(x, size.height), paint);
+    }
+    for (double y = 0; y < size.height; y += step) {
+      canvas.drawLine(Offset(0, y), Offset(size.width, y), paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

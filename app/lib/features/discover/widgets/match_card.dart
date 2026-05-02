@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../../shared/models/guide.dart';
+import '../../../../design_system.dart';
 
 class MatchCard extends StatelessWidget {
   final MatchedGuide guide;
@@ -10,9 +11,11 @@ class MatchCard extends StatelessWidget {
 
   Color _avatarColor(String name) {
     final colors = [
-      const Color(0xFF25D366), const Color(0xFF1A2E1A),
-      const Color(0xFF128C7E), const Color(0xFF2D6A4F),
-      const Color(0xFF40916C), const Color(0xFF52B788),
+      AppColors.brand,
+      AppColors.success,
+      AppColors.info,
+      Colors.purple,
+      Colors.teal,
     ];
     return colors[name.hashCode.abs() % colors.length];
   }
@@ -29,242 +32,164 @@ class MatchCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      elevation: 0,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(20),
-        child: Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(20),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.06),
-                blurRadius: 16,
-                offset: const Offset(0, 4),
+    return AppCard(
+      onTap: onTap,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 72,
+                height: 72,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: _isMl ? AppColors.info : AppColors.brand,
+                    width: 3,
+                  ),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(3),
+                  child: ClipOval(
+                    child: CachedNetworkImage(
+                      imageUrl: guide.photoUrl,
+                      fit: BoxFit.cover,
+                      placeholder: (_, __) => _InitialsAvatar(
+                        name: guide.name,
+                        color: _avatarColor(guide.name),
+                      ),
+                      errorWidget: (_, __, ___) => _InitialsAvatar(
+                        name: guide.name,
+                        color: _avatarColor(guide.name),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(guide.name, style: AppText.labelBold),
+                        ),
+                        if (guide.licenseVerified) ...[
+                          const SizedBox(width: 6),
+                          Container(
+                            width: 20,
+                            height: 20,
+                            decoration: BoxDecoration(
+                              color: AppColors.success,
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(Icons.verified, size: 12, color: Colors.white),
+                          ),
+                        ],
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        ...List.generate(guide.ratingHistory.floor(), (i) {
+                          return Icon(Icons.star, size: 14, color: Colors.amber[700]);
+                        }),
+                        if (guide.ratingHistory % 1 >= 0.5)
+                          Icon(Icons.star_half, size: 14, color: Colors.amber[700]),
+                        ...List.generate(5 - guide.ratingHistory.ceil(), (i) {
+                          return Icon(Icons.star_border, size: 14, color: AppColors.border);
+                        }),
+                        const SizedBox(width: 4),
+                        Text(
+                          '${guide.ratingHistory.toStringAsFixed(1)} (${guide.ratingCount})',
+                          style: AppText.caption,
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                    _InfoRow(
+                      icon: Icons.translate,
+                      text: guide.languagePairs.take(2).map((l) {
+                        final parts = l.split('→');
+                        return parts.length >= 2
+                            ? '${parts[0].trim()} → ${parts[1].trim()}'
+                            : l;
+                      }).join(', '),
+                    ),
+                    const SizedBox(height: 4),
+                    _InfoRow(
+                      icon: Icons.location_on,
+                      text: guide.locationCoverage.isNotEmpty
+                          ? guide.locationCoverage.first
+                          : 'Chiang Mai',
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(20),
-            child: Container(
-              color: Colors.white,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Top section with photo and info
-                  Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Large avatar with gradient ring
-                        Container(
-                          width: 90,
-                          height: 90,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                              color: _isMl ? const Color(0xFF6B4EFF) : const Color(0xFF25D366),
-                              width: 3,
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: (_isMl ? const Color(0xFF6B4EFF) : const Color(0xFF25D366))
-                                    .withOpacity(0.25),
-                                blurRadius: 12,
-                                offset: const Offset(0, 4),
-                              ),
-                            ],
-                          ),
-                          child: Padding(
-                            padding: const EdgeInsets.all(3),
-                            child: ClipOval(
-                              child: CachedNetworkImage(
-                                imageUrl: guide.photoUrl,
-                                fit: BoxFit.cover,
-                                placeholder: (_, __) => _InitialsAvatar(
-                                  name: guide.name,
-                                  color: _avatarColor(guide.name),
-                                ),
-                                errorWidget: (_, __, ___) => _InitialsAvatar(
-                                  name: guide.name,
-                                  color: _avatarColor(guide.name),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  Expanded(
-                                    child: Text(
-                                      guide.name,
-                                      style: const TextStyle(
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.bold,
-                                        color: Color(0xFF1A2E1A),
-                                      ),
-                                    ),
-                                  ),
-                                  if (guide.licenseVerified) ...[
-                                    const SizedBox(width: 6),
-                                    _VerifiedBadge(),
-                                  ],
-                                ],
-                              ),
-                              const SizedBox(height: 6),
-                              // Rating row
-                              Row(
-                                children: [
-                                  ...List.generate(guide.ratingHistory.floor(), (i) {
-                                    return Icon(Icons.star, size: 16, color: Colors.amber[700]);
-                                  }),
-                                  if (guide.ratingHistory % 1 >= 0.5)
-                                    Icon(Icons.star_half, size: 16, color: Colors.amber[700]),
-                                  ...List.generate(5 - guide.ratingHistory.ceil(), (i) {
-                                    return Icon(Icons.star_border, size: 16, color: Colors.grey[300]);
-                                  }),
-                                  const SizedBox(width: 4),
-                                  Text(
-                                    '${guide.ratingHistory.toStringAsFixed(1)} (${guide.ratingCount})',
-                                    style: TextStyle(fontSize: 12, color: Colors.grey[600], fontWeight: FontWeight.w500),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 8),
-                              // Language row
-                              _InfoRow(
-                                icon: Icons.translate,
-                                text: guide.languagePairs.take(2).map((l) {
-                                  final parts = l.split('→');
-                                  return parts.length >= 2
-                                      ? '${parts[0].trim()} → ${parts[1].trim()}'
-                                      : l;
-                                }).join(', '),
-                              ),
-                              const SizedBox(height: 4),
-                              // Location row
-                              _InfoRow(
-                                icon: Icons.location_on,
-                                text: guide.locationCoverage.isNotEmpty
-                                    ? guide.locationCoverage.first
-                                    : 'Chiang Mai',
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  // Bio
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: Text(
-                      guide.bio,
-                      style: TextStyle(fontSize: 13, color: Colors.grey[600], height: 1.5),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-
-                  const SizedBox(height: 14),
-
-                  // Tags
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: Wrap(
-                      spacing: 6,
-                      runSpacing: 6,
-                      children: (guide.expertiseTags.isNotEmpty
-                              ? guide.expertiseTags
-                              : ['Cultural', 'History', 'Nature'])
-                          .take(3)
-                          .map((tag) {
-                        return Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF25D366).withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Text(
-                            tag,
-                            style: const TextStyle(
-                              fontSize: 11,
-                              color: Color(0xFF25D366),
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        );
-                      }).toList(),
-                    ),
-                  ),
-
-                  const SizedBox(height: 16),
-
-                  // Bottom action bar
-                  Container(
-                    padding: const EdgeInsets.fromLTRB(16, 12, 8, 12),
-                    decoration: BoxDecoration(
-                      color: Colors.grey[50],
-                      border: Border(
-                        top: BorderSide(color: Colors.grey[200]!),
-                      ),
-                    ),
-                    child: Row(
-                      children: [
-                        _ScoreBadge(
-                          score: guide.score,
-                          isMl: _isMl,
-                          scoreContent: guide.scoreContent,
-                          scoreCollab: guide.scoreCollab,
-                          scoreDest: guide.scoreDest,
-                          mlExplanation: guide.mlExplanation,
-                        ),
-                        const SizedBox(width: 10),
-                        _BudgetBadge(tier: guide.budgetTier),
-                        const Spacer(),
-                        SizedBox(
-                          height: 40,
-                          child: ElevatedButton(
-                            onPressed: onTap,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF25D366),
-                              foregroundColor: Colors.white,
-                              padding: const EdgeInsets.symmetric(horizontal: 22),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                              elevation: 0,
-                            ),
-                            child: const Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Text(
-                                  'View Profile',
-                                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
-                                ),
-                                SizedBox(width: 4),
-                                Icon(Icons.arrow_forward, size: 16),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
+          const SizedBox(height: AppSpacing.md),
+          Text(
+            guide.bio,
+            style: AppText.bodySmall,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+          const SizedBox(height: AppSpacing.md),
+          Wrap(
+            spacing: 6,
+            runSpacing: 6,
+            children: (guide.expertiseTags.isNotEmpty
+                    ? guide.expertiseTags
+                    : ['Cultural', 'History', 'Nature'])
+                .take(3)
+                .map((tag) {
+              return Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                decoration: BoxDecoration(
+                  color: AppColors.brand.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(AppRadius.full),
+                ),
+                child: Text(
+                  tag,
+                  style: AppText.caption.copyWith(color: AppColors.brand),
+                ),
+              );
+            }).toList(),
+          ),
+          const SizedBox(height: AppSpacing.md),
+          Container(
+            padding: const EdgeInsets.all(AppSpacing.sm),
+            decoration: BoxDecoration(
+              color: AppColors.surfaceSecondary,
+              borderRadius: BorderRadius.circular(AppRadius.sm),
+            ),
+            child: Row(
+              children: [
+                _ScoreBadge(
+                  score: guide.score,
+                  isMl: _isMl,
+                  scoreContent: guide.scoreContent,
+                  scoreCollab: guide.scoreCollab,
+                  scoreDest: guide.scoreDest,
+                  mlExplanation: guide.mlExplanation,
+                ),
+                const SizedBox(width: 8),
+                _BudgetBadge(tier: guide.budgetTier),
+                const Spacer(),
+                PrimaryButton(
+                  label: 'View Profile',
+                  icon: Icons.arrow_forward,
+                  onPressed: onTap,
+                ),
+              ],
             ),
           ),
-        ),
+        ],
       ),
     );
   }
@@ -280,46 +205,12 @@ class _InfoRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Icon(icon, size: 14, color: Colors.grey[500]),
+        Icon(icon, size: 14, color: AppColors.textTertiary),
         const SizedBox(width: 4),
         Expanded(
-          child: Text(
-            text,
-            style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-            overflow: TextOverflow.ellipsis,
-          ),
+          child: Text(text, style: AppText.caption, overflow: TextOverflow.ellipsis),
         ),
       ],
-    );
-  }
-}
-
-class _VerifiedBadge extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFF25D366), Color(0xFF128C7E)],
-        ),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: const Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(Icons.verified, size: 12, color: Colors.white),
-          SizedBox(width: 3),
-          Text(
-            'Verified',
-            style: TextStyle(
-              fontSize: 10,
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ],
-      ),
     );
   }
 }
@@ -343,101 +234,68 @@ class _ScoreBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (isMl) {
-      return GestureDetector(
-        onTap: () => _showMlBreakdown(context),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              colors: [Color(0xFF6B4EFF), Color(0xFF25D366)],
-            ),
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(Icons.auto_awesome, size: 13, color: Colors.white),
-              const SizedBox(width: 4),
-              Text(
-                'ML ${(score * 100).toInt()}%',
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 12,
-                ),
-              ),
-            ],
-          ),
+    return GestureDetector(
+      onTap: () => _showMlBreakdown(context),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+        decoration: BoxDecoration(
+          color: isMl ? AppColors.info.withOpacity(0.1) : AppColors.brand.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(AppRadius.full),
         ),
-      );
-    }
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: const Color(0xFF25D366).withOpacity(0.1),
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const Icon(Icons.favorite, size: 14, color: Color(0xFF25D366)),
-          const SizedBox(width: 4),
-          Text(
-            score.toStringAsFixed(1),
-            style: const TextStyle(
-              color: Color(0xFF25D366),
-              fontWeight: FontWeight.bold,
-              fontSize: 13,
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              isMl ? Icons.auto_awesome : Icons.favorite,
+              size: 14,
+              color: isMl ? AppColors.info : AppColors.brand,
             ),
-          ),
-        ],
+            const SizedBox(width: 4),
+            Text(
+              isMl ? 'ML ${(score * 100).toInt()}%' : score.toStringAsFixed(1),
+              style: AppText.labelBold.copyWith(
+                color: isMl ? AppColors.info : AppColors.brand,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 
   void _showMlBreakdown(BuildContext context) {
+    if (!isMl) return;
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.lg)),
       ),
       builder: (_) => Padding(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.all(AppSpacing.lg),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Row(
+            Row(
               children: [
-                Icon(Icons.auto_awesome, color: Color(0xFF6B4EFF), size: 20),
-                SizedBox(width: 8),
-                Text(
-                  'ML Score Breakdown',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
+                const Icon(Icons.auto_awesome, color: AppColors.info, size: 20),
+                const SizedBox(width: 8),
+                Text('ML Score Breakdown', style: AppText.h3),
               ],
             ),
-            const SizedBox(height: 16),
-            _ScoreRow('Overall Score', '${(score * 100).toInt()}%', isBold: true),
+            const SizedBox(height: AppSpacing.md),
+            _ScoreRow('Overall Score', '${(score * 100).toInt()}%', isBold: true, valueColor: AppColors.info),
             if (scoreContent != null)
-              _ScoreRow('Content Match', '${(scoreContent! * 100).toInt()}%',
-                  subtitle: 'Preference similarity'),
+              _ScoreRow('Content Match', '${(scoreContent! * 100).toInt()}%', subtitle: 'Preference similarity'),
             if (scoreCollab != null)
-              _ScoreRow('Collaborative', '${(scoreCollab! * 100).toInt()}%',
-                  subtitle: 'Rating pattern learning'),
+              _ScoreRow('Collaborative', '${(scoreCollab! * 100).toInt()}%', subtitle: 'Rating pattern learning'),
             if (scoreDest != null && scoreDest! > 0)
-              _ScoreRow('Destination Fit', '${(scoreDest! * 100).toInt()}%',
-                  subtitle: 'Location bonus'),
+              _ScoreRow('Destination Fit', '${(scoreDest! * 100).toInt()}%', subtitle: 'Location bonus'),
             if (mlExplanation != null) ...[
-              const Divider(height: 24),
-              Text(
-                mlExplanation!,
-                style: TextStyle(fontSize: 13, color: Colors.grey[700], height: 1.4),
-              ),
+              const Divider(height: AppSpacing.lg),
+              Text(mlExplanation!, style: AppText.bodySmall.copyWith(height: 1.5)),
             ],
-            const SizedBox(height: 8),
+            const SizedBox(height: AppSpacing.md),
           ],
         ),
       ),
@@ -450,8 +308,9 @@ class _ScoreRow extends StatelessWidget {
   final String value;
   final String? subtitle;
   final bool isBold;
+  final Color? valueColor;
 
-  const _ScoreRow(this.label, this.value, {this.subtitle, this.isBold = false});
+  const _ScoreRow(this.label, this.value, {this.subtitle, this.isBold = false, this.valueColor});
 
   @override
   Widget build(BuildContext context) {
@@ -463,24 +322,13 @@ class _ScoreRow extends StatelessWidget {
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                label,
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: isBold ? FontWeight.bold : FontWeight.w500,
-                ),
-              ),
-              if (subtitle != null)
-                Text(subtitle!, style: TextStyle(fontSize: 12, color: Colors.grey[600])),
+              Text(label, style: isBold ? AppText.labelBold : AppText.label),
+              if (subtitle != null) Text(subtitle!, style: AppText.caption),
             ],
           ),
           Text(
             value,
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: isBold ? FontWeight.bold : FontWeight.w600,
-              color: isBold ? const Color(0xFF6B4EFF) : Colors.black87,
-            ),
+            style: AppText.labelBold.copyWith(color: valueColor ?? AppColors.textPrimary),
           ),
         ],
       ),
@@ -510,10 +358,10 @@ class _BudgetBadge extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: Colors.grey[100],
-        borderRadius: BorderRadius.circular(20),
+        color: AppColors.surfaceSecondary,
+        borderRadius: BorderRadius.circular(AppRadius.full),
       ),
-      child: Text(label, style: TextStyle(fontSize: 12, color: Colors.grey[700])),
+      child: Text(label, style: AppText.caption),
     );
   }
 }

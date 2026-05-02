@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/onboarding_provider.dart';
-import '../widgets/onboarding_shell.dart';
+import '../../../../design_system.dart';
 
 class InterestsScreen extends ConsumerWidget {
   const InterestsScreen({super.key});
@@ -11,180 +11,268 @@ class InterestsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(onboardingProvider);
     final notifier = ref.read(onboardingProvider.notifier);
+    final isWide = MediaQuery.of(context).size.width > 600;
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.background,
       body: SafeArea(
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.all(24.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+        child: isWide
+            ? _buildWideLayout(context, state, notifier)
+            : _buildMobileLayout(context, state, notifier),
+      ),
+    );
+  }
+
+  Widget _buildWideLayout(BuildContext context, OnboardingState state, OnboardingNotifier notifier) {
+    return Row(
+      children: [
+        Expanded(
+          flex: 5,
+          child: Container(
+            color: AppColors.textPrimary,
+            child: Stack(
               children: [
-                const SizedBox(height: 12),
-                // Logo + animated stepper
-                Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF25D366).withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: const Icon(
-                        Icons.explore,
-                        color: Color(0xFF25D366),
-                        size: 28,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    const Text(
-                      'WanderLess',
-                      style: TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF1A2E1A),
-                      ),
-                    ),
-                    const Spacer(),
-                    OnboardingStepper(
-                      currentStep: 0,
-                      totalSteps: 4,
-                      activeColor: const Color(0xFF25D366),
-                    ),
-                  ],
+                Positioned.fill(
+                  child: CustomPaint(painter: _DarkGridPainter()),
                 ),
-                const SizedBox(height: 28),
-
-                // Hero visual
-                const OnboardingHeroVisual(screenIndex: 0),
-
-                const SizedBox(height: 32),
-
-                Text(
-                  'What do you love?',
-                  style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: const Color(0xFF1A2E1A),
-                      ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Tell us your travel preferences so we can find the perfect guide for you.',
-                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                        color: Colors.grey[600],
-                      ),
-                ),
-                const SizedBox(height: 28),
-
-                // Interest sliders with premium card styling
-                _InterestCard(
-                  label: 'Food & Cuisine',
-                  description: 'Local restaurants, street food, cooking classes',
-                  icon: Icons.restaurant,
-                  value: state.foodInterest,
-                  onChanged: notifier.setFoodInterest,
-                  gradientColors: [const Color(0xFFFFB347), const Color(0xFFFF6B6B)],
-                ),
-                const SizedBox(height: 12),
-                _InterestCard(
-                  label: 'Culture & History',
-                  description: 'Museums, temples, ancient traditions',
-                  icon: Icons.museum,
-                  value: state.cultureInterest,
-                  onChanged: notifier.setCultureInterest,
-                  gradientColors: [const Color(0xFF6B4EFF), const Color(0xFF128C7E)],
-                ),
-                const SizedBox(height: 12),
-                _InterestCard(
-                  label: 'Adventure & Nature',
-                  description: 'Hiking, wildlife, outdoor exploration',
-                  icon: Icons.terrain,
-                  value: state.adventureInterest,
-                  onChanged: notifier.setAdventureInterest,
-                  gradientColors: [const Color(0xFF25D366), const Color(0xFF128C7E)],
-                ),
-
-                const SizedBox(height: 32),
-
-                // Tip card
-                Container(
-                  padding: const EdgeInsets.all(14),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF25D366).withOpacity(0.08),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: const Color(0xFF25D366).withOpacity(0.2),
-                    ),
-                  ),
-                  child: Row(
+                Padding(
+                  padding: const EdgeInsets.all(AppSpacing.xxxl),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(
-                        Icons.lightbulb_outline,
-                        color: const Color(0xFF25D366),
-                        size: 20,
+                      _buildBrandMark(),
+                      const SizedBox(height: AppSpacing.xl),
+                      Text(
+                        'Tell us what\nyou love.',
+                        style: AppText.display.copyWith(
+                          color: Colors.white,
+                          fontSize: 40,
+                          height: 1.1,
+                        ),
                       ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: Text(
-                          'Slide to adjust — tell us what matters most to you!',
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: Colors.grey[700],
-                            fontWeight: FontWeight.w500,
-                          ),
+                      const SizedBox(height: AppSpacing.lg),
+                      Text(
+                        'Your interests help us find\nthe perfect local guide\nfor your adventure.',
+                        style: AppText.body.copyWith(
+                          color: Colors.white.withOpacity(0.6),
+                          height: 1.6,
                         ),
                       ),
                     ],
                   ),
                 ),
-
-                const SizedBox(height: 24),
-
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () => context.go('/onboarding/experience-type'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF25D366),
-                      foregroundColor: Colors.white,
-                      minimumSize: const Size.fromHeight(52),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                      elevation: 0,
-                    ),
-                    child: const Text(
-                      'Continue',
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16),
               ],
             ),
           ),
         ),
+        Expanded(
+          flex: 4,
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 500),
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(AppSpacing.xxl),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(height: AppSpacing.xl),
+                    Text('What do you love?', style: AppText.h1),
+                    const SizedBox(height: 6),
+                    Text(
+                      'Slide to adjust — tell us what matters most.',
+                      style: AppText.bodySmall,
+                    ),
+                    const SizedBox(height: AppSpacing.xl),
+                    _InterestSlider(
+                      label: 'Food & Cuisine',
+                      description: 'Local restaurants, street food, cooking classes',
+                      icon: Icons.restaurant_outlined,
+                      value: state.foodInterest,
+                      onChanged: notifier.setFoodInterest,
+                      color: Colors.orange,
+                    ),
+                    const SizedBox(height: AppSpacing.md),
+                    _InterestSlider(
+                      label: 'Culture & History',
+                      description: 'Museums, temples, ancient traditions',
+                      icon: Icons.museum_outlined,
+                      value: state.cultureInterest,
+                      onChanged: notifier.setCultureInterest,
+                      color: Colors.purple,
+                    ),
+                    const SizedBox(height: AppSpacing.md),
+                    _InterestSlider(
+                      label: 'Adventure & Nature',
+                      description: 'Hiking, wildlife, outdoor exploration',
+                      icon: Icons.terrain_outlined,
+                      value: state.adventureInterest,
+                      onChanged: notifier.setAdventureInterest,
+                      color: AppColors.success,
+                    ),
+                    const SizedBox(height: AppSpacing.xl),
+                    SizedBox(
+                      width: double.infinity,
+                      child: PrimaryButton(
+                        label: 'Continue',
+                        onPressed: () => context.go('/onboarding/experience-type'),
+                      ),
+                    ),
+                    const SizedBox(height: AppSpacing.md),
+                    Center(
+                      child: GhostButton(
+                        label: 'Skip',
+                        onPressed: () => context.go('/onboarding/experience-type'),
+                        color: AppColors.textTertiary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMobileLayout(BuildContext context, OnboardingState state, OnboardingNotifier notifier) {
+    return SingleChildScrollView(
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+            child: Row(
+              children: [
+                _buildBackButton(),
+                const Spacer(),
+                _OnboardingStepper(currentStep: 0, totalSteps: 4),
+              ],
+            ),
+          ),
+          const SizedBox(height: AppSpacing.xl),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildBrandMark(),
+                const SizedBox(height: AppSpacing.lg),
+                Text('What do you love?', style: AppText.display),
+                const SizedBox(height: 6),
+                Text(
+                  'Slide to adjust — tell us what matters most.',
+                  style: AppText.body.copyWith(color: AppColors.textSecondary),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: AppSpacing.xl),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Column(
+              children: [
+                _InterestSlider(
+                  label: 'Food & Cuisine',
+                  description: 'Local restaurants, street food, cooking classes',
+                  icon: Icons.restaurant_outlined,
+                  value: state.foodInterest,
+                  onChanged: notifier.setFoodInterest,
+                  color: Colors.orange,
+                ),
+                const SizedBox(height: AppSpacing.md),
+                _InterestSlider(
+                  label: 'Culture & History',
+                  description: 'Museums, temples, ancient traditions',
+                  icon: Icons.museum_outlined,
+                  value: state.cultureInterest,
+                  onChanged: notifier.setCultureInterest,
+                  color: Colors.purple,
+                ),
+                const SizedBox(height: AppSpacing.md),
+                _InterestSlider(
+                  label: 'Adventure & Nature',
+                  description: 'Hiking, wildlife, outdoor exploration',
+                  icon: Icons.terrain_outlined,
+                  value: state.adventureInterest,
+                  onChanged: notifier.setAdventureInterest,
+                  color: AppColors.success,
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: AppSpacing.xl),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Column(
+              children: [
+                SizedBox(
+                  width: double.infinity,
+                  child: PrimaryButton(
+                    label: 'Continue',
+                    onPressed: () => context.go('/onboarding/experience-type'),
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.md),
+                Center(
+                  child: GhostButton(
+                    label: 'Skip',
+                    onPressed: () => context.go('/onboarding/experience-type'),
+                    color: AppColors.textTertiary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: AppSpacing.xl),
+        ],
       ),
+    );
+  }
+
+  Widget _buildBackButton() {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(AppRadius.sm),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: IconButton(
+        onPressed: () => context.go('/login'),
+        icon: const Icon(Icons.arrow_back, size: 18),
+        color: AppColors.textSecondary,
+      ),
+    );
+  }
+
+  Widget _buildBrandMark() {
+    return Container(
+      width: 48,
+      height: 48,
+      decoration: BoxDecoration(
+        color: AppColors.brand,
+        borderRadius: BorderRadius.circular(AppRadius.md),
+      ),
+      child: const Icon(Icons.favorite_outline, color: Colors.white, size: 26),
     );
   }
 }
 
-class _InterestCard extends StatelessWidget {
+class _InterestSlider extends StatelessWidget {
   final String label;
   final String description;
   final IconData icon;
   final double value;
   final ValueChanged<double> onChanged;
-  final List<Color> gradientColors;
+  final Color color;
 
-  const _InterestCard({
+  const _InterestSlider({
     required this.label,
     required this.description,
     required this.icon,
     required this.value,
     required this.onChanged,
-    required this.gradientColors,
+    required this.color,
   });
 
   @override
@@ -192,103 +280,51 @@ class _InterestCard extends StatelessWidget {
     final pct = (value * 100).round();
     final isActive = value > 0;
 
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: isActive ? gradientColors[0].withOpacity(0.4) : Colors.grey[200]!,
-          width: isActive ? 1.5 : 1,
-        ),
-        boxShadow: isActive
-            ? [
-                BoxShadow(
-                  color: gradientColors[0].withOpacity(0.12),
-                  blurRadius: 12,
-                  offset: const Offset(0, 4),
-                ),
-              ]
-            : null,
-      ),
+    return AppCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(10),
+                width: 40,
+                height: 40,
                 decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: gradientColors,
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  borderRadius: BorderRadius.circular(10),
+                  color: color.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(AppRadius.sm),
                 ),
-                child: Icon(icon, size: 20, color: Colors.white),
+                child: Icon(icon, size: 20, color: color),
               ),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      label,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF1A2E1A),
-                      ),
-                    ),
-                    Text(
-                      description,
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.grey[500],
-                      ),
-                    ),
+                    Text(label, style: AppText.labelBold),
+                    Text(description, style: AppText.caption),
                   ],
                 ),
               ),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: gradientColors,
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  borderRadius: BorderRadius.circular(12),
+                  color: isActive ? color.withOpacity(0.1) : AppColors.surfaceSecondary,
+                  borderRadius: BorderRadius.circular(AppRadius.full),
                 ),
                 child: Text(
                   '$pct%',
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 13,
-                  ),
+                  style: AppText.labelBold.copyWith(color: isActive ? color : AppColors.textTertiary),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 14),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(4),
-            child: LinearProgressIndicator(
-              value: value,
-              backgroundColor: Colors.grey[200],
-              valueColor: AlwaysStoppedAnimation(gradientColors[0]),
-              minHeight: 6,
-            ),
-          ),
           const SizedBox(height: 12),
           SliderTheme(
             data: SliderTheme.of(context).copyWith(
-              activeTrackColor: gradientColors[0],
-              thumbColor: gradientColors[0],
-              overlayColor: gradientColors[0].withOpacity(0.2),
-              inactiveTrackColor: Colors.grey[200],
+              activeTrackColor: color,
+              thumbColor: color,
+              overlayColor: color.withOpacity(0.2),
+              inactiveTrackColor: AppColors.surfaceSecondary,
               trackHeight: 4,
               thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 8),
             ),
@@ -302,4 +338,56 @@ class _InterestCard extends StatelessWidget {
       ),
     );
   }
+}
+
+class _OnboardingStepper extends StatelessWidget {
+  final int currentStep;
+  final int totalSteps;
+
+  const _OnboardingStepper({required this.currentStep, required this.totalSteps});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: List.generate(totalSteps, (index) {
+        final isCompleted = index < currentStep;
+        final isCurrent = index == currentStep;
+
+        return Row(
+          children: [
+            AnimatedContainer(
+              duration: AppDurations.fast,
+              width: isCurrent ? 24 : 8,
+              height: 8,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(AppRadius.sm),
+                color: isCompleted || isCurrent ? AppColors.brand : AppColors.border,
+              ),
+            ),
+            if (index < totalSteps - 1) const SizedBox(width: 6),
+          ],
+        );
+      }),
+    );
+  }
+}
+
+class _DarkGridPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = Colors.white.withOpacity(0.03)
+      ..strokeWidth = 1;
+    const step = 40.0;
+    for (double x = 0; x < size.width; x += step) {
+      canvas.drawLine(Offset(x, 0), Offset(x, size.height), paint);
+    }
+    for (double y = 0; y < size.height; y += step) {
+      canvas.drawLine(Offset(0, y), Offset(size.width, y), paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

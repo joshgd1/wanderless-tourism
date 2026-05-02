@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/api_client.dart';
 import '../../../../core/auth_provider.dart';
+import '../../../../design_system.dart';
 import '../../../../shared/models/booking.dart';
 
 final bookingsListProvider = FutureProvider<List<Booking>>((ref) async {
@@ -20,41 +21,31 @@ class BookingsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final bookingsAsync = ref.watch(bookingsListProvider);
+    final isWide = MediaQuery.of(context).size.width > 600;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F5F5),
+      backgroundColor: AppColors.background,
       body: CustomScrollView(
         slivers: [
-          // Dark header
           SliverAppBar(
             expandedHeight: 100,
             pinned: true,
-            backgroundColor: const Color(0xFF1A2E1A),
+            backgroundColor: AppColors.textPrimary,
             flexibleSpace: FlexibleSpaceBar(
               background: Container(
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [Color(0xFF1A2E1A), Color(0xFF2D4A2D)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                ),
+                color: AppColors.textPrimary,
                 child: SafeArea(
                   child: Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
+                    padding: const EdgeInsets.fromLTRB(20, 8, 12, 0),
                     child: Row(
                       children: [
-                        const Text(
-                          'My Trip',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                          ),
+                        Text(
+                          'My Trips',
+                          style: AppText.h2.copyWith(color: Colors.white),
                         ),
                         const Spacer(),
-                        IconButton(
-                          icon: const Icon(Icons.notifications_outlined, color: Colors.white),
+                        _IconBtn(
+                          icon: Icons.notifications_outlined,
                           onPressed: () {},
                         ),
                       ],
@@ -64,70 +55,42 @@ class BookingsScreen extends ConsumerWidget {
               ),
             ),
           ),
-
-          // Content
           SliverFillRemaining(
             child: bookingsAsync.when(
-              loading: () => const Center(child: CircularProgressIndicator()),
-              error: (e, _) => Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.error_outline, size: 48, color: Colors.grey[400]),
-                    const SizedBox(height: 16),
-                    Text('Failed to load bookings', style: TextStyle(color: Colors.grey[600])),
-                    const SizedBox(height: 12),
-                    ElevatedButton(
-                      onPressed: () => ref.refresh(bookingsListProvider),
-                      child: const Text('Retry'),
-                    ),
-                  ],
+              loading: () => const AppLoading(message: 'Loading trips...'),
+              error: (e, _) => EmptyState(
+                icon: Icons.error_outline,
+                title: 'Failed to load bookings',
+                subtitle: e.toString(),
+                action: PrimaryButton(
+                  label: 'Retry',
+                  onPressed: () => ref.refresh(bookingsListProvider),
                 ),
               ),
               data: (bookings) {
                 if (bookings.isEmpty) {
-                  return Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.card_travel_outlined, size: 72, color: Colors.grey[300]),
-                        const SizedBox(height: 20),
-                        Text(
-                          'No trips planned yet',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.grey[700],
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Find a guide and start planning!',
-                          style: TextStyle(color: Colors.grey[500]),
-                        ),
-                        const SizedBox(height: 24),
-                        ElevatedButton(
-                          onPressed: () => context.go('/discover'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF25D366),
-                            foregroundColor: Colors.white,
-                          ),
-                          child: const Text('Find a Guide'),
-                        ),
-                      ],
+                  return EmptyState(
+                    icon: Icons.card_travel_outlined,
+                    title: 'No trips planned yet',
+                    subtitle: 'Find a guide and start planning!',
+                    action: PrimaryButton(
+                      label: 'Find a Guide',
+                      onPressed: () => context.go('/discover'),
                     ),
                   );
                 }
-
                 return ListView.builder(
-                  padding: const EdgeInsets.all(16),
+                  padding: EdgeInsets.all(isWide ? AppSpacing.lg : AppSpacing.md),
                   itemCount: bookings.length,
                   itemBuilder: (context, index) {
                     final booking = bookings[index];
-                    return _BookingCard(
-                      booking: booking,
-                      onTap: () => context.push(
-                        '/itinerary/${booking.id}?guideId=${booking.guideId}',
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: AppSpacing.md),
+                      child: _BookingCard(
+                        booking: booking,
+                        onTap: () => context.push(
+                          '/itinerary/${booking.id}?guideId=${booking.guideId}',
+                        ),
                       ),
                     );
                   },
@@ -141,6 +104,40 @@ class BookingsScreen extends ConsumerWidget {
   }
 }
 
+class _IconBtn extends StatefulWidget {
+  final IconData icon;
+  final VoidCallback onPressed;
+
+  const _IconBtn({required this.icon, required this.onPressed});
+
+  @override
+  State<_IconBtn> createState() => _IconBtnState();
+}
+
+class _IconBtnState extends State<_IconBtn> {
+  bool _isHovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return MouseRegion(
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
+      child: GestureDetector(
+        onTap: widget.onPressed,
+        child: AnimatedContainer(
+          duration: AppDurations.fast,
+          padding: const EdgeInsets.all(6),
+          decoration: BoxDecoration(
+            color: _isHovered ? Colors.white.withOpacity(0.1) : Colors.transparent,
+            borderRadius: BorderRadius.circular(AppRadius.sm),
+          ),
+          child: Icon(widget.icon, color: Colors.white.withOpacity(_isHovered ? 1 : 0.7), size: 20),
+        ),
+      ),
+    );
+  }
+}
+
 class _BookingCard extends StatelessWidget {
   final Booking booking;
   final VoidCallback onTap;
@@ -149,166 +146,134 @@ class _BookingCard extends StatelessWidget {
 
   Color _statusColor(String status) {
     switch (status.toUpperCase()) {
-      case 'CONFIRMED':
-        return const Color(0xFF25D366);
-      case 'PENDING':
-      case 'REQUESTED':
-        return Colors.amber[700]!;
-      case 'COMPLETED':
-        return Colors.blue[600]!;
-      default:
-        return Colors.grey[600]!;
+      case 'CONFIRMED': return AppColors.statusConfirmed;
+      case 'REQUESTED': return AppColors.statusRequested;
+      case 'PAID': return AppColors.statusPaid;
+      case 'IN_PROGRESS': return AppColors.statusInProgress;
+      case 'COMPLETED': return AppColors.statusCompleted;
+      case 'CANCELLED': return AppColors.statusCancelled;
+      default: return AppColors.textTertiary;
+    }
+  }
+
+  String _statusLabel(String status) {
+    switch (status.toUpperCase()) {
+      case 'CONFIRMED': return 'Confirmed';
+      case 'REQUESTED': return 'Requested';
+      case 'PAID': return 'Paid';
+      case 'IN_PROGRESS': return 'In Progress';
+      case 'COMPLETED': return 'Completed';
+      case 'CANCELLED': return 'Cancelled';
+      default: return status;
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      elevation: 0,
-      margin: const EdgeInsets.only(bottom: 16),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+    final status = booking.status;
+    final statusColor = _statusColor(status);
+    final isInProgress = status.toUpperCase() == 'IN_PROGRESS';
+
+    return AppCard(
+      onTap: onTap,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
             children: [
-              Row(
+              StatusBadge(
+                label: _statusLabel(status),
+                color: statusColor,
+              ),
+              const Spacer(),
+              Text(
+                'Booking #${booking.id}',
+                style: AppText.caption,
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.md),
+          Row(
+            children: [
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: AppColors.surfaceSecondary,
+                  borderRadius: BorderRadius.circular(AppRadius.sm),
+                ),
+                child: const Icon(Icons.person, color: AppColors.textTertiary, size: 20),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      booking.guideName ?? 'Guide',
+                      style: AppText.labelBold,
+                    ),
+                    Text(
+                      'Guide',
+                      style: AppText.caption,
+                    ),
+                  ],
+                ),
+              ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: _statusColor(booking.status).withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Text(
-                      booking.status.toUpperCase(),
-                      style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                        color: _statusColor(booking.status),
-                      ),
-                    ),
-                  ),
-                  const Spacer(),
+                  Text(booking.tourDate, style: AppText.labelBold),
                   Text(
-                    'Booking #${booking.id}',
-                    style: TextStyle(fontSize: 12, color: Colors.grey[500]),
+                    '${booking.durationHours.toStringAsFixed(1)}h',
+                    style: AppText.caption,
                   ),
                 ],
               ),
-              const SizedBox(height: 12),
-              Row(
-                children: [
-                  Container(
-                    width: 48,
-                    height: 48,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF25D366).withOpacity(0.1),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(Icons.person, color: Color(0xFF25D366)),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.md),
+          Row(
+            children: [
+              const Icon(Icons.location_on_outlined, size: 15, color: AppColors.textTertiary),
+              const SizedBox(width: 4),
+              Expanded(
+                child: Text(booking.destination, style: AppText.bodySmall),
+              ),
+              if (isInProgress) ...[
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: AppColors.infoBg,
+                    borderRadius: BorderRadius.circular(AppRadius.full),
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Guide',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.grey[500],
-                          ),
-                        ),
-                        Text(
-                          booking.guideName ?? 'Guide',
-                          style: const TextStyle(
-                            fontWeight: FontWeight.w600,
-                            fontSize: 15,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
+                      const Icon(Icons.location_on, size: 12, color: AppColors.info),
+                      const SizedBox(width: 4),
                       Text(
-                        booking.tourDate,
-                        style: const TextStyle(fontWeight: FontWeight.w600),
-                      ),
-                      Text(
-                        '${booking.durationHours.toStringAsFixed(1)}h',
-                        style: TextStyle(fontSize: 12, color: Colors.grey[500]),
+                        'Live',
+                        style: AppText.captionBold.copyWith(color: AppColors.info, fontSize: 11),
                       ),
                     ],
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              Row(
-                children: [
-                  Icon(Icons.location_on_outlined, size: 16, color: Colors.grey[500]),
-                  const SizedBox(width: 4),
-                  Text(
-                    booking.destination,
-                    style: TextStyle(fontSize: 13, color: Colors.grey[600]),
-                  ),
-                  const Spacer(),
-                  if (booking.status.toUpperCase() == 'IN_PROGRESS')
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF2196F3).withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: const Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(Icons.location_on, size: 14, color: Color(0xFF2196F3)),
-                          SizedBox(width: 4),
-                          Text(
-                            'Live',
-                            style: TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w600,
-                              color: Color(0xFF2196F3),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  const SizedBox(width: 8),
-                  Icon(Icons.arrow_forward_ios, size: 14, color: Colors.grey[400]),
-                ],
-              ),
-              if (booking.status.toUpperCase() == 'IN_PROGRESS') ...[
-                const SizedBox(height: 12),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton.icon(
-                    onPressed: () {
-                      context.push('/track/${booking.id}');
-                    },
-                    icon: const Icon(Icons.location_on, size: 18),
-                    label: const Text('Track Tour'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF2196F3),
-                      foregroundColor: Colors.white,
-                      elevation: 0,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                    ),
                   ),
                 ),
               ],
             ],
           ),
-        ),
+          if (isInProgress) ...[
+            const SizedBox(height: AppSpacing.md),
+            SizedBox(
+              width: double.infinity,
+              child: PrimaryButton(
+                label: 'Track Tour',
+                icon: Icons.location_on,
+                onPressed: () => context.push('/track/${booking.id}'),
+              ),
+            ),
+          ],
+        ],
       ),
     );
   }

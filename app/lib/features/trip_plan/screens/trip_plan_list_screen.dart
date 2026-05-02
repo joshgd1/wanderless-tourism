@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/api_client.dart';
 import '../../../../core/auth_provider.dart';
 import '../../../../shared/models/trip_plan.dart';
+import '../../../../design_system.dart';
 
 final myTripPlansProvider = FutureProvider<List<TripPlan>>((ref) async {
   final authState = ref.watch(authProvider);
@@ -28,15 +29,15 @@ class TripPlanListScreen extends ConsumerWidget {
   Color _statusColor(String status) {
     switch (status.toUpperCase()) {
       case 'OPEN':
-        return const Color(0xFF25D366);
+        return AppColors.success;
       case 'ACCEPTED':
-        return Colors.amber[700]!;
+        return AppColors.warning;
       case 'COMPLETED':
-        return Colors.blue[600]!;
+        return AppColors.info;
       case 'CANCELLED':
-        return Colors.grey[600]!;
+        return AppColors.textTertiary;
       default:
-        return Colors.grey[500]!;
+        return AppColors.textTertiary;
     }
   }
 
@@ -47,43 +48,45 @@ class TripPlanListScreen extends ConsumerWidget {
         : ref.watch(myTripPlansProvider);
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F5F5),
+      backgroundColor: AppColors.background,
       body: CustomScrollView(
         slivers: [
           SliverAppBar(
             expandedHeight: 100,
             pinned: true,
-            backgroundColor: const Color(0xFF1A2E1A),
-            leading: IconButton(
-              icon: const Icon(Icons.arrow_back, color: Colors.white),
-              onPressed: () => context.pop(),
-            ),
+            backgroundColor: AppColors.textPrimary,
+            leadingWidth: 0,
+            leading: const SizedBox.shrink(),
             flexibleSpace: FlexibleSpaceBar(
               background: Container(
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [Color(0xFF1A2E1A), Color(0xFF2D4A2D)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                ),
+                color: AppColors.textPrimary,
                 child: SafeArea(
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
-                    child: Row(
-                      children: [
-                        Text(
-                          isGuideView ? 'Open Trip Requests' : 'My Trip Plans',
-                          style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
+                  child: Stack(
+                    children: [
+                      Positioned.fill(
+                        child: CustomPaint(painter: _DarkGridPainter()),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(20, 8, 12, 0),
+                        child: Row(
+                          children: [
+                            _BackBtn(onTap: () => context.pop()),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Text(
+                                isGuideView ? 'Open Trip Requests' : 'My Trip Plans',
+                                style: AppText.h3.copyWith(color: Colors.white),
+                              ),
+                            ),
+                            if (!isGuideView)
+                              IconButton(
+                                icon: const Icon(Icons.add_circle_outline, color: Colors.white70),
+                                onPressed: () => context.push('/trip-plan/create'),
+                              ),
+                          ],
                         ),
-                        const Spacer(),
-                        if (!isGuideView)
-                          IconButton(
-                            icon: const Icon(Icons.add_circle_outline, color: Colors.white),
-                            onPressed: () => context.push('/trip-plan/create'),
-                          ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                 ),
               ),
@@ -91,59 +94,48 @@ class TripPlanListScreen extends ConsumerWidget {
           ),
           asyncPlans.when(
             loading: () => const SliverFillRemaining(
-              child: Center(child: CircularProgressIndicator()),
+              child: AppLoading(message: 'Loading...'),
             ),
             error: (e, _) => SliverFillRemaining(
-              child: Center(child: Text('Error: $e')),
+              child: EmptyState(
+                icon: Icons.error_outline,
+                title: 'Failed to load',
+                subtitle: e.toString(),
+              ),
             ),
             data: (plans) {
               if (plans.isEmpty) {
                 return SliverFillRemaining(
-                  child: Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.explore_off_outlined, size: 64, color: Colors.grey[300]),
-                        const SizedBox(height: 16),
-                        Text(
-                          isGuideView ? 'No open trip requests' : 'No trip plans yet',
-                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: Colors.grey[700]),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          isGuideView
-                              ? 'Check back later for new requests'
-                              : 'Propose your own trip and let guides compete for it!',
-                          style: TextStyle(color: Colors.grey[500]),
-                          textAlign: TextAlign.center,
-                        ),
-                        if (!isGuideView) ...[
-                          const SizedBox(height: 24),
-                          ElevatedButton.icon(
+                  child: EmptyState(
+                    icon: Icons.explore_off_outlined,
+                    title: isGuideView ? 'No open trip requests' : 'No trip plans yet',
+                    subtitle: isGuideView
+                        ? 'Check back later for new requests'
+                        : 'Propose your own trip and let guides compete for it!',
+                    action: !isGuideView
+                        ? PrimaryButton(
+                            label: 'Create Trip Plan',
+                            icon: Icons.add,
                             onPressed: () => context.push('/trip-plan/create'),
-                            icon: const Icon(Icons.add),
-                            label: const Text('Create Trip Plan'),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF25D366),
-                              foregroundColor: Colors.white,
-                            ),
-                          ),
-                        ],
-                      ],
-                    ),
+                          )
+                        : null,
                   ),
                 );
               }
               return SliverPadding(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(AppSpacing.md),
                 sliver: SliverList(
                   delegate: SliverChildBuilderDelegate(
                     (context, index) {
                       final plan = plans[index];
-                      return _TripPlanCard(
-                        plan: plan,
-                        isGuideView: isGuideView,
-                        statusColor: _statusColor(plan.status),
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: AppSpacing.md),
+                        child: _TripPlanCard(
+                          plan: plan,
+                          isGuideView: isGuideView,
+                          statusColor: _statusColor(plan.status),
+                          onTap: () => _showPlanDetail(context, ref, plan),
+                        ),
                       );
                     },
                     childCount: plans.length,
@@ -156,118 +148,8 @@ class TripPlanListScreen extends ConsumerWidget {
       ),
     );
   }
-}
 
-class _TripPlanCard extends ConsumerWidget {
-  final TripPlan plan;
-  final bool isGuideView;
-  final Color statusColor;
-
-  const _TripPlanCard({
-    required this.plan,
-    required this.isGuideView,
-    required this.statusColor,
-  });
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return Card(
-      elevation: 0,
-      margin: const EdgeInsets.only(bottom: 16),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(16),
-        onTap: () => _showPlanDetail(context, ref),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: statusColor.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Text(
-                      plan.status,
-                      style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: statusColor),
-                    ),
-                  ),
-                  const Spacer(),
-                  if (plan.tourDate != null)
-                    Text(plan.tourDate!, style: TextStyle(fontSize: 12, color: Colors.grey[500])),
-                ],
-              ),
-              const SizedBox(height: 12),
-              Row(
-                children: [
-                  Container(
-                    width: 44,
-                    height: 44,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF25D366).withOpacity(0.1),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(Icons.tour, color: Color(0xFF25D366)),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          plan.destination,
-                          style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          '${plan.durationHours?.toStringAsFixed(1) ?? '?'}h  •  Group ${plan.groupSize ?? '?'}',
-                          style: TextStyle(fontSize: 12, color: Colors.grey[500]),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Icon(Icons.arrow_forward_ios, size: 14, color: Colors.grey[400]),
-                ],
-              ),
-              if (plan.interests.isNotEmpty) ...[
-                const SizedBox(height: 12),
-                Wrap(
-                  spacing: 6,
-                  runSpacing: 4,
-                  children: plan.interests.take(4).map((i) {
-                    return Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF25D366).withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Text(
-                        i[0].toUpperCase() + i.substring(1),
-                        style: const TextStyle(fontSize: 11, color: Color(0xFF25D366), fontWeight: FontWeight.w500),
-                      ),
-                    );
-                  }).toList(),
-                ),
-              ],
-              if (plan.proposedStops.isNotEmpty) ...[
-                const SizedBox(height: 10),
-                Text(
-                  '${plan.proposedStops.length} proposed stop${plan.proposedStops.length > 1 ? 's' : ''}',
-                  style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-                ),
-              ],
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  void _showPlanDetail(BuildContext context, WidgetRef ref) {
+  void _showPlanDetail(BuildContext context, WidgetRef ref, TripPlan plan) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -278,282 +160,37 @@ class _TripPlanCard extends ConsumerWidget {
         maxChildSize: 0.9,
         builder: (_, scrollController) => Container(
           decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+            color: AppColors.surface,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.lg)),
           ),
-          child: ListView(
-            controller: scrollController,
-            padding: const EdgeInsets.all(20),
-            children: [
-              Center(
-                child: Container(
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(2)),
-                ),
-              ),
-              const SizedBox(height: 20),
-              Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      plan.destination,
-                      style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: statusColor.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Text(plan.status, style: TextStyle(color: statusColor, fontWeight: FontWeight.w600)),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              // Waiting state for tourist with OPEN plan
-              if (!isGuideView && plan.status == 'OPEN')
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF25D366).withOpacity(0.08),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: const Color(0xFF25D366).withOpacity(0.2)),
-                  ),
-                  child: Row(
-                    children: [
-                      SizedBox(
-                        width: 18,
-                        height: 18,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Color(0xFF25D366),
-                        ),
-                      ),
-                      SizedBox(width: 10),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Waiting for a guide to accept',
-                              style: TextStyle(fontWeight: FontWeight.w600, color: Color(0xFF1A2E1A), fontSize: 13),
-                            ),
-                            SizedBox(height: 2),
-                            Text(
-                              'You\'ll be notified when a guide picks up your request. No payment required yet.',
-                              style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              // Accepted state — show guide assigned, prompt to confirm & pay
-              if (!isGuideView && plan.status == 'ACCEPTED' && plan.guideId != null) ...[
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF25D366).withOpacity(0.08),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: const Color(0xFF25D366).withOpacity(0.3)),
-                  ),
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 44,
-                        height: 44,
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF25D366).withOpacity(0.15),
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Icon(Icons.person, color: Color(0xFF25D366)),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              'Guide Assigned!',
-                              style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF1A2E1A), fontSize: 14),
-                            ),
-                            Text(
-                              'ID: ${plan.guideId}',
-                              style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const Icon(Icons.check_circle, color: Color(0xFF25D366)),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.amber[50],
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.amber[200]!),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(Icons.info_outline, color: Colors.amber[800], size: 18),
-                      SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          'Confirm and pay to finalize your booking.',
-                          style: TextStyle(fontSize: 12, color: Colors.amber[900]),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-              const SizedBox(height: 16),
-              _detailRow(Icons.calendar_today, 'Date', plan.tourDate ?? 'Not specified'),
-              _detailRow(Icons.schedule, 'Duration', plan.durationHours != null ? '${plan.durationHours!.toStringAsFixed(1)} hours' : 'Not specified'),
-              _detailRow(Icons.group, 'Group size', plan.groupSize != null ? '${plan.groupSize} people' : 'Not specified'),
-              if (plan.interests.isNotEmpty) ...[
-                const SizedBox(height: 16),
-                const Text('Interests', style: TextStyle(fontWeight: FontWeight.w600)),
-                const SizedBox(height: 8),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: plan.interests.map((i) {
-                    return Chip(
-                      label: Text(i[0].toUpperCase() + i.substring(1)),
-                      backgroundColor: const Color(0xFF25D366).withOpacity(0.1),
-                      labelStyle: const TextStyle(color: Color(0xFF25D366), fontSize: 12),
-                    );
-                  }).toList(),
-                ),
-              ],
-              if (plan.proposedStops.isNotEmpty) ...[
-                const SizedBox(height: 16),
-                const Text('Proposed Itinerary', style: TextStyle(fontWeight: FontWeight.w600)),
-                const SizedBox(height: 12),
-                ...plan.proposedStops.asMap().entries.map((entry) {
-                  final stop = entry.value;
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 12),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Container(
-                          width: 28,
-                          height: 28,
-                          decoration: const BoxDecoration(
-                            color: Color(0xFF25D366),
-                            shape: BoxShape.circle,
-                          ),
-                          child: Center(
-                            child: Text(
-                              '${entry.key + 1}',
-                              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(stop.name, style: const TextStyle(fontWeight: FontWeight.w600)),
-                              if (stop.notes != null)
-                                Text(stop.notes!, style: TextStyle(fontSize: 12, color: Colors.grey[600])),
-                            ],
-                          ),
-                        ),
-                        Text('${stop.durationHours.toStringAsFixed(1)}h', style: TextStyle(color: Colors.grey[600], fontSize: 13)),
-                      ],
-                    ),
-                  );
-                }),
-              ],
-              const SizedBox(height: 24),
-              if (isGuideView && plan.status == 'OPEN')
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () => _acceptPlan(context, ref, ctx),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF25D366),
-                      foregroundColor: Colors.white,
-                      minimumSize: const Size.fromHeight(52),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                      elevation: 0,
-                    ),
-                    child: const Text('Accept This Trip', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
-                  ),
-                ),
-              if (!isGuideView && plan.status == 'OPEN')
-                SizedBox(
-                  width: double.infinity,
-                  child: OutlinedButton(
-                    onPressed: () => _cancelPlan(context, ref, ctx),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: Colors.red,
-                      minimumSize: const Size.fromHeight(48),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                      side: const BorderSide(color: Colors.red),
-                    ),
-                    child: const Text('Cancel Plan'),
-                  ),
-                ),
-              // ACCEPTED: must confirm & pay
-              if (!isGuideView && plan.status == 'ACCEPTED') ...[
-                const SizedBox(height: 4),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () => _confirmAndPay(context, ref, ctx),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF25D366),
-                      foregroundColor: Colors.white,
-                      minimumSize: const Size.fromHeight(52),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                      elevation: 0,
-                    ),
-                    child: const Text(
-                      'Confirm & Pay Now',
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-                    ),
-                  ),
-                ),
-              ],
-              const SizedBox(height: 20),
-            ],
+          child: _PlanDetailSheet(
+            plan: plan,
+            isGuideView: isGuideView,
+            statusColor: _statusColor(plan.status),
+            scrollController: scrollController,
+            onAccept: isGuideView ? () => _acceptPlan(context, ref, ctx, plan) : null,
+            onCancel: !isGuideView && plan.status == 'OPEN'
+                ? () => _cancelPlan(context, ref, ctx, plan)
+                : null,
+            onConfirmPay: !isGuideView && plan.status == 'ACCEPTED'
+                ? () => _confirmAndPay(context, ref, ctx, plan)
+                : null,
           ),
         ),
       ),
     );
   }
 
-  Widget _detailRow(IconData icon, String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Row(
-        children: [
-          Icon(icon, size: 16, color: Colors.grey[500]),
-          const SizedBox(width: 8),
-          Text('$label: ', style: TextStyle(color: Colors.grey[600])),
-          Text(value, style: const TextStyle(fontWeight: FontWeight.w500)),
-        ],
-      ),
-    );
-  }
-
-  Future<void> _acceptPlan(BuildContext context, WidgetRef ref, BuildContext sheetCtx) async {
-    // Guide must be logged in via guide JWT (guide_id is read from token on backend)
+  Future<void> _acceptPlan(BuildContext context, WidgetRef ref, BuildContext sheetCtx, TripPlan plan) async {
     final authState = ref.read(authProvider);
     if (authState.token == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please log in as a guide to accept plans')),
+        SnackBar(
+          content: const Text('Please log in as a guide to accept plans'),
+          backgroundColor: AppColors.error,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.sm)),
+        ),
       );
       return;
     }
@@ -565,94 +202,59 @@ class _TripPlanCard extends ConsumerWidget {
       if (context.mounted) {
         Navigator.pop(sheetCtx);
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Trip plan accepted! The tourist will be notified.'),
-            backgroundColor: Color(0xFF25D366),
+          SnackBar(
+            content: const Text('Trip plan accepted! The tourist will be notified.'),
+            backgroundColor: AppColors.success,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.sm)),
           ),
         );
       }
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error: $e'),
+            backgroundColor: AppColors.error,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.sm)),
+          ),
+        );
       }
     }
   }
 
-  Future<String?> _showGuidePickerDialog(BuildContext context) async {
-    // Fetch available guides for demo
-    List<Map<String, dynamic>> guides = [];
+  Future<void> _cancelPlan(BuildContext context, WidgetRef ref, BuildContext sheetCtx, TripPlan plan) async {
     try {
       final api = ApiClient();
-      guides = (await api.getGuides()).cast<Map<String, dynamic>>();
-    } catch (_) {
-      guides = [];
-    }
-
-    if (!context.mounted) return null;
-
-    return showDialog<String>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Select Guide (Demo)'),
-        content: guides.isEmpty
-            ? const Text('No guides available. Using default guide ID.')
-            : SizedBox(
-                width: double.maxFinite,
-                child: ListView.builder(
-                  shrinkWrap: true,
-                  itemCount: guides.length,
-                  itemBuilder: (_, i) {
-                    final g = guides[i];
-                    return ListTile(
-                      leading: CircleAvatar(
-                        backgroundColor: const Color(0xFF25D366).withOpacity(0.2),
-                        child: const Icon(Icons.person, color: Color(0xFF25D366), size: 20),
-                      ),
-                      title: Text(g['name'] ?? 'Guide ${g['id']}'),
-                      subtitle: Text('ID: ${g['id']}'),
-                      onTap: () => Navigator.pop(ctx, g['id'].toString()),
-                    );
-                  },
-                ),
-              ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancel'),
-          ),
-          if (guides.isNotEmpty)
-            TextButton(
-              onPressed: () => Navigator.pop(ctx, 'G001'),
-              child: const Text('Use G001 (Default)'),
-            ),
-        ],
-      ),
-    );
-  }
-
-  Future<void> _cancelPlan(BuildContext context, WidgetRef ref, BuildContext sheetCtx) async {
-    try {
-      final api = ApiClient();
-      // Cancel the TripPlan — backend will also cancel linked booking + auto-refund
       await api.updateTripPlan(plan.id, {'status': 'CANCELLED'});
       ref.invalidate(myTripPlansProvider);
       if (context.mounted) {
         Navigator.pop(sheetCtx);
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Trip plan cancelled. Any payment has been refunded.'),
-            backgroundColor: Color(0xFF25D366),
+          SnackBar(
+            content: const Text('Trip plan cancelled. Any payment has been refunded.'),
+            backgroundColor: AppColors.success,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.sm)),
           ),
         );
       }
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error: $e'),
+            backgroundColor: AppColors.error,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.sm)),
+          ),
+        );
       }
     }
   }
 
-  Future<void> _confirmAndPay(BuildContext context, WidgetRef ref, BuildContext sheetCtx) async {
+  Future<void> _confirmAndPay(BuildContext context, WidgetRef ref, BuildContext sheetCtx, TripPlan plan) async {
     if (plan.guideId == null) return;
     try {
       final authState = ref.read(authProvider);
@@ -660,7 +262,12 @@ class _TripPlanCard extends ConsumerWidget {
       if (touristId == null) {
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Please sign in to confirm booking')),
+            SnackBar(
+              content: const Text('Please sign in to confirm booking'),
+              backgroundColor: AppColors.error,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.sm)),
+            ),
           );
         }
         return;
@@ -680,15 +287,446 @@ class _TripPlanCard extends ConsumerWidget {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Booking confirmed! ID: ${result['id']}. Your guide will contact you soon.'),
-            backgroundColor: const Color(0xFF25D366),
+            backgroundColor: AppColors.success,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.sm)),
             duration: const Duration(seconds: 4),
           ),
         );
       }
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Payment error: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Payment error: $e'),
+            backgroundColor: AppColors.error,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.sm)),
+          ),
+        );
       }
     }
   }
+}
+
+class _BackBtn extends StatefulWidget {
+  final VoidCallback onTap;
+  const _BackBtn({required this.onTap});
+
+  @override
+  State<_BackBtn> createState() => _BackBtnState();
+}
+
+class _BackBtnState extends State<_BackBtn> {
+  bool _isHovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return MouseRegion(
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
+      child: GestureDetector(
+        onTap: widget.onTap,
+        child: AnimatedContainer(
+          duration: AppDurations.fast,
+          padding: const EdgeInsets.all(6),
+          decoration: BoxDecoration(
+            color: _isHovered ? Colors.white.withOpacity(0.1) : Colors.transparent,
+            borderRadius: BorderRadius.circular(AppRadius.sm),
+          ),
+          child: Icon(Icons.arrow_back, color: Colors.white.withOpacity(_isHovered ? 1 : 0.7), size: 20),
+        ),
+      ),
+    );
+  }
+}
+
+class _TripPlanCard extends StatelessWidget {
+  final TripPlan plan;
+  final bool isGuideView;
+  final Color statusColor;
+  final VoidCallback onTap;
+
+  const _TripPlanCard({
+    required this.plan,
+    required this.isGuideView,
+    required this.statusColor,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return AppCard(
+      onTap: onTap,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              StatusBadge(
+                label: plan.status,
+                color: statusColor,
+              ),
+              const Spacer(),
+              if (plan.tourDate != null)
+                Text(plan.tourDate!, style: AppText.caption),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.md),
+          Row(
+            children: [
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: AppColors.brand.withOpacity(0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.tour, color: AppColors.brand, size: 22),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(plan.destination, style: AppText.labelBold),
+                    const SizedBox(height: 2),
+                    Text(
+                      '${plan.durationHours?.toStringAsFixed(1) ?? '?'}h  •  Group ${plan.groupSize ?? '?'}',
+                      style: AppText.caption,
+                    ),
+                  ],
+                ),
+              ),
+              Icon(Icons.arrow_forward_ios, size: 14, color: AppColors.textTertiary),
+            ],
+          ),
+          if (plan.interests.isNotEmpty) ...[
+            const SizedBox(height: AppSpacing.md),
+            Wrap(
+              spacing: 6,
+              runSpacing: 4,
+              children: plan.interests.take(4).map((i) {
+                return Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: AppColors.brand.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(AppRadius.full),
+                  ),
+                  child: Text(
+                    i[0].toUpperCase() + i.substring(1),
+                    style: AppText.caption.copyWith(color: AppColors.brand),
+                  ),
+                );
+              }).toList(),
+            ),
+          ],
+          if (plan.proposedStops.isNotEmpty) ...[
+            const SizedBox(height: AppSpacing.sm),
+            Text(
+              '${plan.proposedStops.length} proposed stop${plan.proposedStops.length > 1 ? 's' : ''}',
+              style: AppText.caption,
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _PlanDetailSheet extends StatelessWidget {
+  final TripPlan plan;
+  final bool isGuideView;
+  final Color statusColor;
+  final ScrollController scrollController;
+  final VoidCallback? onAccept;
+  final VoidCallback? onCancel;
+  final VoidCallback? onConfirmPay;
+
+  const _PlanDetailSheet({
+    required this.plan,
+    required this.isGuideView,
+    required this.statusColor,
+    required this.scrollController,
+    this.onAccept,
+    this.onCancel,
+    this.onConfirmPay,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView(
+      controller: scrollController,
+      padding: const EdgeInsets.all(AppSpacing.lg),
+      children: [
+        Center(
+          child: Container(
+            width: 40,
+            height: 4,
+            decoration: BoxDecoration(
+              color: AppColors.border,
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+        ),
+        const SizedBox(height: AppSpacing.lg),
+        Row(
+          children: [
+            Expanded(
+              child: Text(plan.destination, style: AppText.h1),
+            ),
+            StatusBadge(
+              label: plan.status,
+              color: statusColor,
+            ),
+          ],
+        ),
+        const SizedBox(height: AppSpacing.lg),
+        if (!isGuideView && plan.status == 'OPEN')
+          Container(
+            padding: const EdgeInsets.all(AppSpacing.md),
+            decoration: BoxDecoration(
+              color: AppColors.success.withOpacity(0.08),
+              borderRadius: BorderRadius.circular(AppRadius.md),
+              border: Border.all(color: AppColors.success.withOpacity(0.2)),
+            ),
+            child: Row(
+              children: [
+                SizedBox(
+                  width: 18,
+                  height: 18,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: AppColors.success,
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Waiting for a guide to accept',
+                        style: AppText.labelBold.copyWith(color: AppColors.success),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        'You\'ll be notified when a guide picks up your request. No payment required yet.',
+                        style: AppText.caption,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        if (!isGuideView && plan.status == 'ACCEPTED' && plan.guideId != null) ...[
+          Container(
+            padding: const EdgeInsets.all(AppSpacing.md),
+            decoration: BoxDecoration(
+              color: AppColors.success.withOpacity(0.08),
+              borderRadius: BorderRadius.circular(AppRadius.md),
+              border: Border.all(color: AppColors.success.withOpacity(0.3)),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    color: AppColors.success.withOpacity(0.15),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.person, color: AppColors.success, size: 22),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Guide Assigned!', style: AppText.labelBold),
+                      Text('ID: ${plan.guideId}', style: AppText.caption),
+                    ],
+                  ),
+                ),
+                Icon(Icons.check_circle, color: AppColors.success, size: 22),
+              ],
+            ),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          Container(
+            padding: const EdgeInsets.all(AppSpacing.md),
+            decoration: BoxDecoration(
+              color: AppColors.warning.withOpacity(0.08),
+              borderRadius: BorderRadius.circular(AppRadius.md),
+              border: Border.all(color: AppColors.warning.withOpacity(0.2)),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.info_outline, color: AppColors.warning, size: 18),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'Confirm and pay to finalize your booking.',
+                    style: AppText.bodySmall.copyWith(color: AppColors.warning),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+        const SizedBox(height: AppSpacing.lg),
+        _DetailRow(Icons.calendar_today_outlined, 'Date', plan.tourDate ?? 'Not specified'),
+        _DetailRow(Icons.schedule_outlined, 'Duration', plan.durationHours != null ? '${plan.durationHours!.toStringAsFixed(1)} hours' : 'Not specified'),
+        _DetailRow(Icons.group_outlined, 'Group size', plan.groupSize != null ? '${plan.groupSize} people' : 'Not specified'),
+        if (plan.interests.isNotEmpty) ...[
+          const SizedBox(height: AppSpacing.lg),
+          Text('Interests', style: AppText.labelBold),
+          const SizedBox(height: AppSpacing.sm),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: plan.interests.map((i) {
+              return Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(
+                  color: AppColors.brand.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(AppRadius.full),
+                ),
+                child: Text(
+                  i[0].toUpperCase() + i.substring(1),
+                  style: AppText.caption.copyWith(color: AppColors.brand),
+                ),
+              );
+            }).toList(),
+          ),
+        ],
+        if (plan.proposedStops.isNotEmpty) ...[
+          const SizedBox(height: AppSpacing.lg),
+          Text('Proposed Itinerary', style: AppText.labelBold),
+          const SizedBox(height: AppSpacing.md),
+          ...plan.proposedStops.asMap().entries.map((entry) {
+            final stop = entry.value;
+            return Padding(
+              padding: const EdgeInsets.only(bottom: AppSpacing.md),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    width: 28,
+                    height: 28,
+                    decoration: BoxDecoration(
+                      color: AppColors.brand,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Center(
+                      child: Text(
+                        '${entry.key + 1}',
+                        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(stop.name, style: AppText.labelBold),
+                        if (stop.notes != null)
+                          Text(stop.notes!, style: AppText.caption),
+                      ],
+                    ),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: AppColors.surfaceSecondary,
+                      borderRadius: BorderRadius.circular(AppRadius.full),
+                    ),
+                    child: Text('${stop.durationHours.toStringAsFixed(1)}h', style: AppText.caption),
+                  ),
+                ],
+              ),
+            );
+          }),
+        ],
+        const SizedBox(height: AppSpacing.xl),
+        if (isGuideView && plan.status == 'OPEN' && onAccept != null)
+          SizedBox(
+            width: double.infinity,
+            child: PrimaryButton(
+              label: 'Accept This Trip',
+              icon: Icons.check,
+              onPressed: onAccept,
+            ),
+          ),
+        if (!isGuideView && plan.status == 'OPEN' && onCancel != null) ...[
+          SizedBox(
+            width: double.infinity,
+            child: SecondaryButton(
+              label: 'Cancel Plan',
+              icon: Icons.close,
+              color: AppColors.error,
+              onPressed: onCancel,
+            ),
+          ),
+        ],
+        if (!isGuideView && plan.status == 'ACCEPTED' && onConfirmPay != null) ...[
+          const SizedBox(height: AppSpacing.md),
+          SizedBox(
+            width: double.infinity,
+            child: PrimaryButton(
+              label: 'Confirm & Pay Now',
+              icon: Icons.payment,
+              onPressed: onConfirmPay,
+            ),
+          ),
+        ],
+        const SizedBox(height: AppSpacing.lg),
+      ],
+    );
+  }
+}
+
+class _DetailRow extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String value;
+
+  const _DetailRow(this.icon, this.label, this.value);
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+      child: Row(
+        children: [
+          Icon(icon, size: 16, color: AppColors.textTertiary),
+          const SizedBox(width: 8),
+          Text('$label:', style: AppText.caption),
+          const SizedBox(width: 6),
+          Text(value, style: AppText.label),
+        ],
+      ),
+    );
+  }
+}
+
+class _DarkGridPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = Colors.white.withOpacity(0.03)
+      ..strokeWidth = 1;
+    const step = 40.0;
+    for (double x = 0; x < size.width; x += step) {
+      canvas.drawLine(Offset(x, 0), Offset(x, size.height), paint);
+    }
+    for (double y = 0; y < size.height; y += step) {
+      canvas.drawLine(Offset(0, y), Offset(size.width, y), paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

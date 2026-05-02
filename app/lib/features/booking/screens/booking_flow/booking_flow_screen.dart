@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import '../../../../core/api_client.dart';
 import '../../../../core/auth_provider.dart';
+import '../../../../design_system.dart';
 
 final selectedDateProvider = StateProvider<DateTime?>((_) => null);
 final selectedGroupSizeProvider = StateProvider<int>((_) => 1);
@@ -14,7 +15,6 @@ final _guideBudgetProvider = FutureProvider.family<String, String>((ref, guideId
   return guide['budget_tier'] as String? ?? 'mid';
 });
 
-// Server-side pricing by budget tier (matches backend _TIER_HOURLY_RATE)
 final _tierPrices = {'budget': 1000.0, 'mid': 2000.0, 'premium': 4000.0};
 
 class BookingFlowScreen extends ConsumerStatefulWidget {
@@ -38,7 +38,12 @@ class _BookingFlowScreenState extends ConsumerState<BookingFlowScreen> {
       if (touristId == null) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Please sign in to book a guide')),
+            SnackBar(
+              content: const Text('Please sign in to book a guide'),
+              backgroundColor: AppColors.error,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.sm)),
+            ),
           );
         }
         return;
@@ -46,7 +51,6 @@ class _BookingFlowScreenState extends ConsumerState<BookingFlowScreen> {
       final date = ref.read(selectedDateProvider)!;
       final groupSize = ref.read(selectedGroupSizeProvider);
       final api = ApiClient();
-      // Server calculates price — client no longer sets gross_value
       final result = await api.createBooking({
         'tourist_id': touristId,
         'guide_id': widget.guideId,
@@ -61,7 +65,12 @@ class _BookingFlowScreenState extends ConsumerState<BookingFlowScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Booking failed: $e')),
+          SnackBar(
+            content: Text('Booking failed: $e'),
+            backgroundColor: AppColors.error,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.sm)),
+          ),
         );
       }
     } finally {
@@ -72,11 +81,11 @@ class _BookingFlowScreenState extends ConsumerState<BookingFlowScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F5F5),
+      backgroundColor: AppColors.background,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF1A2E1A),
+        backgroundColor: AppColors.textPrimary,
         foregroundColor: Colors.white,
-        title: const Text('Book Guide'),
+        title: Text('Book Guide', style: AppText.h3.copyWith(color: Colors.white)),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () => context.pop(),
@@ -103,18 +112,12 @@ class _DateSelectStep extends ConsumerWidget {
     final selectedDate = ref.watch(selectedDateProvider);
 
     return Padding(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(AppSpacing.lg),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Select a Date',
-            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: const Color(0xFF1A2E1A),
-                ),
-          ),
-          const SizedBox(height: 24),
+          Text('Select a Date', style: AppText.h1),
+          const SizedBox(height: AppSpacing.lg),
           Expanded(
             child: CalendarDatePicker(
               initialDate: selectedDate ?? DateTime.now().add(const Duration(days: 1)),
@@ -127,18 +130,9 @@ class _DateSelectStep extends ConsumerWidget {
           ),
           SizedBox(
             width: double.infinity,
-            child: ElevatedButton(
+            child: PrimaryButton(
+              label: 'Continue',
               onPressed: selectedDate != null ? onNext : null,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF25D366),
-                foregroundColor: Colors.white,
-                minimumSize: const Size.fromHeight(52),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14),
-                ),
-                elevation: 0,
-              ),
-              child: const Text('Continue'),
             ),
           ),
         ],
@@ -174,82 +168,64 @@ class _ConfirmStep extends ConsumerWidget {
     final budgetAsync = ref.watch(_guideBudgetProvider(guideId));
 
     return Padding(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(AppSpacing.lg),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Confirm Booking',
-            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: const Color(0xFF1A2E1A),
+          Text('Confirm Booking', style: AppText.h1),
+          const SizedBox(height: AppSpacing.lg),
+          AppCard(
+            child: Column(
+              children: [
+                _InfoRow(
+                  label: 'Date',
+                  value: date != null ? DateFormat('MMM d, yyyy').format(date) : 'Not selected',
                 ),
-          ),
-          const SizedBox(height: 24),
-          Card(
-            elevation: 0,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                children: [
-                  _InfoRow(
-                    label: 'Date',
-                    value: date != null
-                        ? DateFormat('MMM d, yyyy').format(date)
-                        : 'Not selected',
-                  ),
-                  const Divider(),
-                  _InfoRow(
-                    label: 'Group Size',
-                    value: '$groupSize ${groupSize == 1 ? 'person' : 'people'}',
-                  ),
-                  const Divider(),
-                  const _InfoRow(label: 'Duration', value: '4 hours'),
-                  const Divider(),
-                  budgetAsync.when(
-                    data: (budget) {
-                      final price = _tierPrices[budget] ?? 2000.0;
-                      return _InfoRow(
-                        label: 'Est. Price',
-                        value: '$_formatPrice(price)',
-                        valueColor: const Color(0xFF25D366),
-                      );
-                    },
-                    loading: () => const _InfoRow(label: 'Est. Price', value: 'Loading...'),
-                    error: (_, __) => const _InfoRow(label: 'Est. Price', value: '—'),
-                  ),
-                ],
-              ),
+                const Divider(height: AppSpacing.md),
+                _InfoRow(
+                  label: 'Group Size',
+                  value: '$groupSize ${groupSize == 1 ? 'person' : 'people'}',
+                ),
+                const Divider(height: AppSpacing.md),
+                const _InfoRow(label: 'Duration', value: '4 hours'),
+                const Divider(height: AppSpacing.md),
+                budgetAsync.when(
+                  data: (budget) {
+                    final price = _tierPrices[budget] ?? 2000.0;
+                    return _InfoRow(
+                      label: 'Est. Price',
+                      value: _formatPrice(price),
+                      valueColor: AppColors.success,
+                    );
+                  },
+                  loading: () => const _InfoRow(label: 'Est. Price', value: 'Loading...'),
+                  error: (_, __) => const _InfoRow(label: 'Est. Price', value: '—'),
+                ),
+              ],
             ),
           ),
           const Spacer(),
           if (loading)
-            const Center(child: CircularProgressIndicator())
-          else ...[
+            const AppLoading()
+          else
             Row(
               children: [
-                TextButton(
-                  onPressed: onBack,
-                  child: const Text('Back'),
-                ),
-                const Spacer(),
-                ElevatedButton(
-                  onPressed: onSubmit,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF25D366),
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 14),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                    elevation: 0,
+                Expanded(
+                  child: SecondaryButton(
+                    label: 'Back',
+                    onPressed: onBack,
                   ),
-                  child: const Text('Confirm Booking'),
+                ),
+                const SizedBox(width: AppSpacing.md),
+                Expanded(
+                  flex: 2,
+                  child: PrimaryButton(
+                    label: 'Confirm Booking',
+                    onPressed: onSubmit,
+                  ),
                 ),
               ],
             ),
-          ],
         ],
       ),
     );
@@ -260,6 +236,7 @@ class _InfoRow extends StatelessWidget {
   final String label;
   final String value;
   final Color? valueColor;
+
   const _InfoRow({required this.label, required this.value, this.valueColor});
 
   @override
@@ -269,13 +246,10 @@ class _InfoRow extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: TextStyle(color: Colors.grey[600])),
+          Text(label, style: AppText.label),
           Text(
             value,
-            style: TextStyle(
-              fontWeight: FontWeight.w600,
-              color: valueColor,
-            ),
+            style: AppText.labelBold.copyWith(color: valueColor),
           ),
         ],
       ),

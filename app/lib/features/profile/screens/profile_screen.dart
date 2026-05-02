@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../../../core/api_client.dart';
 import '../../../../core/auth_provider.dart';
+import '../../../../design_system.dart';
 import '../../../../shared/models/tourist.dart';
 
 final profileProvider = FutureProvider<Tourist?>((ref) async {
@@ -21,29 +22,25 @@ class ProfileScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final profileAsync = ref.watch(profileProvider);
+    final isWide = MediaQuery.of(context).size.width > 600;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F5F5),
+      backgroundColor: AppColors.background,
       body: CustomScrollView(
         slivers: [
-          // Dark header
           SliverAppBar(
-            expandedHeight: 160,
+            expandedHeight: 140,
             pinned: true,
-            backgroundColor: const Color(0xFF1A2E1A),
+            backgroundColor: AppColors.textPrimary,
             flexibleSpace: FlexibleSpaceBar(
               background: Container(
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [Color(0xFF1A2E1A), Color(0xFF2D4A2D)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                ),
+                color: AppColors.textPrimary,
                 child: SafeArea(
                   child: Stack(
                     children: [
-                      // Floating avatar card
+                      Positioned.fill(
+                        child: CustomPaint(painter: _DarkGridPainter()),
+                      ),
                       Positioned(
                         left: 16,
                         top: 12,
@@ -59,12 +56,11 @@ class ProfileScreen extends ConsumerWidget {
                           error: (_, __) => const SizedBox.shrink(),
                         ),
                       ),
-                      // Top-right edit button
                       Positioned(
-                        right: 8,
-                        top: 8,
+                        right: 4,
+                        top: 4,
                         child: IconButton(
-                          icon: const Icon(Icons.edit_outlined, color: Colors.white),
+                          icon: const Icon(Icons.edit_outlined, color: Colors.white, size: 20),
                           onPressed: () => context.go('/onboarding'),
                         ),
                       ),
@@ -74,242 +70,130 @@ class ProfileScreen extends ConsumerWidget {
               ),
             ),
           ),
-
           SliverFillRemaining(
             child: profileAsync.when(
-              loading: () => const Center(child: CircularProgressIndicator()),
-              error: (e, _) => Center(child: Text('Error: $e')),
+              loading: () => const AppLoading(message: 'Loading profile...'),
+              error: (e, _) => EmptyState(
+                icon: Icons.error_outline,
+                title: 'Failed to load profile',
+                subtitle: e.toString(),
+              ),
               data: (tourist) {
                 if (tourist == null) {
-                  return Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.person_outline, size: 64, color: Colors.grey[300]),
-                        const SizedBox(height: 16),
-                        Text(
-                          'No profile yet',
-                          style: TextStyle(color: Colors.grey[600]),
-                        ),
-                        const SizedBox(height: 16),
-                        ElevatedButton(
-                          onPressed: () => context.go('/onboarding'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF25D366),
-                            foregroundColor: Colors.white,
-                          ),
-                          child: const Text('Start Onboarding'),
-                        ),
-                      ],
+                  return EmptyState(
+                    icon: Icons.person_outline,
+                    title: 'No profile yet',
+                    subtitle: 'Complete onboarding to get started',
+                    action: PrimaryButton(
+                      label: 'Start Onboarding',
+                      onPressed: () => context.go('/onboarding'),
                     ),
                   );
                 }
-
                 return ListView(
-                  padding: const EdgeInsets.all(16),
+                  padding: EdgeInsets.all(isWide ? AppSpacing.lg : AppSpacing.md),
                   children: [
-                    // Profile card
-                    Card(
-                      elevation: 0,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.all(24),
-                        child: Column(
-                          children: [
-                            Container(
-                              width: 80,
-                              height: 80,
-                              decoration: BoxDecoration(
-                                color: const Color(0xFF25D366).withOpacity(0.1),
-                                shape: BoxShape.circle,
-                              ),
-                              child: tourist.photoUrl.isNotEmpty
-                                  ? ClipOval(
-                                      child: CachedNetworkImage(
-                                        imageUrl: tourist.photoUrl,
-                                        fit: BoxFit.cover,
-                                        placeholder: (_, __) => const Icon(
-                                          Icons.person,
-                                          size: 40,
-                                          color: Color(0xFF25D366),
-                                        ),
-                                        errorWidget: (_, __, ___) => const Icon(
-                                          Icons.person,
-                                          size: 40,
-                                          color: Color(0xFF25D366),
-                                        ),
-                                      ),
-                                    )
-                                  : const Icon(
-                                      Icons.person,
-                                      size: 40,
-                                      color: Color(0xFF25D366),
-                                    ),
-                            ),
-                            const SizedBox(height: 16),
-                            Text(
-                              tourist.name,
-                              style: const TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 4,
-                              ),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFF25D366).withOpacity(0.1),
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                              child: Text(
-                                tourist.travelStyle.toUpperCase(),
-                                style: const TextStyle(
-                                  fontSize: 12,
-                                  color: Color(0xFF25D366),
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-
-                    const SizedBox(height: 20),
-
-                    // Interests
-                    Text(
-                      'Your Interests',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.grey[800],
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    Card(
-                      elevation: 0,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Column(
-                          children: [
-                            _InterestRow(
-                              label: 'Food',
-                              value: tourist.foodInterest,
-                              color: Colors.orange,
-                            ),
-                            const SizedBox(height: 14),
-                            _InterestRow(
-                              label: 'Culture',
-                              value: tourist.cultureInterest,
-                              color: Colors.purple,
-                            ),
-                            const SizedBox(height: 14),
-                            _InterestRow(
-                              label: 'Adventure',
-                              value: tourist.adventureInterest,
-                              color: Colors.green,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-
-                    const SizedBox(height: 20),
-
-                    // Details
-                    Text(
-                      'Details',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.grey[800],
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    Card(
-                      elevation: 0,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                      ),
+                    AppCard(
                       child: Column(
                         children: [
-                          ListTile(
-                            leading: const Icon(Icons.language, color: Color(0xFF25D366)),
-                            title: const Text('Language'),
-                            trailing: Text(
-                              tourist.language.toUpperCase(),
-                              style: TextStyle(color: Colors.grey[600]),
+                          Container(
+                            width: 72,
+                            height: 72,
+                            decoration: BoxDecoration(
+                              color: AppColors.surfaceSecondary,
+                              shape: BoxShape.circle,
+                              border: Border.all(color: AppColors.border),
+                            ),
+                            child: ClipOval(
+                              child: tourist.photoUrl.isNotEmpty
+                                  ? CachedNetworkImage(
+                                      imageUrl: tourist.photoUrl,
+                                      fit: BoxFit.cover,
+                                      placeholder: (_, __) => const Icon(Icons.person, size: 32, color: AppColors.textTertiary),
+                                      errorWidget: (_, __, ___) => const Icon(Icons.person, size: 32, color: AppColors.textTertiary),
+                                    )
+                                  : const Icon(Icons.person, size: 32, color: AppColors.textTertiary),
                             ),
                           ),
-                          Divider(height: 1, color: Colors.grey[100]),
-                          ListTile(
-                            leading: const Icon(Icons.group, color: Color(0xFF25D366)),
-                            title: const Text('Age Group'),
-                            trailing: Text(
-                              tourist.ageGroup,
-                              style: TextStyle(color: Colors.grey[600]),
+                          const SizedBox(height: AppSpacing.md),
+                          Text(tourist.name, style: AppText.h2),
+                          const SizedBox(height: 6),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: AppColors.brand.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(AppRadius.full),
                             ),
-                          ),
-                          Divider(height: 1, color: Colors.grey[100]),
-                          ListTile(
-                            leading: const Icon(Icons.attach_money, color: Color(0xFF25D366)),
-                            title: const Text('Budget'),
-                            trailing: Text(
-                              _budgetLabel(tourist.budgetLevel),
-                              style: TextStyle(color: Colors.grey[600]),
+                            child: Text(
+                              tourist.travelStyle.toUpperCase(),
+                              style: AppText.captionBold.copyWith(color: AppColors.brand),
                             ),
                           ),
                         ],
                       ),
                     ),
-
-                    const SizedBox(height: 20),
-                    OutlinedButton.icon(
-                      onPressed: () => context.go('/onboarding'),
-                      icon: const Icon(Icons.edit),
-                      label: const Text('Update Preferences'),
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: const Color(0xFF25D366),
-                        side: const BorderSide(color: Color(0xFF25D366)),
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
+                    const SizedBox(height: AppSpacing.lg),
+                    Text('Your Interests', style: AppText.h3),
+                    const SizedBox(height: AppSpacing.sm),
+                    AppCard(
+                      child: Column(
+                        children: [
+                          _InterestRow(label: 'Food', value: tourist.foodInterest, color: Colors.orange),
+                          const Divider(height: AppSpacing.md),
+                          _InterestRow(label: 'Culture', value: tourist.cultureInterest, color: Colors.purple),
+                          const Divider(height: AppSpacing.md),
+                          _InterestRow(label: 'Adventure', value: tourist.adventureInterest, color: AppColors.success),
+                        ],
                       ),
                     ),
-
-                    const SizedBox(height: 12),
-
-                    // Logout button
+                    const SizedBox(height: AppSpacing.lg),
+                    Text('Details', style: AppText.h3),
+                    const SizedBox(height: AppSpacing.sm),
+                    AppCard(
+                      padding: EdgeInsets.zero,
+                      child: Column(
+                        children: [
+                          _DetailRow(
+                            icon: Icons.language_outlined,
+                            label: 'Language',
+                            value: tourist.language.toUpperCase(),
+                          ),
+                          const Divider(height: 1),
+                          _DetailRow(
+                            icon: Icons.group_outlined,
+                            label: 'Age Group',
+                            value: tourist.ageGroup,
+                          ),
+                          const Divider(height: 1),
+                          _DetailRow(
+                            icon: Icons.attach_money_outlined,
+                            label: 'Budget',
+                            value: _budgetLabel(tourist.budgetLevel),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: AppSpacing.lg),
+                    SecondaryButton(
+                      label: 'Update Preferences',
+                      icon: Icons.edit,
+                      onPressed: () => context.go('/onboarding'),
+                    ),
+                    const SizedBox(height: AppSpacing.sm),
                     SizedBox(
                       width: double.infinity,
-                      child: TextButton.icon(
+                      child: GhostButton(
+                        label: 'Sign Out',
+                        icon: Icons.logout,
+                        color: AppColors.error,
                         onPressed: () async {
                           await ref.read(authProvider.notifier).logout();
                           if (context.mounted) {
                             context.go('/login');
                           }
                         },
-                        icon: Icon(Icons.logout, color: Colors.red[400]),
-                        label: Text(
-                          'Sign Out',
-                          style: TextStyle(color: Colors.red[400]),
-                        ),
-                        style: TextButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                        ),
                       ),
                     ),
-
                     const SizedBox(height: 100),
                   ],
                 );
@@ -345,19 +229,16 @@ class _InterestRow extends StatelessWidget {
       children: [
         SizedBox(
           width: 80,
-          child: Text(
-            label,
-            style: TextStyle(color: Colors.grey[700]),
-          ),
+          child: Text(label, style: AppText.label),
         ),
         Expanded(
           child: ClipRRect(
-            borderRadius: BorderRadius.circular(4),
+            borderRadius: BorderRadius.circular(AppRadius.sm),
             child: LinearProgressIndicator(
               value: value,
-              backgroundColor: Colors.grey[200],
+              backgroundColor: AppColors.surfaceSecondary,
               valueColor: AlwaysStoppedAnimation(color),
-              minHeight: 8,
+              minHeight: 6,
             ),
           ),
         ),
@@ -367,13 +248,38 @@ class _InterestRow extends StatelessWidget {
           child: Text(
             '${(value * 100).round()}%',
             textAlign: TextAlign.right,
-            style: TextStyle(
-              fontWeight: FontWeight.w500,
-              color: Colors.grey[700],
-            ),
+            style: AppText.labelBold,
           ),
         ),
       ],
+    );
+  }
+}
+
+class _DetailRow extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String value;
+
+  const _DetailRow({
+    required this.icon,
+    required this.label,
+    required this.value,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: 12),
+      child: Row(
+        children: [
+          Icon(icon, size: 18, color: AppColors.textTertiary),
+          const SizedBox(width: 12),
+          Text(label, style: AppText.body),
+          const Spacer(),
+          Text(value, style: AppText.bodySmall),
+        ],
+      ),
     );
   }
 }
@@ -389,68 +295,58 @@ class _TouristFloatingCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.black.withOpacity(0.55),
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.25),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
+    return Row(
+      children: [
+        Container(
+          width: 52,
+          height: 52,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            border: Border.all(color: AppColors.brand, width: 2),
           ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 56,
-            height: 56,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              border: Border.all(color: Colors.white, width: 2.5),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.3),
-                  blurRadius: 8,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            child: ClipOval(
-              child: photoUrl.isNotEmpty
-                  ? CachedNetworkImage(
-                      imageUrl: photoUrl,
-                      fit: BoxFit.cover,
-                      placeholder: (_, __) => Container(
-                          color: Colors.grey[700],
-                          child: const Icon(Icons.person, color: Colors.white54, size: 28)),
-                      errorWidget: (_, __, ___) => Container(
-                          color: Colors.grey[700],
-                          child: const Icon(Icons.person, color: Colors.white54, size: 28)),
-                    )
-                  : Container(
-                      color: Colors.grey[700],
-                      child: const Icon(Icons.person, color: Colors.white54, size: 28),
-                    ),
-            ),
+          child: ClipOval(
+            child: photoUrl.isNotEmpty
+                ? CachedNetworkImage(
+                    imageUrl: photoUrl,
+                    fit: BoxFit.cover,
+                    placeholder: (_, __) => _buildPlaceholder(),
+                    errorWidget: (_, __, ___) => _buildPlaceholder(),
+                  )
+                : _buildPlaceholder(),
           ),
-          const SizedBox(width: 12),
-          ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 140),
-            child: Text(
-              name,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-              ),
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-        ],
-      ),
+        ),
+        const SizedBox(width: 12),
+        Text(
+          name,
+          style: AppText.labelBold.copyWith(color: Colors.white, fontSize: 16),
+        ),
+      ],
     );
   }
+
+  Widget _buildPlaceholder() {
+    return Container(
+      color: AppColors.surfaceSecondary,
+      child: const Icon(Icons.person, color: Colors.white54, size: 24),
+    );
+  }
+}
+
+class _DarkGridPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = Colors.white.withOpacity(0.03)
+      ..strokeWidth = 1;
+    const step = 40.0;
+    for (double x = 0; x < size.width; x += step) {
+      canvas.drawLine(Offset(x, 0), Offset(x, size.height), paint);
+    }
+    for (double y = 0; y < size.height; y += step) {
+      canvas.drawLine(Offset(0, y), Offset(size.width, y), paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

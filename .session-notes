@@ -1,13 +1,26 @@
-# Session Notes — 2026-05-01 (updated)
+# Session Notes — 2026-05-02
 
 ## Where we are
 
-All red team findings from 2026-04-30 resolved.
-Flutter Android CI workflow fixed and pushed.
-Backend is running.
+Guide login and registration both fixed. Flutter web deployed via GitHub Actions.
 
-## Commits on main (pushed today)
+## Today's Fixes
 
+### 1. Guide login 401 on deployed app
+Reseeded the Render backend database via `/api/admin/reseed`. The seed accounts (guide@wanderless.com / wanderless123) were missing from the deployed database.
+
+### 2. Guide & business registration 404 (root cause)
+**Bug:** `ApiConfig.getBaseUrl()` returns `https://wanderless-tourism.onrender.com/api` (already includes `/api`). Both registration screens appended `/api/...` again, resulting in `https://wanderless-tourism.onrender.com/api/api/guides/register` → 404.
+
+**Fix:** Removed `/api` prefix from both:
+- `app/lib/features/guide/screens/guide_register_screen.dart` — `$baseUrl/guides/register`
+- `app/lib/features/business/screens/business_register_screen.dart` — `$baseUrl/business/register`
+
+**Commit:** `ff97881` — fix(flutter): remove duplicate /api prefix in guide and business registration
+
+## Commits on main (today)
+
+- `ff97881` — fix(flutter): remove duplicate /api prefix in guide and business registration
 - `6e279b6` — fix(flutter): correct workflow YAML syntax and Kotlin Gradle file
 
 ## Today's Fix

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/api_client.dart';
 import '../../../../core/business_auth_provider.dart';
+import '../../../../design_system.dart';
 
 final _syntheticBusinessBookings = [
   {'id': 101, 'guide_name': 'Wayan Berata', 'tourist_name': 'Sarah Johnson', 'tour_date': '2026-05-15', 'destination': 'Mount Batur Sunrise Trek', 'group_size': 4, 'duration_hours': 6.0, 'status': 'CONFIRMED', 'gross_value': 240.0, 'tour_type': 'Adventure', 'commission': 36.0},
@@ -14,7 +15,7 @@ final _syntheticBusinessBookings = [
   {'id': 107, 'guide_name': 'Made Surya', 'tourist_name': 'Ana Rodriguez', 'tour_date': '2026-05-03', 'destination': 'Snorkeling Day Trip', 'group_size': 4, 'duration_hours': 5.0, 'status': 'COMPLETED', 'gross_value': 200.0, 'tour_type': 'Water Sports', 'commission': 30.0},
   {'id': 108, 'guide_name': 'Wayan Berata', 'tourist_name': 'Tom Brown', 'tour_date': '2026-05-01', 'destination': 'Temple Sunrise Tour', 'group_size': 3, 'duration_hours': 4.0, 'status': 'CANCELLED', 'gross_value': 135.0, 'tour_type': 'Cultural', 'commission': 0.0},
   {'id': 109, 'guide_name': 'Ketut Sari', 'tourist_name': 'Sophie Taylor', 'tour_date': '2026-05-28', 'destination': 'Coffee Plantation Tour', 'group_size': 2, 'duration_hours': 3.0, 'status': 'CONFIRMED', 'gross_value': 80.0, 'tour_type': 'Nature', 'commission': 12.0},
-  {'id': 110, 'guide_name': 'Made Surya', 'tourist_name': 'Ryan Martinez', 'tour_date': '2026-04-28', 'destination': 'ATV Jungle Ride', 'group_size': 4, 'duration_hours': 4.0, 'status': 'COMPLETED', 'gross_value': 220.0, 'tour_type': 'Adventure', 'commission': 33.0},
+  {'id': 110, 'guide_name': 'Made Surya', 'tourist_name': 'Ryan Martinez', 'tour_date': '2024-04-28', 'destination': 'ATV Jungle Ride', 'group_size': 4, 'duration_hours': 4.0, 'status': 'COMPLETED', 'gross_value': 220.0, 'tour_type': 'Adventure', 'commission': 33.0},
 ];
 
 final businessBookingsProvider = FutureProvider<List<Map<String, dynamic>>>((ref) async {
@@ -100,190 +101,279 @@ class _BusinessJobsScreenState extends ConsumerState<BusinessJobsScreen>
         .length;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFFAF5F0),
-      appBar: AppBar(
-        backgroundColor: const Color(0xFFED8A19),
-        foregroundColor: Colors.white,
-        elevation: 0,
-        title: Text(authState.businessName ?? 'Business Portal', style: const TextStyle(fontWeight: FontWeight.bold)),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.notifications_outlined),
-            onPressed: () {},
-          ),
-          IconButton(
-            icon: const Icon(Icons.person_outline),
-            onPressed: () {},
-          ),
-        ],
-        bottom: TabBar(
-          controller: _tabController,
-          indicatorColor: Colors.white,
-          labelColor: Colors.white,
-          unselectedLabelColor: Colors.white60,
-          tabs: const [
-            Tab(text: 'All Bookings'),
-            Tab(text: 'Active'),
-            Tab(text: 'History'),
-          ],
-        ),
-      ),
-      body: Column(
-        children: [
-          // Stats Row
-          Container(
-            color: Colors.white,
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              children: [
-                _StatCard(
-                  title: 'Total Bookings',
-                  value: '$totalBookings',
-                  icon: Icons.calendar_today,
-                  color: const Color(0xFFED8A19),
-                ),
-                const SizedBox(width: 12),
-                _StatCard(
-                  title: 'Gross Revenue',
-                  value: '\$${totalRevenue.toStringAsFixed(0)}',
-                  icon: Icons.attach_money,
-                  color: Colors.blue[600]!,
-                ),
-                const SizedBox(width: 12),
-                _StatCard(
-                  title: 'Commission',
-                  value: '\$${totalCommission.toStringAsFixed(0)}',
-                  icon: Icons.account_balance_wallet,
-                  color: Colors.green[600]!,
-                ),
-              ],
-            ),
-          ),
-          // Stats Row 2
-          Container(
-            color: Colors.white,
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-            child: Row(
-              children: [
-                _StatCard(
-                  title: 'Active Guides',
-                  value: '$activeGuides',
-                  icon: Icons.people,
-                  color: Colors.purple[600]!,
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: Colors.green[50],
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(Icons.trending_up, color: Colors.green[600]!, size: 24),
-                        const SizedBox(width: 8),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+      backgroundColor: AppColors.background,
+      body: NestedScrollView(
+        headerSliverBuilder: (context, innerBoxIsScrolled) => [
+          SliverAppBar(
+            expandedHeight: 100,
+            pinned: true,
+            backgroundColor: AppColors.brand,
+            leadingWidth: 0,
+            leading: const SizedBox.shrink(),
+            flexibleSpace: FlexibleSpaceBar(
+              background: Container(
+                color: AppColors.brand,
+                child: SafeArea(
+                  child: Stack(
+                    children: [
+                      Positioned.fill(
+                        child: CustomPaint(painter: _BrandGridPainter()),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(20, 8, 12, 0),
+                        child: Row(
                           children: [
-                            Text(
-                              '${((totalCommission / (totalRevenue == 0 ? 1 : totalRevenue)) * 100).toStringAsFixed(1)}%',
-                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.green[600]!),
+                            _BackBtn(onTap: () => context.pop()),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Text(
+                                authState.businessName ?? 'Business Portal',
+                                style: AppText.h3.copyWith(color: Colors.white),
+                              ),
                             ),
-                            Text('Commission Rate', style: TextStyle(fontSize: 11, color: Colors.grey[600])),
+                            IconButton(
+                              icon: const Icon(Icons.notifications_outlined, color: Colors.white70),
+                              onPressed: () {},
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.person_outline, color: Colors.white70),
+                              onPressed: () {},
+                            ),
                           ],
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                 ),
+              ),
+            ),
+            bottom: TabBar(
+              controller: _tabController,
+              indicatorColor: Colors.white,
+              labelColor: Colors.white,
+              unselectedLabelColor: Colors.white60,
+              tabs: const [
+                Tab(text: 'All'),
+                Tab(text: 'Active'),
+                Tab(text: 'History'),
               ],
             ),
           ),
-          // Sort and Filter
-          Container(
-            color: Colors.white,
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-            child: Row(
-              children: [
-                Expanded(
-                  child: _SortDropdown(
-                    value: _sortBy,
-                    onChanged: (v) => setState(() => _sortBy = v ?? 'date'),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: _FilterDropdown(
-                    value: _filterStatus,
-                    onChanged: (v) => setState(() => _filterStatus = v ?? 'all'),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 8),
-          // Booking Table Header
-          Container(
-            color: const Color(0xFFED8A19).withOpacity(0.1),
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            child: const Row(
-              children: [
-                SizedBox(width: 80, child: Text('Guide', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 12, color: Color(0xFF3C3830)))),
-                SizedBox(width: 70, child: Text('Date', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 12, color: Color(0xFF3C3830)))),
-                Expanded(child: Text('Tour', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 12, color: Color(0xFF3C3830)))),
-                SizedBox(width: 50, child: Text('Pax', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 12, color: Color(0xFF3C3830)), textAlign: TextAlign.center)),
-                SizedBox(width: 80, child: Text('Status', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 12, color: Color(0xFF3C3830)))),
-                SizedBox(width: 60, child: Text('Comm.', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 12, color: Color(0xFF3C3830)), textAlign: TextAlign.right)),
-              ],
-            ),
-          ),
-          // Booking List
-          Expanded(
-            child: bookingsAsync.when(
-              loading: () => const Center(child: CircularProgressIndicator()),
-              error: (e, _) => Center(child: Text('Error: $e')),
-              data: (_) => TabBarView(
-                controller: _tabController,
+        ],
+        body: Column(
+          children: [
+            Container(
+              color: AppColors.surface,
+              padding: const EdgeInsets.all(AppSpacing.md),
+              child: Column(
                 children: [
-                  _BookingList(
-                    bookings: _filterAndSort(allBookings),
-                    filter: null,
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _StatCard(
+                          title: 'Bookings',
+                          value: '$totalBookings',
+                          icon: Icons.calendar_today_outlined,
+                          color: AppColors.brand,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: _StatCard(
+                          title: 'Revenue',
+                          value: '\$${totalRevenue.toStringAsFixed(0)}',
+                          icon: Icons.attach_money,
+                          color: AppColors.info,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: _StatCard(
+                          title: 'Commission',
+                          value: '\$${totalCommission.toStringAsFixed(0)}',
+                          icon: Icons.account_balance_wallet_outlined,
+                          color: AppColors.success,
+                        ),
+                      ),
+                    ],
                   ),
-                  _BookingList(
-                    bookings: _filterAndSort(allBookings.where((b) {
-                      final s = b['status'] as String;
-                      return s == 'REQUESTED' || s == 'CONFIRMED' || s == 'IN_PROGRESS';
-                    }).toList()),
-                    filter: 'active',
+                  const SizedBox(height: AppSpacing.sm),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _StatCard(
+                          title: 'Active Guides',
+                          value: '$activeGuides',
+                          icon: Icons.people_outlined,
+                          color: Colors.purple,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Container(
+                          padding: const EdgeInsets.all(AppSpacing.md),
+                          decoration: BoxDecoration(
+                            color: AppColors.success.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(AppRadius.md),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(Icons.trending_up, color: AppColors.success, size: 24),
+                              const SizedBox(width: 8),
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    '${((totalCommission / (totalRevenue == 0 ? 1 : totalRevenue)) * 100).toStringAsFixed(1)}%',
+                                    style: AppText.labelBold.copyWith(color: AppColors.success),
+                                  ),
+                                  Text('Commission Rate', style: AppText.caption),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                  _BookingList(
-                    bookings: _filterAndSort(allBookings.where((b) {
-                      final s = b['status'] as String;
-                      return s == 'COMPLETED' || s == 'CANCELLED';
-                    }).toList()),
-                    filter: 'history',
+                  const SizedBox(height: AppSpacing.sm),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _SortDropdown(
+                          value: _sortBy,
+                          onChanged: (v) => setState(() => _sortBy = v ?? 'date'),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: _FilterDropdown(
+                          value: _filterStatus,
+                          onChanged: (v) => setState(() => _filterStatus = v ?? 'all'),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
             ),
+            Container(
+              color: AppColors.brand.withOpacity(0.08),
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
+              child: Row(
+                children: [
+                  SizedBox(width: 80, child: Text('Guide', style: AppText.captionBold)),
+                  SizedBox(width: 70, child: Text('Date', style: AppText.captionBold)),
+                  Expanded(child: Text('Tour', style: AppText.captionBold)),
+                  SizedBox(width: 40, child: Text('Pax', style: AppText.captionBold, textAlign: TextAlign.center)),
+                  SizedBox(width: 80, child: Text('Status', style: AppText.captionBold)),
+                  SizedBox(width: 50, child: Text('Comm.', style: AppText.captionBold, textAlign: TextAlign.right)),
+                ],
+              ),
+            ),
+            Expanded(
+              child: bookingsAsync.when(
+                loading: () => const AppLoading(message: 'Loading...'),
+                error: (e, _) => EmptyState(
+                  icon: Icons.error_outline,
+                  title: 'Failed to load',
+                  subtitle: e.toString(),
+                ),
+                data: (_) => TabBarView(
+                  controller: _tabController,
+                  children: [
+                    _BookingList(
+                      bookings: _filterAndSort(allBookings),
+                    ),
+                    _BookingList(
+                      bookings: _filterAndSort(allBookings.where((b) {
+                        final s = b['status'] as String;
+                        return s == 'REQUESTED' || s == 'CONFIRMED' || s == 'IN_PROGRESS';
+                      }).toList()),
+                    ),
+                    _BookingList(
+                      bookings: _filterAndSort(allBookings.where((b) {
+                        final s = b['status'] as String;
+                        return s == 'COMPLETED' || s == 'CANCELLED';
+                      }).toList()),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+      bottomNavigationBar: AppBottomNav(
+        items: [
+          BottomNavItem(
+            icon: Icons.home_outlined,
+            activeIcon: Icons.home,
+            label: 'Home',
+            isSelected: false,
+            onTap: () => context.go('/business/dashboard'),
+          ),
+          BottomNavItem(
+            icon: Icons.work_outlined,
+            activeIcon: Icons.work,
+            label: 'Bookings',
+            isSelected: true,
+            onTap: () {},
+          ),
+          BottomNavItem(
+            icon: Icons.people_outlined,
+            activeIcon: Icons.people,
+            label: 'Guides',
+            isSelected: false,
+            onTap: () {},
+          ),
+          BottomNavItem(
+            icon: Icons.analytics_outlined,
+            activeIcon: Icons.analytics,
+            label: 'Reports',
+            isSelected: false,
+            onTap: () {},
+          ),
+          BottomNavItem(
+            icon: Icons.person_outline,
+            activeIcon: Icons.person,
+            label: 'Profile',
+            isSelected: false,
+            onTap: () {},
           ),
         ],
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: 1,
-        selectedItemColor: const Color(0xFFED8A19),
-        unselectedItemColor: Colors.grey,
-        onTap: (i) {
-          if (i == 0) context.go('/business/dashboard');
-        },
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home_outlined), label: 'Home'),
-          BottomNavigationBarItem(icon: Icon(Icons.work), label: 'Bookings'),
-          BottomNavigationBarItem(icon: Icon(Icons.people_outline), label: 'Guides'),
-          BottomNavigationBarItem(icon: Icon(Icons.analytics_outlined), label: 'Reports'),
-          BottomNavigationBarItem(icon: Icon(Icons.person_outline), label: 'Profile'),
-        ],
+    );
+  }
+}
+
+class _BackBtn extends StatefulWidget {
+  final VoidCallback onTap;
+  const _BackBtn({required this.onTap});
+
+  @override
+  State<_BackBtn> createState() => _BackBtnState();
+}
+
+class _BackBtnState extends State<_BackBtn> {
+  bool _isHovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return MouseRegion(
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
+      child: GestureDetector(
+        onTap: widget.onTap,
+        child: AnimatedContainer(
+          duration: AppDurations.fast,
+          padding: const EdgeInsets.all(6),
+          decoration: BoxDecoration(
+            color: _isHovered ? Colors.white.withOpacity(0.2) : Colors.transparent,
+            borderRadius: BorderRadius.circular(AppRadius.sm),
+          ),
+          child: Icon(Icons.arrow_back, color: Colors.white.withOpacity(_isHovered ? 1 : 0.7), size: 20),
+        ),
       ),
     );
   }
@@ -295,25 +385,28 @@ class _StatCard extends StatelessWidget {
   final IconData icon;
   final Color color;
 
-  const _StatCard({required this.title, required this.value, required this.icon, required this.color});
+  const _StatCard({
+    required this.title,
+    required this.value,
+    required this.icon,
+    required this.color,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Expanded(
-      child: Container(
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: color.withOpacity(0.1),
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Column(
-          children: [
-            Icon(icon, color: color, size: 24),
-            const SizedBox(height: 4),
-            Text(value, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: color)),
-            Text(title, style: TextStyle(fontSize: 11, color: Colors.grey[600])),
-          ],
-        ),
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.sm),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(AppRadius.md),
+      ),
+      child: Column(
+        children: [
+          Icon(icon, color: color, size: 20),
+          const SizedBox(height: 4),
+          Text(value, style: AppText.labelBold.copyWith(color: color, fontSize: 16)),
+          Text(title, style: AppText.caption, textAlign: TextAlign.center),
+        ],
       ),
     );
   }
@@ -322,6 +415,7 @@ class _StatCard extends StatelessWidget {
 class _SortDropdown extends StatelessWidget {
   final String value;
   final ValueChanged<String?> onChanged;
+
   const _SortDropdown({required this.value, required this.onChanged});
 
   @override
@@ -329,13 +423,15 @@ class _SortDropdown extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12),
       decoration: BoxDecoration(
-        border: Border.all(color: Colors.grey[300]!),
-        borderRadius: BorderRadius.circular(8),
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(AppRadius.sm),
+        border: Border.all(color: AppColors.border),
       ),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String>(
           value: value,
           isDense: true,
+          isExpanded: true,
           items: const [
             DropdownMenuItem(value: 'date', child: Text('Sort by Date', style: TextStyle(fontSize: 13))),
             DropdownMenuItem(value: 'amount', child: Text('Sort by Revenue', style: TextStyle(fontSize: 13))),
@@ -351,6 +447,7 @@ class _SortDropdown extends StatelessWidget {
 class _FilterDropdown extends StatelessWidget {
   final String value;
   final ValueChanged<String?> onChanged;
+
   const _FilterDropdown({required this.value, required this.onChanged});
 
   @override
@@ -358,13 +455,15 @@ class _FilterDropdown extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12),
       decoration: BoxDecoration(
-        border: Border.all(color: Colors.grey[300]!),
-        borderRadius: BorderRadius.circular(8),
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(AppRadius.sm),
+        border: Border.all(color: AppColors.border),
       ),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String>(
           value: value,
           isDense: true,
+          isExpanded: true,
           items: const [
             DropdownMenuItem(value: 'all', child: Text('All Status', style: TextStyle(fontSize: 13))),
             DropdownMenuItem(value: 'REQUESTED', child: Text('Requested', style: TextStyle(fontSize: 13))),
@@ -381,27 +480,21 @@ class _FilterDropdown extends StatelessWidget {
 
 class _BookingList extends StatelessWidget {
   final List<Map<String, dynamic>> bookings;
-  final String? filter;
 
-  const _BookingList({required this.bookings, this.filter});
+  const _BookingList({required this.bookings});
 
   @override
   Widget build(BuildContext context) {
     if (bookings.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.work_off_outlined, size: 64, color: Colors.grey[300]),
-            const SizedBox(height: 16),
-            Text('No bookings found', style: TextStyle(fontSize: 16, color: Colors.grey[600])),
-          ],
-        ),
+      return EmptyState(
+        icon: Icons.work_off_outlined,
+        title: 'No bookings found',
+        subtitle: 'Your bookings will appear here',
       );
     }
 
     return ListView.builder(
-      padding: const EdgeInsets.only(bottom: 80),
+      padding: const EdgeInsets.only(bottom: 100),
       itemCount: bookings.length,
       itemBuilder: (context, index) {
         final b = bookings[index];
@@ -418,12 +511,12 @@ class _BookingRow extends StatelessWidget {
 
   Color _statusColor(String status) {
     switch (status) {
-      case 'REQUESTED': return Colors.orange;
-      case 'CONFIRMED': return Colors.blue;
-      case 'IN_PROGRESS': return Colors.purple;
-      case 'COMPLETED': return Colors.green;
-      case 'CANCELLED': return Colors.red;
-      default: return Colors.grey;
+      case 'REQUESTED': return AppColors.warning;
+      case 'CONFIRMED': return AppColors.info;
+      case 'IN_PROGRESS': return AppColors.statusInProgress;
+      case 'COMPLETED': return AppColors.success;
+      case 'CANCELLED': return AppColors.error;
+      default: return AppColors.textTertiary;
     }
   }
 
@@ -445,10 +538,10 @@ class _BookingRow extends StatelessWidget {
 
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border(bottom: BorderSide(color: Colors.grey[200]!)),
+        color: AppColors.surface,
+        border: Border(bottom: BorderSide(color: AppColors.border)),
       ),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
       child: Row(
         children: [
           SizedBox(
@@ -458,12 +551,12 @@ class _BookingRow extends StatelessWidget {
               children: [
                 Text(
                   booking['guide_name'] as String? ?? 'Guide',
-                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
+                  style: AppText.label,
                   overflow: TextOverflow.ellipsis,
                 ),
                 Text(
                   booking['tour_type'] as String? ?? '',
-                  style: TextStyle(fontSize: 10, color: Colors.grey[500]),
+                  style: AppText.caption,
                 ),
               ],
             ),
@@ -471,8 +564,10 @@ class _BookingRow extends StatelessWidget {
           SizedBox(
             width: 70,
             child: Text(
-              (booking['tour_date'] as String? ?? '').substring(5),
-              style: const TextStyle(fontSize: 12),
+              (booking['tour_date'] as String? ?? '').isNotEmpty
+                  ? (booking['tour_date'] as String).substring(5)
+                  : '',
+              style: AppText.caption,
             ),
           ),
           Expanded(
@@ -481,44 +576,36 @@ class _BookingRow extends StatelessWidget {
               children: [
                 Text(
                   booking['destination'] as String? ?? 'Tour',
-                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
+                  style: AppText.label,
                   overflow: TextOverflow.ellipsis,
                 ),
                 Text(
                   booking['tourist_name'] as String? ?? '',
-                  style: TextStyle(fontSize: 11, color: Colors.grey[500]),
+                  style: AppText.caption,
                 ),
               ],
             ),
           ),
           SizedBox(
-            width: 50,
+            width: 40,
             child: Text(
               '${booking['group_size'] ?? 0}',
-              style: const TextStyle(fontSize: 12),
+              style: AppText.label,
               textAlign: TextAlign.center,
             ),
           ),
           SizedBox(
             width: 80,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-              decoration: BoxDecoration(
-                color: statusColor.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Text(
-                _statusLabel(status),
-                style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: statusColor),
-                textAlign: TextAlign.center,
-              ),
+            child: StatusBadge(
+              label: _statusLabel(status),
+              color: statusColor,
             ),
           ),
           SizedBox(
-            width: 60,
+            width: 50,
             child: Text(
               '\$${(booking['commission'] ?? 0).toStringAsFixed(0)}',
-              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.green),
+              style: AppText.labelBold.copyWith(color: AppColors.success),
               textAlign: TextAlign.right,
             ),
           ),
@@ -526,4 +613,23 @@ class _BookingRow extends StatelessWidget {
       ),
     );
   }
+}
+
+class _BrandGridPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = Colors.white.withOpacity(0.1)
+      ..strokeWidth = 1;
+    const step = 40.0;
+    for (double x = 0; x < size.width; x += step) {
+      canvas.drawLine(Offset(x, 0), Offset(x, size.height), paint);
+    }
+    for (double y = 0; y < size.height; y += step) {
+      canvas.drawLine(Offset(0, y), Offset(size.width, y), paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
