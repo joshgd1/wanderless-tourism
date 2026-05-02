@@ -149,6 +149,9 @@ class TripPlan(Base):
     negotiation_rounds = Column(Integer, default=0)  # increments on each counteroffer; cap at 2
     alternatives = Column(JSON, nullable=True)  # [{"rejected_stop": "...", "alternatives": ["Alt1", "Alt2"]}]
     guide_proposed_stops = Column(JSON, nullable=True)  # guide's counter-proposed stops
+    safety_weight = Column(Float, nullable=True)  # 0.0–2.0, maps to w_safety in itinerary engine
+    dietary_requirement = Column(String, nullable=True)  # Any | Halal | Vegetarian | Vegan | Kosher | Gluten-free
+    avoid_late_night = Column(Boolean, nullable=True)  # True = skip routes after 22:00
     created_at = Column(DateTime, default=datetime.utcnow)
 
 

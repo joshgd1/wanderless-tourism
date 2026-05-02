@@ -37,6 +37,9 @@ class TripPlan {
   final String? tourDate;
   final double? durationHours;
   final int? groupSize;
+  final double? safetyWeight;
+  final String? dietaryRequirement;
+  final bool? avoidLateNight;
   final String? createdAt;
 
   TripPlan({
@@ -50,6 +53,9 @@ class TripPlan {
     this.tourDate,
     this.durationHours,
     this.groupSize,
+    this.safetyWeight,
+    this.dietaryRequirement,
+    this.avoidLateNight,
     this.createdAt,
   });
 
@@ -67,6 +73,9 @@ class TripPlan {
       tourDate: json['tour_date'] as String?,
       durationHours: (json['duration_hours'] as num?)?.toDouble(),
       groupSize: json['group_size'] as int?,
+      safetyWeight: (json['safety_weight'] as num?)?.toDouble(),
+      dietaryRequirement: json['dietary_requirement'] as String?,
+      avoidLateNight: json['avoid_late_night'] as bool?,
       createdAt: json['created_at'] as String?,
     );
   }

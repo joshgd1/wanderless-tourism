@@ -23,6 +23,11 @@ class _CreateTripPlanScreenState extends ConsumerState<CreateTripPlanScreen> {
   final List<String> _selectedInterests = [];
   final List<ProposedStop> _stops = [];
 
+  // Safety & dietary constraints (from PPT Slide 6 demo)
+  double _safetyWeight = 1.0;
+  String _dietaryRequirement = 'Any';
+  bool _avoidLateNight = false;
+
   bool _isSubmitting = false;
   bool _isLoadingSuggestions = false;
 
@@ -140,6 +145,9 @@ class _CreateTripPlanScreenState extends ConsumerState<CreateTripPlanScreen> {
         'tour_date': _dateController.text.trim().isEmpty ? null : _dateController.text.trim(),
         'duration_hours': _durationHours,
         'group_size': _groupSize,
+        'safety_weight': _safetyWeight,
+        'dietary_requirement': _dietaryRequirement,
+        'avoid_late_night': _avoidLateNight,
       });
 
       if (mounted) {
@@ -325,6 +333,32 @@ class _CreateTripPlanScreenState extends ConsumerState<CreateTripPlanScreen> {
                               },
                             );
                           }).toList(),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.md),
+                  AppCard(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _SectionTitle(label: 'Safety Priority', icon: Icons.shield_outlined),
+                        const SizedBox(height: AppSpacing.sm),
+                        _SafetySlider(
+                          value: _safetyWeight,
+                          onChanged: (v) => setState(() => _safetyWeight = v),
+                        ),
+                        const SizedBox(height: AppSpacing.md),
+                        _SectionTitle(label: 'Dietary Requirement', icon: Icons.restaurant_outlined),
+                        const SizedBox(height: AppSpacing.sm),
+                        _DietaryChips(
+                          value: _dietaryRequirement,
+                          onChanged: (v) => setState(() => _dietaryRequirement = v),
+                        ),
+                        const SizedBox(height: AppSpacing.md),
+                        _LateNightToggle(
+                          value: _avoidLateNight,
+                          onChanged: (v) => setState(() => _avoidLateNight = v),
                         ),
                       ],
                     ),
@@ -651,6 +685,172 @@ class _InterestPillState extends State<_InterestPill> {
           ),
         ),
       ),
+    );
+  }
+}
+
+class _SafetySlider extends StatelessWidget {
+  final double value;
+  final ValueChanged<double> onChanged;
+
+  const _SafetySlider({required this.value, required this.onChanged});
+
+  String get _label {
+    if (value <= 0.5) return 'Low';
+    if (value <= 1.0) return 'Normal';
+    if (value <= 1.5) return 'High';
+    return 'Max';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        SliderTheme(
+          data: SliderTheme.of(context).copyWith(
+            activeTrackColor: AppColors.brand,
+            thumbColor: AppColors.brand,
+            overlayColor: AppColors.brand.withOpacity(0.2),
+            inactiveTrackColor: AppColors.surfaceSecondary,
+            trackHeight: 4,
+            thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 8),
+          ),
+          child: Slider(
+            value: value,
+            min: 0.0,
+            max: 2.0,
+            divisions: 8,
+            onChanged: onChanged,
+          ),
+        ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text('Low', style: AppText.caption),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(
+                color: AppColors.brand.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(AppRadius.full),
+              ),
+              child: Text(_label, style: AppText.labelBold.copyWith(color: AppColors.brand)),
+            ),
+            Text('Max', style: AppText.caption),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+class _DietaryChips extends StatelessWidget {
+  final String value;
+  final ValueChanged<String> onChanged;
+
+  const _DietaryChips({required this.value, required this.onChanged});
+
+  static const _options = ['Any', 'Halal', 'Vegetarian', 'Vegan', 'Kosher', 'Gluten-free'];
+
+  @override
+  Widget build(BuildContext context) {
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: _options.map((option) {
+        final selected = value == option;
+        return _DietaryChip(
+          label: option,
+          isSelected: selected,
+          onTap: () => onChanged(option),
+        );
+      }).toList(),
+    );
+  }
+}
+
+class _DietaryChip extends StatefulWidget {
+  final String label;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  const _DietaryChip({required this.label, required this.isSelected, required this.onTap});
+
+  @override
+  State<_DietaryChip> createState() => _DietaryChipState();
+}
+
+class _DietaryChipState extends State<_DietaryChip> {
+  bool _isHovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return MouseRegion(
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
+      child: GestureDetector(
+        onTap: widget.onTap,
+        child: AnimatedContainer(
+          duration: AppDurations.fast,
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+          decoration: BoxDecoration(
+            color: widget.isSelected
+                ? AppColors.brand
+                : _isHovered
+                    ? AppColors.surfaceSecondary
+                    : AppColors.surface,
+            borderRadius: BorderRadius.circular(AppRadius.full),
+            border: Border.all(
+              color: widget.isSelected ? AppColors.brand : AppColors.border,
+              width: 1.5,
+            ),
+          ),
+          child: Text(
+            widget.label,
+            style: AppText.label.copyWith(
+              color: widget.isSelected ? Colors.white : AppColors.textPrimary,
+              fontWeight: widget.isSelected ? FontWeight.w600 : FontWeight.w400,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _LateNightToggle extends StatelessWidget {
+  final bool value;
+  final ValueChanged<bool> onChanged;
+
+  const _LateNightToggle({required this.value, required this.onChanged});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Icon(
+          value ? Icons.nightlight_round : Icons.nightlight_outlined,
+          size: 18,
+          color: value ? AppColors.brand : AppColors.textTertiary,
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Avoid Late-night Walking', style: AppText.labelBold),
+              Text(
+                'Skip routes after 10 PM for your safety',
+                style: AppText.caption,
+              ),
+            ],
+          ),
+        ),
+        Switch(
+          value: value,
+          onChanged: onChanged,
+          activeColor: AppColors.brand,
+        ),
+      ],
     );
   }
 }

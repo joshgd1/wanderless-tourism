@@ -1539,6 +1539,9 @@ async def create_trip_plan(
         tour_date=data.get("tour_date"),
         duration_hours=data.get("duration_hours"),
         group_size=data.get("group_size"),
+        safety_weight=data.get("safety_weight"),
+        dietary_requirement=data.get("dietary_requirement"),
+        avoid_late_night=data.get("avoid_late_night"),
     )
     db.add(plan)
     db.commit()
@@ -1584,6 +1587,9 @@ async def list_trip_plans(
                 "negotiation_rounds": p.negotiation_rounds or 0,
                 "alternatives": p.alternatives,
                 "guide_proposed_stops": p.guide_proposed_stops,
+                "safety_weight": p.safety_weight,
+                "dietary_requirement": p.dietary_requirement,
+                "avoid_late_night": p.avoid_late_night,
                 "created_at": p.created_at.isoformat() if p.created_at else None,
             }
             for p in plans
@@ -1621,6 +1627,9 @@ async def list_trip_plans(
             "negotiation_rounds": p.negotiation_rounds or 0,
             "alternatives": p.alternatives,
             "guide_proposed_stops": p.guide_proposed_stops,
+            "safety_weight": p.safety_weight,
+            "dietary_requirement": p.dietary_requirement,
+            "avoid_late_night": p.avoid_late_night,
             "created_at": p.created_at.isoformat() if p.created_at else None,
         }
         for p in plans
@@ -1646,6 +1655,9 @@ async def get_trip_plan(plan_id: int, db: Session = Depends(get_db)):
         "negotiation_rounds": p.negotiation_rounds or 0,
         "alternatives": p.alternatives,
         "guide_proposed_stops": p.guide_proposed_stops,
+        "safety_weight": p.safety_weight,
+        "dietary_requirement": p.dietary_requirement,
+        "avoid_late_night": p.avoid_late_night,
         "created_at": p.created_at.isoformat() if p.created_at else None,
     }
 
