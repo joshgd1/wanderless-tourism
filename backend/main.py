@@ -25,9 +25,15 @@ load_dotenv()
 logger = logging.getLogger("wanderless")
 logging.basicConfig(level=logging.INFO)
 
-# Auth configuration — all secrets from environment
-SECRET_KEY = os.environ.get("SECRET_KEY", "wanderless-dev-secret-change-in-production-min-32-chars")
-ADMIN_TOKEN = os.environ.get("ADMIN_TOKEN", "wanderless-admin-token")
+# Auth configuration — all secrets from environment (must be set; no fallback defaults)
+_secret = os.environ.get("SECRET_KEY")
+if not _secret:
+    raise RuntimeError("SECRET_KEY environment variable must be set in production")
+SECRET_KEY = _secret
+_admin = os.environ.get("ADMIN_TOKEN")
+if not _admin:
+    raise RuntimeError("ADMIN_TOKEN environment variable must be set in production")
+ADMIN_TOKEN = _admin
 ALLOWED_ORIGINS = os.environ.get("ALLOWED_ORIGINS", "*").split(",")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_HOURS = 24
@@ -223,7 +229,9 @@ app.add_middleware(
 async def _rate_limit_middleware(request: Request, call_next):
     if request.method == "OPTIONS":
         return await call_next(request)
-    client_ip = request.client.host if request.client else "unknown"
+    client_ip = request.headers.get("X-Forwarded-For", "").split(",")[0].strip()
+    if not client_ip:
+        client_ip = request.client.host if request.client else "unknown"
     try:
         _check_rate_limit(client_ip)
     except HTTPException:
@@ -447,6 +455,8 @@ async def deposit_tourist_wallet(
     amount = data.get("amount", 0)
     if amount <= 0:
         raise HTTPException(status_code=400, detail="Amount must be positive")
+    if amount > 10_000:
+        raise HTTPException(status_code=400, detail="Deposit amount exceeds maximum allowed")
     wallet = _get_or_create_wallet(db, tourist_id, "tourist")
     _wallet_transaction(db, wallet, "deposit", amount, description=f"Wallet deposit")
     logger.info(f"wallet.deposit tourist_id={tourist_id} amount={amount}")
@@ -1137,6 +1147,12 @@ async def create_booking(
         raise HTTPException(status_code=400, detail="guide_id is required")
     if not data.get("tour_date"):
         raise HTTPException(status_code=400, detail="tour_date is required")
+    try:
+        tour_date = datetime.strptime(data["tour_date"], "%Y-%m-%d").date()
+        if tour_date < datetime.now().date():
+            raise HTTPException(status_code=400, detail="tour_date cannot be in the past")
+    except ValueError:
+        raise HTTPException(status_code=400, detail="tour_date must be YYYY-MM-DD")
 
     guide = db.query(models.Guide).filter_by(id=guide_id).first()
     if not guide:
@@ -1350,8 +1366,8 @@ async def update_booking_status(
             raise HTTPException(status_code=400, detail=f"Cannot transition from {b.status} to {new_status}")
 
         if new_status == "CANCELLED":
-            # SAFETY: Auto-refund if money was held in escrow
-            if b.payment_status == "held_escrow":
+            # SAFETY: Auto-refund if money was held in escrow (idempotent — skip if already refunded)
+            if b.payment_status == "held_escrow" and new_status == "CANCELLED":
                 b.payment_status = "refunded"
                 # Refund tourist's wallet
                 tourist_wallet = _get_or_create_wallet(db, b.tourist_id, "tourist")
@@ -1441,10 +1457,31 @@ async def get_itinerary(booking_id: int, db: Session = Depends(get_db)):
 
 
 @app.put("/api/itineraries/{itinerary_id}")
-async def update_itinerary(itinerary_id: int, data: dict, db: Session = Depends(get_db)):
+async def update_itinerary(
+    itinerary_id: int,
+    data: dict,
+    authorization: str | None = Header(None),
+    db: Session = Depends(get_db),
+):
+    # Auth: accept either tourist or guide JWT
+    tourist_id = _get_tourist_id_optional(authorization)
+    guide_id = _get_guide_id_optional(authorization)
+    if not tourist_id and not guide_id:
+        raise HTTPException(status_code=401, detail="Authorization required")
+
     it = db.query(models.Itinerary).filter_by(id=itinerary_id).first()
     if not it:
         raise HTTPException(status_code=404, detail="Itinerary not found")
+
+    # Authorization: must be the guide or tourist on the associated booking
+    if it.booking_id:
+        booking = db.query(models.Booking).filter_by(id=it.booking_id).first()
+        if booking:
+            if guide_id and booking.guide_id != guide_id:
+                raise HTTPException(status_code=403, detail="Not authorized to update this itinerary")
+            if tourist_id and booking.tourist_id != tourist_id:
+                raise HTTPException(status_code=403, detail="Not authorized to update this itinerary")
+
     if "stops" in data:
         it.stops = data["stops"]
     if "status" in data:
@@ -1647,8 +1684,21 @@ async def update_trip_plan(
         if new_status == "CANCELLED" and p.booking_id:
             booking = db.query(models.Booking).filter_by(id=p.booking_id).first()
             if booking:
+                # SAFETY: capture pre-cancel payment_status for idempotent refund guard
+                was_escrowed = booking.payment_status == "held_escrow"
                 booking.payment_status = "refunded"
                 booking.status = "CANCELLED"
+                # SAFETY: actually refund the wallet (idempotent — skipped if already refunded)
+                if was_escrowed and booking.gross_value:
+                    tourist_wallet = _get_or_create_wallet(db, booking.tourist_id, "tourist")
+                    _wallet_transaction(
+                        db,
+                        tourist_wallet,
+                        "refund",
+                        booking.gross_value,
+                        booking_id=booking.id,
+                        description=f"Refund for cancelled trip plan #{p.id}",
+                    )
                 logger.info(
                     f"trip_plan_cancel.cancelled_linked_booking "
                     f"plan_id={plan_id} booking_id={booking.id} "
@@ -1696,6 +1746,17 @@ async def update_location(
 
     if role not in ("guide", "tourist") or lat is None or lng is None:
         raise HTTPException(status_code=400, detail="role (guide|tourist), lat, and lng are required")
+
+    # Validate GPS coordinate ranges
+    try:
+        lat_val = float(lat)
+        lng_val = float(lng)
+        if not (-90 <= lat_val <= 90):
+            raise HTTPException(status_code=400, detail="lat must be between -90 and 90")
+        if not (-180 <= lng_val <= 180):
+            raise HTTPException(status_code=400, detail="lng must be between -180 and 180")
+    except (TypeError, ValueError):
+        raise HTTPException(status_code=400, detail="lat and lng must be valid numbers")
 
     # Verify the booking exists and the user is assigned to it
     booking = db.query(models.Booking).filter_by(id=booking_id).first()
