@@ -26,6 +26,7 @@ import '../features/guide/screens/guide_jobs_screen.dart';
 import '../features/business/screens/business_register_screen.dart';
 import '../features/business/screens/business_jobs_screen.dart';
 import '../features/tracking/screens/tour_tracking_screen.dart';
+import '../features/notifications/screens/notifications_screen.dart';
 import '../shared/widgets/main_shell.dart';
 import 'auth_provider.dart';
 import 'guide_auth_provider.dart';
@@ -96,14 +97,14 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
                   errorBuilder: (_, __, ___) => const Icon(
                     Icons.explore,
                     size: 40,
-                    color: Color(0xFF00A86B),
+                    color: Color(0xFFED8A19),
                   ),
                 ),
               ),
             ),
             const SizedBox(height: 24),
             const Text(
-              'WanderLess',
+              'WanderAI',
               style: TextStyle(
                 color: Colors.white,
                 fontSize: 24,
@@ -111,7 +112,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
               ),
             ),
             const SizedBox(height: 32),
-            const CircularProgressIndicator(color: Color(0xFF00A86B)),
+            const CircularProgressIndicator(color: Color(0xFFED8A19)),
           ],
         ),
       ),
@@ -240,6 +241,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/trip-plan/create',
         builder: (_, __) => const CreateTripPlanScreen(),
+      ),
+      GoRoute(
+        path: '/notifications',
+        builder: (_, __) => const NotificationsScreen(),
       ),
     ],
   );

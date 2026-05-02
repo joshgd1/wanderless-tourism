@@ -46,7 +46,7 @@ class BookingsScreen extends ConsumerWidget {
                         const Spacer(),
                         IconBtn(
                           icon: Icons.notifications_outlined,
-                          onPressed: () {},
+                          onPressed: () => context.push('/notifications'),
                         ),
                       ],
                     ),
@@ -209,6 +209,14 @@ class _BookingCard extends StatelessWidget {
     }
   }
 
+  String _initials(String name) {
+    final parts = name.trim().split(' ');
+    if (parts.length >= 2) {
+      return '${parts[0][0]}${parts[1][0]}'.toUpperCase();
+    }
+    return name.isNotEmpty ? name[0].toUpperCase() : 'G';
+  }
+
   String _statusLabel(String status) {
     switch (status.toUpperCase()) {
       case 'CONFIRMED': return 'Confirmed';
@@ -248,14 +256,24 @@ class _BookingCard extends StatelessWidget {
           const SizedBox(height: AppSpacing.md),
           Row(
             children: [
+              // Guide avatar with initials
               Container(
                 width: 44,
                 height: 44,
                 decoration: BoxDecoration(
-                  color: AppColors.surfaceSecondary,
-                  borderRadius: BorderRadius.circular(AppRadius.sm),
+                  color: AppColors.brand.withOpacity(0.15),
+                  shape: BoxShape.circle,
                 ),
-                child: const Icon(Icons.person, color: AppColors.textTertiary, size: 20),
+                child: Center(
+                  child: Text(
+                    _initials(booking.guideName ?? 'G'),
+                    style: TextStyle(
+                      color: AppColors.brand,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
+                  ),
+                ),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -266,9 +284,18 @@ class _BookingCard extends StatelessWidget {
                       booking.guideName ?? 'Guide',
                       style: AppText.labelBold,
                     ),
-                    Text(
-                      'Guide',
-                      style: AppText.caption,
+                    Row(
+                      children: [
+                        const Icon(Icons.location_on_outlined, size: 12, color: AppColors.textTertiary),
+                        const SizedBox(width: 2),
+                        Expanded(
+                          child: Text(
+                            booking.destination,
+                            style: AppText.caption,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
@@ -278,7 +305,7 @@ class _BookingCard extends StatelessWidget {
                 children: [
                   Text(booking.tourDate, style: AppText.labelBold),
                   Text(
-                    '${booking.durationHours.toStringAsFixed(1)}h',
+                    '${booking.durationHours.toStringAsFixed(1)}h · ${booking.groupSize}pax',
                     style: AppText.caption,
                   ),
                 ],
@@ -288,11 +315,6 @@ class _BookingCard extends StatelessWidget {
           const SizedBox(height: AppSpacing.md),
           Row(
             children: [
-              const Icon(Icons.location_on_outlined, size: 15, color: AppColors.textTertiary),
-              const SizedBox(width: 4),
-              Expanded(
-                child: Text(booking.destination, style: AppText.bodySmall),
-              ),
               if (isInProgress) ...[
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),

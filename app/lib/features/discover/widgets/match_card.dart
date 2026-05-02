@@ -40,18 +40,26 @@ class MatchCard extends StatelessWidget {
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // Larger avatar with colored ring
               Container(
-                width: 72,
-                height: 72,
+                width: 80,
+                height: 80,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   border: Border.all(
                     color: _isMl ? AppColors.info : AppColors.brand,
                     width: 3,
                   ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: (_isMl ? AppColors.info : AppColors.brand).withOpacity(0.3),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
                 ),
                 child: Padding(
-                  padding: const EdgeInsets.all(3),
+                  padding: const EdgeInsets.all(2),
                   child: ClipOval(
                     child: CachedNetworkImage(
                       imageUrl: guide.photoUrl,
@@ -84,53 +92,75 @@ class MatchCard extends StatelessWidget {
                           child: Text(guide.name, style: AppText.labelBold),
                         ),
                         if (guide.licenseVerified) ...[
-                          const SizedBox(width: 6),
+                          const SizedBox(width: 4),
                           Container(
-                            width: 20,
-                            height: 20,
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                             decoration: BoxDecoration(
                               color: AppColors.success,
-                              shape: BoxShape.circle,
+                              borderRadius: BorderRadius.circular(AppRadius.full),
                             ),
-                            child: const Icon(Icons.verified, size: 12, color: Colors.white),
+                            child: const Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(Icons.verified, size: 10, color: Colors.white),
+                                SizedBox(width: 2),
+                                Text('Verified', style: TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold)),
+                              ],
+                            ),
                           ),
                         ],
                       ],
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: 6),
+                    // Stars + rating
                     Row(
                       children: [
                         ...List.generate(guide.ratingHistory.floor(), (i) {
-                          return Icon(Icons.star, size: 14, color: Colors.amber[700]);
+                          return Icon(Icons.star, size: 16, color: Colors.amber[700]);
                         }),
                         if (guide.ratingHistory % 1 >= 0.5)
-                          Icon(Icons.star_half, size: 14, color: Colors.amber[700]),
+                          Icon(Icons.star_half, size: 16, color: Colors.amber[700]),
                         ...List.generate(5 - guide.ratingHistory.ceil(), (i) {
-                          return Icon(Icons.star_border, size: 14, color: AppColors.border);
+                          return Icon(Icons.star_border, size: 16, color: AppColors.border);
                         }),
-                        const SizedBox(width: 4),
+                        const SizedBox(width: 6),
                         Text(
-                          '${guide.ratingHistory.toStringAsFixed(1)} (${guide.ratingCount})',
+                          '${guide.ratingHistory.toStringAsFixed(1)}',
+                          style: AppText.labelBold.copyWith(color: Colors.amber[700]),
+                        ),
+                        Text(
+                          ' (${guide.ratingCount})',
                           style: AppText.caption,
                         ),
                       ],
                     ),
                     const SizedBox(height: 6),
-                    _InfoRow(
-                      icon: Icons.translate,
-                      text: guide.languagePairs.take(2).map((l) {
-                        final parts = l.split('→');
-                        return parts.length >= 2
-                            ? '${parts[0].trim()} → ${parts[1].trim()}'
-                            : l;
-                      }).join(', '),
-                    ),
-                    const SizedBox(height: 4),
-                    _InfoRow(
-                      icon: Icons.location_on,
-                      text: guide.locationCoverage.isNotEmpty
-                          ? guide.locationCoverage.first
-                          : 'Chiang Mai',
+                    Row(
+                      children: [
+                        const Icon(Icons.translate, size: 13, color: AppColors.textTertiary),
+                        const SizedBox(width: 4),
+                        Expanded(
+                          child: Text(
+                            guide.languagePairs.take(2).map((l) {
+                              final parts = l.split('→');
+                              return parts.length >= 2
+                                  ? '${parts[0].trim()} → ${parts[1].trim()}'
+                                  : l;
+                            }).join(', '),
+                            style: AppText.caption,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        const Icon(Icons.location_on, size: 13, color: AppColors.textTertiary),
+                        const SizedBox(width: 2),
+                        Text(
+                          guide.locationCoverage.isNotEmpty
+                              ? guide.locationCoverage.first
+                              : 'Chiang Mai',
+                          style: AppText.caption,
+                        ),
+                      ],
                     ),
                   ],
                 ),

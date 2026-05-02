@@ -39,16 +39,48 @@ final mlMatchesProvider = FutureProvider<List<MatchedGuide>>((ref) async {
 });
 
 final _selectedFilterProvider = StateProvider<String>((_) => 'Recommended');
-final _mlModeProvider = StateProvider<bool>((_) => false);
+final _smartModeProvider = StateProvider<bool>((_) => false);
 final _searchQueryProvider = StateProvider<String>((_) => '');
+
+// Static destination data for featured carousel
+final _featuredDestinations = [
+  _Destination(
+    name: 'Chiang Mai',
+    country: 'Thailand',
+    imageUrl: 'https://images.unsplash.com/photo-1512553269940-b59cc4c7a3c5?w=800&q=80',
+    guideCount: 48,
+    tag: 'Cultural Heritage',
+  ),
+  _Destination(
+    name: 'Doi Suthep',
+    country: 'Chiang Mai',
+    imageUrl: 'https://images.unsplash.com/photo-1528360983277-13d401cdc186?w=800&q=80',
+    guideCount: 24,
+    tag: 'Mountain Temple',
+  ),
+  _Destination(
+    name: 'Old City',
+    country: 'Chiang Mai',
+    imageUrl: 'https://images.unsplash.com/photo-1598935898639-81586f7d2129?w=800&q=80',
+    guideCount: 36,
+    tag: 'Historic Center',
+  ),
+  _Destination(
+    name: 'Nimman',
+    country: 'Chiang Mai',
+    imageUrl: 'https://images.unsplash.com/photo-1552465011-b4e21bf6e79a?w=800&q=80',
+    guideCount: 31,
+    tag: 'Café & Culture',
+  ),
+];
 
 class DiscoverScreen extends ConsumerWidget {
   const DiscoverScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final isMl = ref.watch(_mlModeProvider);
-    final matchesAsync = isMl ? ref.watch(mlMatchesProvider) : ref.watch(matchesProvider);
+    final isSmart = ref.watch(_smartModeProvider);
+    final matchesAsync = isSmart ? ref.watch(mlMatchesProvider) : ref.watch(matchesProvider);
     final selectedFilter = ref.watch(_selectedFilterProvider);
     final isWide = MediaQuery.of(context).size.width > 600;
 
@@ -56,6 +88,7 @@ class DiscoverScreen extends ConsumerWidget {
       backgroundColor: AppColors.background,
       body: CustomScrollView(
         slivers: [
+          // ── App Bar ──────────────────────────────────────────────────────
           SliverAppBar(
             expandedHeight: 130,
             pinned: true,
@@ -91,13 +124,18 @@ class DiscoverScreen extends ConsumerWidget {
                                       ),
                                       const SizedBox(width: 10),
                                       Text(
-                                        'WanderLess',
+                                        'WanderAI',
                                         style: AppText.h3.copyWith(color: Colors.white, fontSize: 18),
                                       ),
                                     ],
                                   ),
                                 ),
                                 const Spacer(),
+                                IconBtn(
+                                  icon: Icons.notifications_outlined,
+                                  onPressed: () => context.push('/notifications'),
+                                ),
+                                const SizedBox(width: 4),
                                 IconBtn(
                                   icon: Icons.settings_outlined,
                                   onPressed: () => context.push('/settings'),
@@ -119,114 +157,145 @@ class DiscoverScreen extends ConsumerWidget {
               ),
             ),
           ),
+
+          // ── Featured Destinations Carousel ──────────────────────────────
+          SliverToBoxAdapter(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: AppSpacing.md),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 4,
+                        height: 18,
+                        decoration: BoxDecoration(
+                          color: AppColors.brand,
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Text('Featured Destinations', style: AppText.h3),
+                    ],
+                  ),
+                ),
+                SizedBox(
+                  height: 190,
+                  child: ListView.separated(
+                    scrollDirection: Axis.horizontal,
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    itemCount: _featuredDestinations.length,
+                    separatorBuilder: (_, __) => const SizedBox(width: 12),
+                    itemBuilder: (context, index) {
+                      final dest = _featuredDestinations[index];
+                      return _DestinationCard(
+                        destination: dest,
+                        onTap: () {
+                          ref.read(_selectedFilterProvider.notifier).state = 'All';
+                        },
+                      );
+                    },
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.md),
+                // Quick Actions Strip
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
+                  child: Row(
+                    children: [
+                      Expanded(child: _QuickAction(icon: Icons.explore, label: 'Explore', color: AppColors.info, onTap: () {})),
+                      const SizedBox(width: 10),
+                      Expanded(child: _QuickAction(icon: Icons.card_travel, label: 'My Trips', color: AppColors.success, onTap: () => context.go('/bookings'))),
+                      const SizedBox(width: 10),
+                      Expanded(child: _QuickAction(icon: Icons.lightbulb, label: 'Plan Trip', color: AppColors.warning, onTap: () => context.push('/trip-plan/create'))),
+                      const SizedBox(width: 10),
+                      Expanded(child: _QuickAction(icon: Icons.person, label: 'Profile', color: Colors.purple, onTap: () => context.go('/profile'))),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // ── Smart Match Toggle ─────────────────────────────────────────
           SliverToBoxAdapter(
             child: Container(
-              color: AppColors.background,
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              margin: const EdgeInsets.fromLTRB(16, AppSpacing.md, 16, 0),
+              padding: const EdgeInsets.all(4),
+              decoration: BoxDecoration(
+                color: AppColors.surface,
+                borderRadius: BorderRadius.circular(AppRadius.md),
+                border: Border.all(color: AppColors.border),
+              ),
+              child: Row(
                 children: [
-                  Container(
-                    padding: const EdgeInsets.all(4),
-                    decoration: BoxDecoration(
-                      color: AppColors.surface,
-                      borderRadius: BorderRadius.circular(AppRadius.md),
-                      border: Border.all(color: AppColors.border),
-                    ),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: _ModeToggle(
-                            label: 'Rules',
-                            sublabel: 'Curated',
-                            isSelected: !isMl,
-                            onTap: () {
-                              ref.read(_mlModeProvider.notifier).state = false;
-                              ref.invalidate(matchesProvider);
-                            },
-                          ),
-                        ),
-                        Expanded(
-                          child: _ModeToggle(
-                            label: 'ML-Powered',
-                            sublabel: 'AI Match',
-                            isSelected: isMl,
-                            onTap: () {
-                              ref.read(_mlModeProvider.notifier).state = true;
-                              ref.invalidate(mlMatchesProvider);
-                            },
-                          ),
-                        ),
-                        const SizedBox(width: 4),
-                        Tooltip(
-                          richMessage: TextSpan(
-                            children: [
-                              TextSpan(
-                                text: 'Curated\n',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
-                                  fontSize: 13,
-                                ),
-                              ),
-                              TextSpan(
-                                text: 'Guides selected by our travel experts based on reviews and quality.',
-                                style: TextStyle(color: Colors.white.withOpacity(0.9), fontSize: 12),
-                              ),
-                              TextSpan(
-                                text: '\n\nAI Match\n',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
-                                  fontSize: 13,
-                                ),
-                              ),
-                              TextSpan(
-                                text: 'Personalized recommendations using machine learning to match your preferences.',
-                                style: TextStyle(color: Colors.white.withOpacity(0.9), fontSize: 12),
-                              ),
-                            ],
-                          ),
-                          preferBelow: false,
-                          child: IconBtn(
-                            icon: Icons.info_outline,
-                            onPressed: () {},
-                          ),
-                        ),
-                      ],
+                  Expanded(
+                    child: _ModeToggle(
+                      label: 'Curated',
+                      sublabel: 'Expert picks',
+                      icon: Icons.star,
+                      isSelected: !isSmart,
+                      onTap: () {
+                        ref.read(_smartModeProvider.notifier).state = false;
+                        ref.invalidate(matchesProvider);
+                      },
                     ),
                   ),
-                  const SizedBox(height: 14),
-                  SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Row(
-                      children: ['Recommended', 'All', 'Cultural', 'Nature', 'Adventure', 'Wellness'].map((filter) {
-                        final isSelected = selectedFilter == filter;
-                        return Padding(
-                          padding: const EdgeInsets.only(right: 8),
-                          child: _FilterChip(
-                            label: filter,
-                            isSelected: isSelected,
-                            onTap: () {
-                              ref.read(_selectedFilterProvider.notifier).state = filter;
-                              if (isMl) {
-                                ref.invalidate(mlMatchesProvider);
-                              } else {
-                                ref.invalidate(matchesProvider);
-                              }
-                            },
-                          ),
-                        );
-                      }).toList(),
+                  Expanded(
+                    child: _ModeToggle(
+                      label: 'Smart Match',
+                      sublabel: 'AI powered',
+                      icon: Icons.auto_awesome,
+                      isSelected: isSmart,
+                      onTap: () {
+                        ref.read(_smartModeProvider.notifier).state = true;
+                        ref.invalidate(mlMatchesProvider);
+                      },
                     ),
                   ),
+                  const SizedBox(width: 4),
+                  _InfoTooltip(),
                 ],
               ),
             ),
           ),
+
+          // ── Filter Chips ───────────────────────────────────────────────
           SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
+              padding: const EdgeInsets.fromLTRB(16, AppSpacing.md, 16, 0),
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: ['Recommended', 'All', 'Cultural', 'Nature', 'Adventure', 'Wellness'].map((filter) {
+                    final isSelected = selectedFilter == filter;
+                    return Padding(
+                      padding: const EdgeInsets.only(right: 8),
+                      child: _FilterChip(
+                        label: filter,
+                        isSelected: isSelected,
+                        onTap: () {
+                          ref.read(_selectedFilterProvider.notifier).state = filter;
+                          if (isSmart) {
+                            ref.invalidate(mlMatchesProvider);
+                          } else {
+                            ref.invalidate(matchesProvider);
+                          }
+                        },
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ),
+            ),
+          ),
+
+          // ── Section Header ─────────────────────────────────────────────
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(20, AppSpacing.lg, 20, 4),
               child: Row(
                 children: [
                   Container(
@@ -239,17 +308,24 @@ class DiscoverScreen extends ConsumerWidget {
                   ),
                   const SizedBox(width: 8),
                   Text(
-                    'Top Guides for You',
+                    isSmart ? 'AI-Guided Matches' : 'Top Guides',
                     style: AppText.h3,
+                  ),
+                  const Spacer(),
+                  Text(
+                    'Sorted by ${isSmart ? 'match score' : 'rating'}',
+                    style: AppText.caption,
                   ),
                 ],
               ),
             ),
           ),
+
+          // ── Guide List ─────────────────────────────────────────────────
           matchesAsync.when(
             loading: () => SliverFillRemaining(
               child: Center(
-                child: AppLoading(message: 'Finding your perfect guides...'),
+                child: AppLoading(message: isSmart ? 'Finding AI matches...' : 'Loading guides...'),
               ),
             ),
             error: (err, _) => SliverFillRemaining(
@@ -259,7 +335,7 @@ class DiscoverScreen extends ConsumerWidget {
                 subtitle: 'Could not load guides. Check your connection.',
                 action: PrimaryButton(
                   label: 'Try Again',
-                  onPressed: () => isMl
+                  onPressed: () => isSmart
                       ? ref.refresh(mlMatchesProvider)
                       : ref.refresh(matchesProvider),
                 ),
@@ -315,6 +391,127 @@ class DiscoverScreen extends ConsumerWidget {
   }
 }
 
+class _Destination {
+  final String name;
+  final String country;
+  final String imageUrl;
+  final int guideCount;
+  final String tag;
+
+  const _Destination({
+    required this.name,
+    required this.country,
+    required this.imageUrl,
+    required this.guideCount,
+    required this.tag,
+  });
+}
+
+class _DestinationCard extends StatelessWidget {
+  final _Destination destination;
+  final VoidCallback onTap;
+
+  const _DestinationCard({required this.destination, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 150,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(AppRadius.lg),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.12),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(AppRadius.lg),
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              // Image with gradient
+              Image.network(
+                destination.imageUrl,
+                fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) => Container(
+                  color: AppColors.textSecondary,
+                ),
+              ),
+              Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      Colors.transparent,
+                      Colors.black.withOpacity(0.7),
+                    ],
+                    stops: const [0.4, 1.0],
+                  ),
+                ),
+              ),
+              // Content
+              Positioned(
+                left: 10,
+                right: 10,
+                bottom: 10,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: AppColors.brand,
+                        borderRadius: BorderRadius.circular(AppRadius.full),
+                      ),
+                      child: Text(
+                        destination.tag,
+                        style: const TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      destination.name,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Row(
+                      children: [
+                        const Icon(Icons.location_on, color: Colors.white70, size: 11),
+                        const SizedBox(width: 2),
+                        Expanded(
+                          child: Text(
+                            destination.country,
+                            style: const TextStyle(color: Colors.white70, fontSize: 11),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        Text(
+                          '${destination.guideCount} guides',
+                          style: const TextStyle(color: Colors.white70, fontSize: 11),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _SearchBar extends StatelessWidget {
   final void Function(String) onChanged;
 
@@ -331,18 +528,9 @@ class _SearchBar extends StatelessWidget {
         onChanged: onChanged,
         style: AppText.body,
         decoration: InputDecoration(
-          hintText: 'Search destinations, experiences...',
+          hintText: 'Search guides, destinations...',
           hintStyle: AppText.body.copyWith(color: AppColors.textTertiary),
           prefixIcon: const Icon(Icons.search, color: AppColors.textTertiary, size: 18),
-          suffixIcon: Container(
-            margin: const EdgeInsets.only(right: 8),
-            padding: const EdgeInsets.all(6),
-            decoration: BoxDecoration(
-              color: AppColors.brand.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(AppRadius.sm),
-            ),
-            child: const Icon(Icons.tune, color: AppColors.brand, size: 18),
-          ),
           border: InputBorder.none,
           contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
         ),
@@ -354,12 +542,14 @@ class _SearchBar extends StatelessWidget {
 class _ModeToggle extends StatelessWidget {
   final String label;
   final String sublabel;
+  final IconData icon;
   final bool isSelected;
   final VoidCallback onTap;
 
   const _ModeToggle({
     required this.label,
     required this.sublabel,
+    required this.icon,
     required this.isSelected,
     required this.onTap,
   });
@@ -378,14 +568,12 @@ class _ModeToggle extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            if (isSelected) ...[
-              Icon(
-                label.contains('ML') ? Icons.auto_awesome : Icons.star,
-                size: 14,
-                color: Colors.white,
-              ),
-              const SizedBox(width: 5),
-            ],
+            Icon(
+              icon,
+              size: 14,
+              color: isSelected ? Colors.white : AppColors.textTertiary,
+            ),
+            const SizedBox(width: 6),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
@@ -404,6 +592,88 @@ class _ModeToggle extends StatelessWidget {
                   ),
                 ),
               ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _InfoTooltip extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+      richMessage: TextSpan(
+        children: [
+          TextSpan(
+            text: 'Curated\n',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+              fontSize: 13,
+            ),
+          ),
+          TextSpan(
+            text: 'Guides selected by our travel experts based on reviews and quality.',
+            style: TextStyle(color: Colors.white.withOpacity(0.9), fontSize: 12),
+          ),
+          TextSpan(
+            text: '\n\nSmart Match\n',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+              fontSize: 13,
+            ),
+          ),
+          TextSpan(
+            text: 'AI-powered recommendations personalized to your travel preferences and style.',
+            style: TextStyle(color: Colors.white.withOpacity(0.9), fontSize: 12),
+          ),
+        ],
+      ),
+      preferBelow: false,
+      child: IconBtn(
+        icon: Icons.info_outline,
+        onPressed: () {},
+      ),
+    );
+  }
+}
+
+class _QuickAction extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final Color color;
+  final VoidCallback onTap;
+
+  const _QuickAction({
+    required this.icon,
+    required this.label,
+    required this.color,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        decoration: BoxDecoration(
+          color: color.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(AppRadius.md),
+          border: Border.all(color: color.withOpacity(0.2)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, color: color, size: 24),
+            const SizedBox(height: 4),
+            Text(
+              label,
+              style: AppText.caption.copyWith(color: color, fontWeight: FontWeight.w600),
+              textAlign: TextAlign.center,
             ),
           ],
         ),

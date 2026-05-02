@@ -73,7 +73,7 @@ class ItineraryScreen extends ConsumerWidget {
                             const Spacer(),
                             IconButton(
                               icon: const Icon(Icons.notifications_outlined, color: Colors.white70),
-                              onPressed: () {},
+                              onPressed: () => context.push('/notifications'),
                             ),
                           ],
                         ),

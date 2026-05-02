@@ -45,7 +45,10 @@ class GuideDetailScreen extends ConsumerWidget {
   }
 
   Widget _buildContent(BuildContext context, Guide guide) {
-    return CustomScrollView(
+    return Stack(
+      children: [
+        Positioned.fill(
+          child: CustomScrollView(
       slivers: [
         SliverAppBar(
           expandedHeight: 300,
@@ -227,7 +230,62 @@ class GuideDetailScreen extends ConsumerWidget {
             ),
           ),
         ),
+        Positioned(
+          left: 0,
+          right: 0,
+          bottom: 0,
+          child: _BookNowBar(guideId: guide.id),
+        ),
       ],
+    );
+  }
+}
+
+class _BookNowBar extends StatelessWidget {
+  final String guideId;
+  const _BookNowBar({required this.guideId});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.fromLTRB(
+        AppSpacing.md,
+        AppSpacing.md,
+        AppSpacing.md,
+        AppSpacing.md + MediaQuery.of(context).padding.bottom,
+      ),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 16,
+            offset: const Offset(0, -4),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text('Starting from', style: AppText.caption),
+                Text(
+                  '\$45 / person',
+                  style: AppText.h3.copyWith(color: AppColors.brand),
+                ),
+              ],
+            ),
+          ),
+          PrimaryButton(
+            label: 'Book Now',
+            icon: Icons.calendar_today,
+            onPressed: () => context.push('/book/$guideId'),
+          ),
+        ],
+      ),
     );
   }
 }
