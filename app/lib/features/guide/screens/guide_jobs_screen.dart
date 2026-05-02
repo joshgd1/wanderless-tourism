@@ -397,6 +397,38 @@ class _BookingRow extends StatelessWidget {
               ),
             ],
           ),
+          if (status == 'REQUESTED') ...[
+            const SizedBox(height: AppSpacing.md),
+            const Divider(height: 1),
+            const SizedBox(height: AppSpacing.sm),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: () {},
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: AppColors.statusCancelled,
+                      side: const BorderSide(color: AppColors.statusCancelled),
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                    ),
+                    child: const Text('Decline', style: TextStyle(fontSize: 13)),
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.sm),
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () {},
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.statusConfirmed,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                    ),
+                    child: const Text('Accept', style: TextStyle(fontSize: 13)),
+                  ),
+                ),
+              ],
+            ),
+          ],
         ],
       ),
     );
