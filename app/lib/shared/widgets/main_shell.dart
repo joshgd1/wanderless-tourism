@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../../design_system.dart';
 
 class MainShell extends StatelessWidget {
   final Widget child;
@@ -96,7 +97,7 @@ class _NavItem extends StatelessWidget {
           children: [
             Icon(
               isSelected ? activeIcon : icon,
-              color: isSelected ? const Color(0xFF25D366) : Colors.grey[400],
+              color: isSelected ? AppColors.brand : Colors.grey[400],
               size: 26,
             ),
             const SizedBox(height: 4),
@@ -105,7 +106,7 @@ class _NavItem extends StatelessWidget {
               style: TextStyle(
                 fontSize: 11,
                 fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-                color: isSelected ? const Color(0xFF25D366) : Colors.grey[500],
+                color: isSelected ? AppColors.brand : Colors.grey[500],
               ),
             ),
           ],

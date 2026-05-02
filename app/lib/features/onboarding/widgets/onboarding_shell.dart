@@ -1,19 +1,16 @@
 import 'package:flutter/material.dart';
+import '../../../../design_system.dart';
 
 /// Animated dot step indicator for onboarding screens.
 /// Shows filled dots for completed steps, outlined for current, grey for future.
 class OnboardingStepper extends StatelessWidget {
   final int currentStep; // 0-indexed
   final int totalSteps;
-  final Color activeColor;
-  final Color inactiveColor;
 
   const OnboardingStepper({
     super.key,
     required this.currentStep,
     required this.totalSteps,
-    this.activeColor = const Color(0xFF25D366),
-    this.inactiveColor = const Color(0xFFE0E0E0),
   });
 
   @override
@@ -35,10 +32,10 @@ class OnboardingStepper extends StatelessWidget {
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(4),
                 color: isCompleted || isCurrent
-                    ? activeColor
-                    : inactiveColor,
+                    ? AppColors.brand
+                    : AppColors.border,
                 border: isCurrent
-                    ? Border.all(color: activeColor.withOpacity(0.3), width: 2)
+                    ? Border.all(color: AppColors.brand.withOpacity(0.3), width: 2)
                     : null,
               ),
             ),

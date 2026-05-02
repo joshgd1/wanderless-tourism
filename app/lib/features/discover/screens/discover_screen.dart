@@ -99,8 +99,8 @@ class DiscoverScreen extends ConsumerWidget {
                                 ),
                                 const Spacer(),
                                 _IconBtn(
-                                  icon: Icons.notifications_outlined,
-                                  onPressed: () {},
+                                  icon: Icons.settings_outlined,
+                                  onPressed: () => context.push('/settings'),
                                 ),
                               ],
                             ),

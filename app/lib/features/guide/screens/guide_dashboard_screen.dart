@@ -459,49 +459,11 @@ class _JobCard extends StatelessWidget {
     this.isHistory = false,
   });
 
-  Color _statusColor(String status) {
-    switch (status.toUpperCase()) {
-      case 'REQUESTED':
-        return AppColors.warning;
-      case 'CONFIRMED':
-        return AppColors.statusConfirmed;
-      case 'PAID':
-        return AppColors.statusPaid;
-      case 'IN_PROGRESS':
-        return AppColors.statusInProgress;
-      case 'COMPLETED':
-        return AppColors.success;
-      case 'CANCELLED':
-        return AppColors.error;
-      default:
-        return AppColors.textTertiary;
-    }
-  }
-
-  String _statusLabel(String status) {
-    switch (status.toUpperCase()) {
-      case 'REQUESTED':
-        return 'New Request';
-      case 'CONFIRMED':
-        return 'Confirmed';
-      case 'PAID':
-        return 'Paid';
-      case 'IN_PROGRESS':
-        return 'In Progress';
-      case 'COMPLETED':
-        return 'Completed';
-      case 'CANCELLED':
-        return 'Cancelled';
-      default:
-        return status;
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final status = booking['status'] as String;
     final isRequested = status == 'REQUESTED';
-    final statusColor = _statusColor(status);
+    final statusColor = BookingStatus.color(status);
 
     return AppCard(
       padding: const EdgeInsets.all(AppSpacing.md),
@@ -512,7 +474,7 @@ class _JobCard extends StatelessWidget {
           Row(
             children: [
               StatusBadge(
-                label: _statusLabel(status),
+                label: BookingStatus.label(status),
                 color: statusColor,
                 icon: isRequested ? Icons.fiber_manual_record : null,
               ),

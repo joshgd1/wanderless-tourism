@@ -1,5 +1,7 @@
+// NOTE: baseUrl is read from ApiConfig (SharedPreferences) at runtime.
+// Falls back to ApiConfig.defaultUrl (render.com) — this is a compile-time placeholder only.
 class ApiConstants {
-  static const String baseUrl = 'http://192.168.68.112:8000/api';
+  static const String baseUrl = 'https://wanderless-tourism.onrender.com/api';
 }
 
 class AppConstants {

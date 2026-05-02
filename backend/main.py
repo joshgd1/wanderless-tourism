@@ -4,11 +4,13 @@ Full auth: JWT-based tourist authentication + guide auth.
 """
 
 import logging
+import os
 import time
 import uuid
 from datetime import datetime, timedelta
 from contextlib import asynccontextmanager
 
+from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, Depends, Header, Request
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
@@ -18,11 +20,15 @@ from matching import compatibility_score, top_matches
 from ml import fit_recommender
 import models  # noqa: F401 — models registered with Base.metadata
 
+load_dotenv()
+
 logger = logging.getLogger("wanderless")
 logging.basicConfig(level=logging.INFO)
 
-# Auth configuration — change SECRET_KEY in production
-SECRET_KEY = "wanderless-dev-secret-change-in-production-min-32-chars"
+# Auth configuration — all secrets from environment
+SECRET_KEY = os.environ.get("SECRET_KEY", "wanderless-dev-secret-change-in-production-min-32-chars")
+ADMIN_TOKEN = os.environ.get("ADMIN_TOKEN", "wanderless-admin-token")
+ALLOWED_ORIGINS = os.environ.get("ALLOWED_ORIGINS", "*").split(",")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_HOURS = 24
 
@@ -123,7 +129,7 @@ def _get_guide_id_optional(authorization: str | None = Header(None)) -> str | No
 
 def _hash_password(password: str) -> str:
     import bcrypt
-    return bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt(rounds=12)).decode("utf-8")
+    return bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt(rounds=14)).decode("utf-8")
 
 
 def _verify_password(password: str, hashed: str) -> bool:
@@ -159,10 +165,11 @@ def _wallet_transaction(
     booking_id: int | None = None,
     description: str | None = None,
 ) -> models.WalletTransaction:
-    """Add a transaction record and update wallet balance atomically."""
-    wallet.balance += amount
-    if wallet.balance < 0:
+    """Add a transaction record and update wallet balance atomically.
+    Checks sufficient balance BEFORE debit to prevent race-condition overdrafts."""
+    if amount < 0 and wallet.balance + amount < 0:
         raise HTTPException(status_code=400, detail="Insufficient wallet balance")
+    wallet.balance += amount
     txn = models.WalletTransaction(
         wallet_id=wallet.id,
         txn_type=txn_type,
@@ -205,7 +212,7 @@ app = FastAPI(title="WanderLess API", version="0.2.0", lifespan=lifespan)
 # CORS — explicit origins only (no wildcard in production)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=ALLOWED_ORIGINS,
     allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -1782,7 +1789,7 @@ async def reseed_database(
     Reseed the database. Requires admin token in request body.
     """
     admin_token = data.get("admin_token") if data else None
-    if admin_token != "wanderless-admin-token":
+    if admin_token != ADMIN_TOKEN:
         raise HTTPException(status_code=403, detail="Invalid admin token")
     init_db(db)
     db.commit()

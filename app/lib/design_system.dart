@@ -540,6 +540,33 @@ class StatusBadge extends StatelessWidget {
   }
 }
 
+/// Shared booking status helpers — used across guide, business, and tourist screens.
+class BookingStatus {
+  static Color color(String status) {
+    switch (status.toUpperCase()) {
+      case 'REQUESTED': return AppColors.warning;
+      case 'CONFIRMED': return AppColors.statusConfirmed;
+      case 'PAID': return AppColors.statusPaid;
+      case 'IN_PROGRESS': return AppColors.statusInProgress;
+      case 'COMPLETED': return AppColors.success;
+      case 'CANCELLED': return AppColors.error;
+      default: return AppColors.textTertiary;
+    }
+  }
+
+  static String label(String status) {
+    switch (status.toUpperCase()) {
+      case 'REQUESTED': return 'New Request';
+      case 'CONFIRMED': return 'Confirmed';
+      case 'PAID': return 'Paid';
+      case 'IN_PROGRESS': return 'In Progress';
+      case 'COMPLETED': return 'Completed';
+      case 'CANCELLED': return 'Cancelled';
+      default: return status;
+    }
+  }
+}
+
 /// Avatar — circular with optional border
 class AppAvatar extends StatelessWidget {
   final String? imageUrl;
