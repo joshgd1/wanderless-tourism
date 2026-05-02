@@ -91,6 +91,9 @@ class BookingsScreen extends ConsumerWidget {
                         onTap: () => context.push(
                           '/itinerary/${booking.id}?guideId=${booking.guideId}',
                         ),
+                        onCancel: _canCancel(booking.status)
+                            ? () => _confirmAndUpdate(context, ref, booking)
+                            : null,
                       ),
                     );
                   },
@@ -101,6 +104,85 @@ class BookingsScreen extends ConsumerWidget {
         ],
       ),
     );
+  }
+
+  bool _canCancel(String status) {
+    return status.toUpperCase() == 'REQUESTED' ||
+        status.toUpperCase() == 'CONFIRMED';
+  }
+
+  Future<void> _confirmAndUpdate(
+    BuildContext context,
+    WidgetRef ref,
+    Booking booking,
+  ) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Cancel this trip?', style: AppText.h3),
+        content: Text(
+          booking.status.toUpperCase() == 'CONFIRMED'
+              ? 'Cancelling a confirmed booking may affect your refund. The guide will be notified.'
+              : 'Are you sure you want to cancel this booking request? The guide will be notified.',
+          style: AppText.body,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(
+              'Keep Booking',
+              style: AppText.label.copyWith(color: AppColors.textSecondary),
+            ),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: Text(
+              'Yes, Cancel',
+              style: AppText.label.copyWith(color: AppColors.error),
+            ),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+    await _cancelBooking(context, ref, booking);
+  }
+
+  Future<void> _cancelBooking(
+    BuildContext context,
+    WidgetRef ref,
+    Booking booking,
+  ) async {
+    try {
+      final api = ApiClient();
+      await api.updateBookingStatus(booking.id, 'CANCELLED');
+      ref.refresh(bookingsListProvider);
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('Booking cancelled'),
+            backgroundColor: AppColors.error,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(AppRadius.sm),
+            ),
+          ),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to cancel: $e'),
+            backgroundColor: AppColors.error,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(AppRadius.sm),
+            ),
+          ),
+        );
+      }
+    }
   }
 }
 
@@ -141,8 +223,13 @@ class _IconBtnState extends State<_IconBtn> {
 class _BookingCard extends StatelessWidget {
   final Booking booking;
   final VoidCallback onTap;
+  final VoidCallback? onCancel;
 
-  const _BookingCard({required this.booking, required this.onTap});
+  const _BookingCard({
+    required this.booking,
+    required this.onTap,
+    this.onCancel,
+  });
 
   Color _statusColor(String status) {
     switch (status.toUpperCase()) {
@@ -270,6 +357,18 @@ class _BookingCard extends StatelessWidget {
                 label: 'Track Tour',
                 icon: Icons.location_on,
                 onPressed: () => context.push('/track/${booking.id}'),
+              ),
+            ),
+          ],
+          if (onCancel != null) ...[
+            const SizedBox(height: AppSpacing.md),
+            SizedBox(
+              width: double.infinity,
+              child: SecondaryButton(
+                label: 'Cancel Trip',
+                icon: Icons.close,
+                color: AppColors.error,
+                onPressed: onCancel,
               ),
             ),
           ],
