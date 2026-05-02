@@ -229,74 +229,17 @@ class GuideDetailScreen extends ConsumerWidget {
                     ],
                   ),
                 ),
+              ),
+            ],
+          ),
         ),
         Positioned(
           left: 0,
           right: 0,
           bottom: 0,
-          child: _BookNowBar(guideId: guide.id, budgetTier: guide.budgetTier),
+          child: _BookNowBar(guideId: guide.id),
         ),
       ],
-    );
-  }
-}
-
-class _BookNowBar extends StatelessWidget {
-  final String guideId;
-  final String budgetTier;
-
-  const _BookNowBar({required this.guideId, required this.budgetTier});
-
-  String get _dailyRate {
-    switch (budgetTier.toLowerCase()) {
-      case 'budget': return '1,500';
-      case 'premium': return '6,000';
-      case 'mid':
-      default: return '3,000';
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.fromLTRB(
-        AppSpacing.md,
-        AppSpacing.md,
-        AppSpacing.md,
-        AppSpacing.md + MediaQuery.of(context).padding.bottom,
-      ),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 16,
-            offset: const Offset(0, -4),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text('From', style: AppText.caption),
-                Text(
-                  '฿$_dailyRate / day',
-                  style: AppText.h3.copyWith(color: AppColors.brand),
-                ),
-              ],
-            ),
-          ),
-          PrimaryButton(
-            label: 'Book Now',
-            icon: Icons.calendar_today,
-            onPressed: () => context.push('/book/$guideId'),
-          ),
-        ],
-      ),
     );
   }
 }
