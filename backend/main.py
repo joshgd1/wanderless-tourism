@@ -346,6 +346,7 @@ async def get_tourist(tid: str, db: Session = Depends(get_db)):
         "id": t.id,
         "email": t.email,
         "name": t.name,
+        "photo_url": t.photo_url or "",
         "food_interest": t.food_interest,
         "culture_interest": t.culture_interest,
         "adventure_interest": t.adventure_interest,

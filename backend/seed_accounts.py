@@ -18,7 +18,7 @@ from datetime import datetime, timedelta
 sys.path.insert(0, '.')
 
 from database import SessionLocal, init_db
-from models import Tourist, Guide, BusinessOwner, Booking
+from models import Tourist, Guide, BusinessOwner, Booking, LocationTracking
 
 TEST_PASSWORD_HASH = "$2b$12$eCcT/GO4Hj.fAqgihcxO/epKof8E9rxObeKjW9llKS7sViNyi7SX2"
 
@@ -49,13 +49,17 @@ def seed_test_business(db: SessionLocal):
 def seed_test_tourist(db: SessionLocal):
     existing = db.query(Tourist).filter_by(email="test@wanderless.com").first()
     if existing:
-        print(f"  Tourist already exists: {existing.id}")
+        print(f"  Tourist already exists: {existing.id} — updating fields")
+        existing.name = "Alex Traveler"
+        existing.photo_url = f"https://picsum.photos/seed/alex_tourist/400/400"
+        db.commit()
         return
     tourist = Tourist(
         id=f"T{uuid.uuid4().hex[:8].upper()}",
         email="test@wanderless.com",
         password_hash=TEST_PASSWORD_HASH,
-        name="Test Tourist",
+        name="Alex Traveler",
+        photo_url=f"https://picsum.photos/seed/alex_tourist/400/400",
         food_interest=0.5,
         culture_interest=0.5,
         adventure_interest=0.5,
@@ -97,6 +101,32 @@ def seed_test_guide(db: SessionLocal):
     db.commit()
     print(f"  Guide: guide@wanderless.com / wanderless123  (id={guide.id}, name={guide.name})")
     return guide
+
+
+def seed_fake_location_tracking(db: SessionLocal, guide: Guide, tourist: Tourist):
+    """Seed fake GPS location for demo — guide and tourist markers on the map."""
+    existing = db.query(LocationTracking).join(Booking).filter(
+        Booking.guide_id == guide.id
+    ).first()
+    if existing:
+        print(f"  Location tracking already exists for guide {guide.id}")
+        return
+    booking = db.query(Booking).filter_by(guide_id=guide.id).first()
+    if not booking:
+        print("  No booking found for location tracking seed")
+        return
+    loc = LocationTracking(
+        booking_id=booking.id,
+        # Guide at a popular temple viewpoint
+        guide_lat=18.8047,
+        guide_lng=98.9219,
+        # Tourist slightly south at a nearby point
+        tourist_lat=18.7923,
+        tourist_lng=98.9853,
+    )
+    db.add(loc)
+    db.commit()
+    print(f"  Fake location tracking seeded for booking {booking.id}")
 
 
 def seed_synthetic_bookings(db: SessionLocal, guide: Guide, tourist: Tourist):
@@ -161,6 +191,10 @@ def main():
     # Seed synthetic bookings for the guide
     if guide and tourist:
         seed_synthetic_bookings(db, guide, tourist)
+
+    # Seed fake GPS locations for map tracking demo
+    if guide and tourist:
+        seed_fake_location_tracking(db, guide, tourist)
 
     db.close()
     print("Done.")

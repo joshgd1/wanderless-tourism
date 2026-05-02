@@ -1,5 +1,7 @@
 class Tourist {
   final String id;
+  final String name;
+  final String photoUrl;
   final double foodInterest;
   final double cultureInterest;
   final double adventureInterest;
@@ -11,6 +13,8 @@ class Tourist {
 
   Tourist({
     required this.id,
+    required this.name,
+    required this.photoUrl,
     required this.foodInterest,
     required this.cultureInterest,
     required this.adventureInterest,
@@ -24,6 +28,8 @@ class Tourist {
   factory Tourist.fromJson(Map<String, dynamic> json) {
     return Tourist(
       id: json['id'] as String,
+      name: json['name'] as String? ?? 'Tourist',
+      photoUrl: json['photo_url'] as String? ?? '',
       foodInterest: (json['food_interest'] as num).toDouble(),
       cultureInterest: (json['culture_interest'] as num).toDouble(),
       adventureInterest: (json['adventure_interest'] as num).toDouble(),
@@ -37,6 +43,8 @@ class Tourist {
 
   Map<String, dynamic> toJson() => {
     'id': id,
+    'name': name,
+    'photo_url': photoUrl,
     'food_interest': foodInterest,
     'culture_interest': cultureInterest,
     'adventure_interest': adventureInterest,

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../../../../core/api_client.dart';
 import '../../../../core/auth_provider.dart';
 import '../../../../shared/models/tourist.dart';
@@ -27,7 +28,7 @@ class ProfileScreen extends ConsumerWidget {
         slivers: [
           // Dark header
           SliverAppBar(
-            expandedHeight: 120,
+            expandedHeight: 160,
             pinned: true,
             backgroundColor: const Color(0xFF1A2E1A),
             flexibleSpace: FlexibleSpaceBar(
@@ -40,30 +41,34 @@ class ProfileScreen extends ConsumerWidget {
                   ),
                 ),
                 child: SafeArea(
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            const Text(
-                              'Profile',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 24,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            const Spacer(),
-                            IconButton(
-                              icon: const Icon(Icons.edit_outlined, color: Colors.white),
-                              onPressed: () => context.go('/onboarding'),
-                            ),
-                          ],
+                  child: Stack(
+                    children: [
+                      // Floating avatar card
+                      Positioned(
+                        left: 16,
+                        top: 12,
+                        child: profileAsync.when(
+                          data: (tourist) {
+                            if (tourist == null) return const SizedBox.shrink();
+                            return _TouristFloatingCard(
+                              photoUrl: tourist.photoUrl,
+                              name: tourist.name,
+                            );
+                          },
+                          loading: () => const SizedBox.shrink(),
+                          error: (_, __) => const SizedBox.shrink(),
                         ),
-                      ],
-                    ),
+                      ),
+                      // Top-right edit button
+                      Positioned(
+                        right: 8,
+                        top: 8,
+                        child: IconButton(
+                          icon: const Icon(Icons.edit_outlined, color: Colors.white),
+                          onPressed: () => context.go('/onboarding'),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
@@ -120,15 +125,32 @@ class ProfileScreen extends ConsumerWidget {
                                 color: const Color(0xFF25D366).withOpacity(0.1),
                                 shape: BoxShape.circle,
                               ),
-                              child: const Icon(
-                                Icons.person,
-                                size: 40,
-                                color: Color(0xFF25D366),
-                              ),
+                              child: tourist.photoUrl.isNotEmpty
+                                  ? ClipOval(
+                                      child: CachedNetworkImage(
+                                        imageUrl: tourist.photoUrl,
+                                        fit: BoxFit.cover,
+                                        placeholder: (_, __) => const Icon(
+                                          Icons.person,
+                                          size: 40,
+                                          color: Color(0xFF25D366),
+                                        ),
+                                        errorWidget: (_, __, ___) => const Icon(
+                                          Icons.person,
+                                          size: 40,
+                                          color: Color(0xFF25D366),
+                                        ),
+                                      ),
+                                    )
+                                  : const Icon(
+                                      Icons.person,
+                                      size: 40,
+                                      color: Color(0xFF25D366),
+                                    ),
                             ),
                             const SizedBox(height: 16),
                             Text(
-                              'Tourist ${tourist.id}',
+                              tourist.name,
                               style: const TextStyle(
                                 fontSize: 20,
                                 fontWeight: FontWeight.bold,
@@ -352,6 +374,83 @@ class _InterestRow extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+class _TouristFloatingCard extends StatelessWidget {
+  final String photoUrl;
+  final String name;
+
+  const _TouristFloatingCard({
+    required this.photoUrl,
+    required this.name,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.black.withOpacity(0.55),
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.25),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 56,
+            height: 56,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(color: Colors.white, width: 2.5),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.3),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: ClipOval(
+              child: photoUrl.isNotEmpty
+                  ? CachedNetworkImage(
+                      imageUrl: photoUrl,
+                      fit: BoxFit.cover,
+                      placeholder: (_, __) => Container(
+                          color: Colors.grey[700],
+                          child: const Icon(Icons.person, color: Colors.white54, size: 28)),
+                      errorWidget: (_, __, ___) => Container(
+                          color: Colors.grey[700],
+                          child: const Icon(Icons.person, color: Colors.white54, size: 28)),
+                    )
+                  : Container(
+                      color: Colors.grey[700],
+                      child: const Icon(Icons.person, color: Colors.white54, size: 28),
+                    ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 140),
+            child: Text(
+              name,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              ),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

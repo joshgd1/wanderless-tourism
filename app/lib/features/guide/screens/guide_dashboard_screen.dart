@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../../../../core/api_client.dart';
 import '../../../../core/guide_auth_provider.dart';
 
@@ -10,6 +11,14 @@ final guideBookingsProvider = FutureProvider<List<Map<String, dynamic>>>((ref) a
   final api = ApiClient();
   final data = await api.getGuideBookings();
   return data.cast<Map<String, dynamic>>();
+});
+
+final guideMeProvider = FutureProvider<Map<String, dynamic>?>((ref) async {
+  final authState = ref.watch(guideAuthProvider);
+  if (authState.guideId == null) return null;
+  final api = ApiClient();
+  final data = await api.getGuideMe();
+  return data;
 });
 
 class GuideDashboardScreen extends ConsumerStatefulWidget {
@@ -38,6 +47,7 @@ class _GuideDashboardScreenState extends ConsumerState<GuideDashboardScreen> wit
   Widget build(BuildContext context) {
     final authState = ref.watch(guideAuthProvider);
     final bookingsAsync = ref.watch(guideBookingsProvider);
+    final guideMeAsync = ref.watch(guideMeProvider);
 
     return Scaffold(
       backgroundColor: const Color(0xFFF5F5F5),
@@ -45,9 +55,11 @@ class _GuideDashboardScreenState extends ConsumerState<GuideDashboardScreen> wit
         headerSliverBuilder: (context, innerBoxIsScrolled) {
           return [
             SliverAppBar(
-              expandedHeight: 120,
+              expandedHeight: 160,
               pinned: true,
               backgroundColor: const Color(0xFFED8A19),
+              leadingWidth: 0,
+              leading: const SizedBox.shrink(),
               flexibleSpace: FlexibleSpaceBar(
                 background: Container(
                   decoration: const BoxDecoration(
@@ -58,42 +70,42 @@ class _GuideDashboardScreenState extends ConsumerState<GuideDashboardScreen> wit
                     ),
                   ),
                   child: SafeArea(
-                    child: Padding(
-                      padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              const Text(
-                                'Guide Dashboard',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 24,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              const Spacer(),
-                              IconButton(
-                                icon: const Icon(Icons.logout, color: Colors.white),
-                                onPressed: () async {
-                                  await ref.read(guideAuthProvider.notifier).logout();
-                                  if (context.mounted) {
-                                    context.go('/guide/login');
-                                  }
-                                },
-                              ),
-                            ],
+                    child: Stack(
+                      children: [
+                        // Floating avatar card
+                        Positioned(
+                          left: 16,
+                          top: 12,
+                          child: guideMeAsync.when(
+                            data: (guide) {
+                              if (guide == null) return const SizedBox.shrink();
+                              return _GuideFloatingCard(
+                                photoUrl: guide['photo_url'] ?? '',
+                                name: guide['name'] ?? authState.guideName ?? 'Guide',
+                                ratingHistory: (guide['rating_history'] ?? 0.0).toDouble(),
+                                ratingCount: guide['rating_count'] ?? 0,
+                                licenseVerified: guide['license_verified'] ?? false,
+                              );
+                            },
+                            loading: () => const SizedBox.shrink(),
+                            error: (_, __) => const SizedBox.shrink(),
                           ),
-                          Text(
-                            'Welcome, ${authState.guideName ?? "Guide"}',
-                            style: TextStyle(
-                              color: Colors.white.withOpacity(0.8),
-                              fontSize: 14,
-                            ),
+                        ),
+                        // Top-right logout button
+                        Positioned(
+                          right: 8,
+                          top: 8,
+                          child: IconButton(
+                            icon: const Icon(Icons.logout, color: Colors.white),
+                            onPressed: () async {
+                              await ref.read(guideAuthProvider.notifier).logout();
+                              if (context.mounted) {
+                                context.go('/guide/login');
+                              }
+                            },
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
@@ -299,6 +311,143 @@ class _HistoryTab extends ConsumerWidget {
   }
 }
 
+class _GuideFloatingCard extends StatelessWidget {
+  final String photoUrl;
+  final String name;
+  final double ratingHistory;
+  final int ratingCount;
+  final bool licenseVerified;
+
+  const _GuideFloatingCard({
+    required this.photoUrl,
+    required this.name,
+    required this.ratingHistory,
+    required this.ratingCount,
+    required this.licenseVerified,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.black.withOpacity(0.55),
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.25),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 56,
+            height: 56,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(color: Colors.white, width: 2.5),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.3),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: ClipOval(
+              child: photoUrl.isNotEmpty
+                  ? CachedNetworkImage(
+                      imageUrl: photoUrl,
+                      fit: BoxFit.cover,
+                      placeholder: (_, __) => Container(
+                          color: Colors.grey[700],
+                          child: const Icon(Icons.person, color: Colors.white54, size: 28)),
+                      errorWidget: (_, __, ___) => Container(
+                          color: Colors.grey[700],
+                          child: const Icon(Icons.person, color: Colors.white54, size: 28)),
+                    )
+                  : Container(
+                      color: Colors.grey[700],
+                      child: const Icon(Icons.person, color: Colors.white54, size: 28),
+                    ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 140),
+                    child: Text(
+                      name,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  if (licenseVerified) ...[
+                    const SizedBox(width: 6),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFF25D366), Color(0xFF128C7E)],
+                        ),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.verified, size: 10, color: Colors.white),
+                          SizedBox(width: 3),
+                          Text(
+                            'Verified',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 9,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+              const SizedBox(height: 4),
+              Row(
+                children: [
+                  ...List.generate(ratingHistory.floor(), (i) {
+                    return const Icon(Icons.star, size: 14, color: Colors.amber);
+                  }),
+                  if (ratingHistory % 1 >= 0.5)
+                    const Icon(Icons.star_half, size: 14, color: Colors.amber),
+                  ...List.generate(5 - ratingHistory.ceil(), (i) {
+                    return Icon(Icons.star_border, size: 14, color: Colors.white.withOpacity(0.5));
+                  }),
+                  const SizedBox(width: 4),
+                  Text(
+                    '${ratingHistory.toStringAsFixed(1)} ($ratingCount)',
+                    style: TextStyle(color: Colors.white.withOpacity(0.8), fontSize: 11),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _GuideBookingCard extends StatelessWidget {
   final Map<String, dynamic> booking;
   final VoidCallback? onAccept;
@@ -420,7 +569,6 @@ class _GuideBookingCard extends StatelessWidget {
                       Text(
                         'Tourist',
                         style: TextStyle(fontSize: 12, color: Colors.grey[500]),
-                      ),
                       Text(
                         booking['tourist_name'] as String? ?? 'Unknown Tourist',
                         style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
