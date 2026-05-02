@@ -5,6 +5,7 @@ import '../../../../core/api_client.dart';
 import '../../../../core/auth_provider.dart';
 import '../../../../shared/models/trip_plan.dart';
 import '../../../../design_system.dart';
+import '../../../bookings/screens/bookings_screen.dart';
 
 final myTripPlansProvider = FutureProvider<List<TripPlan>>((ref) async {
   final authState = ref.watch(authProvider);
@@ -282,6 +283,7 @@ class TripPlanListScreen extends ConsumerWidget {
         'destination': plan.destination,
       });
       ref.invalidate(myTripPlansProvider);
+      ref.invalidate(bookingsListProvider);
       if (context.mounted) {
         Navigator.pop(sheetCtx);
         ScaffoldMessenger.of(context).showSnackBar(

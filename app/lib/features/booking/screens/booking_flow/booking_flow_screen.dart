@@ -5,9 +5,11 @@ import 'package:intl/intl.dart';
 import '../../../../core/api_client.dart';
 import '../../../../core/auth_provider.dart';
 import '../../../../design_system.dart';
+import '../../../bookings/screens/bookings_screen.dart';
 
 final selectedDateProvider = StateProvider<DateTime?>((_) => null);
 final selectedGroupSizeProvider = StateProvider<int>((_) => 1);
+final selectedDurationProvider = StateProvider<double>((_) => 2.0);
 
 final _guideBudgetProvider = FutureProvider.family<String, String>((ref, guideId) async {
   final api = ApiClient();
@@ -50,14 +52,16 @@ class _BookingFlowScreenState extends ConsumerState<BookingFlowScreen> {
       }
       final date = ref.read(selectedDateProvider)!;
       final groupSize = ref.read(selectedGroupSizeProvider);
+      final duration = ref.read(selectedDurationProvider);
       final api = ApiClient();
       final result = await api.createBooking({
         'tourist_id': touristId,
         'guide_id': widget.guideId,
         'tour_date': DateFormat('yyyy-MM-dd').format(date),
-        'duration_hours': 4.0,
+        'duration_hours': duration,
         'group_size': groupSize,
       });
+      ref.invalidate(bookingsListProvider);
       if (mounted) {
         final bookingId = result['id'] as int;
         context.go('/itinerary/$bookingId?guideId=${widget.guideId}');
@@ -165,6 +169,7 @@ class _ConfirmStep extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final date = ref.watch(selectedDateProvider);
     final groupSize = ref.watch(selectedGroupSizeProvider);
+    final duration = ref.watch(selectedDurationProvider);
     final budgetAsync = ref.watch(_guideBudgetProvider(guideId));
 
     return Padding(
@@ -187,7 +192,7 @@ class _ConfirmStep extends ConsumerWidget {
                   value: '$groupSize ${groupSize == 1 ? 'person' : 'people'}',
                 ),
                 const Divider(height: AppSpacing.md),
-                const _InfoRow(label: 'Duration', value: '4 hours'),
+                _DurationSelector(duration: duration),
                 const Divider(height: AppSpacing.md),
                 budgetAsync.when(
                   data: (budget) {
@@ -250,6 +255,54 @@ class _InfoRow extends StatelessWidget {
           Text(
             value,
             style: AppText.labelBold.copyWith(color: valueColor),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _DurationSelector extends ConsumerWidget {
+  final double duration;
+
+  const _DurationSelector({required this.duration});
+
+  static const _durations = [2.0, 4.0, 6.0, 8.0];
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text('Duration', style: AppText.label),
+          Row(
+            children: _durations.map((d) {
+              final isSelected = d == duration;
+              return Padding(
+                padding: const EdgeInsets.only(left: 8),
+                child: GestureDetector(
+                  onTap: () => ref.read(selectedDurationProvider.notifier).state = d,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: isSelected ? AppColors.brand : AppColors.surfaceSecondary,
+                      borderRadius: BorderRadius.circular(AppRadius.full),
+                      border: Border.all(
+                        color: isSelected ? AppColors.brand : AppColors.border,
+                      ),
+                    ),
+                    child: Text(
+                      '${d.toInt()}h',
+                      style: AppText.label.copyWith(
+                        color: isSelected ? Colors.white : AppColors.textSecondary,
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            }).toList(),
           ),
         ],
       ),

@@ -20,6 +20,8 @@ class _GuideRegisterScreenState extends ConsumerState<GuideRegisterScreen> {
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
   final _bioController = TextEditingController();
+  String _selectedLanguagePair = 'en→th';
+  final Set<String> _selectedSpecialties = {'local_culture', 'food_tours', 'history'};
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
   bool _isLoading = false;
@@ -52,6 +54,8 @@ class _GuideRegisterScreenState extends ConsumerState<GuideRegisterScreen> {
           'email': _emailController.text.trim(),
           'password': _passwordController.text,
           'bio': _bioController.text.trim(),
+          'language_pair': _selectedLanguagePair,
+          'specialties': _selectedSpecialties.join('|'),
         }),
       );
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -288,6 +292,10 @@ class _GuideRegisterScreenState extends ConsumerState<GuideRegisterScreen> {
             prefix: const Icon(Icons.description_outlined, size: 18, color: AppColors.textTertiary),
             maxLines: 3,
           ),
+          const SizedBox(height: AppSpacing.md),
+          _buildLanguageSelector(),
+          const SizedBox(height: AppSpacing.md),
+          _buildSpecialtySelector(),
           const SizedBox(height: AppSpacing.lg),
           SizedBox(
             width: double.infinity,
@@ -312,6 +320,95 @@ class _GuideRegisterScreenState extends ConsumerState<GuideRegisterScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildLanguageSelector() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Languages', style: AppText.bodySmall.copyWith(color: AppColors.textSecondary)),
+        const SizedBox(height: 8),
+        Container(
+          decoration: BoxDecoration(
+            color: AppColors.surface,
+            borderRadius: BorderRadius.circular(AppRadius.sm),
+            border: Border.all(color: AppColors.border),
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          child: DropdownButtonHideUnderline(
+            child: DropdownButton<String>(
+              value: _selectedLanguagePair,
+              isExpanded: true,
+              dropdownColor: AppColors.surface,
+              items: const [
+                DropdownMenuItem(value: 'en→th', child: Text('English → Thai')),
+                DropdownMenuItem(value: 'en→zh', child: Text('English → Chinese')),
+                DropdownMenuItem(value: 'en→ja', child: Text('English → Japanese')),
+                DropdownMenuItem(value: 'en→ko', child: Text('English → Korean')),
+                DropdownMenuItem(value: 'en→vi', child: Text('English → Vietnamese')),
+                DropdownMenuItem(value: 'en→es', child: Text('English → Spanish')),
+                DropdownMenuItem(value: 'en→fr', child: Text('English → French')),
+                DropdownMenuItem(value: 'th→en', child: Text('Thai → English')),
+                DropdownMenuItem(value: 'zh→en', child: Text('Chinese → English')),
+                DropdownMenuItem(value: 'ja→en', child: Text('Japanese → English')),
+              ],
+              onChanged: (v) { if (v != null) setState(() => _selectedLanguagePair = v); },
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSpecialtySelector() {
+    final allSpecialties = ['local_culture', 'food_tours', 'history', 'nature', 'adventure', 'nightlife'];
+    final specialtyLabels = {
+      'local_culture': 'Local Culture',
+      'food_tours': 'Food Tours',
+      'history': 'History',
+      'nature': 'Nature',
+      'adventure': 'Adventure',
+      'nightlife': 'Nightlife',
+    };
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Specialties', style: AppText.bodySmall.copyWith(color: AppColors.textSecondary)),
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: allSpecialties.map((s) {
+            final selected = _selectedSpecialties.contains(s);
+            return GestureDetector(
+              onTap: () {
+                setState(() {
+                  if (selected) {
+                    _selectedSpecialties.remove(s);
+                  } else {
+                    _selectedSpecialties.add(s);
+                  }
+                });
+              },
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: selected ? AppColors.brand : AppColors.surface,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: selected ? AppColors.brand : AppColors.border),
+                ),
+                child: Text(
+                  specialtyLabels[s] ?? s,
+                  style: AppText.bodySmall.copyWith(
+                    color: selected ? Colors.white : AppColors.textSecondary,
+                  ),
+                ),
+              ),
+            );
+          }).toList(),
+        ),
+      ],
     );
   }
 

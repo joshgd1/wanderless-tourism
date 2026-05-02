@@ -220,7 +220,7 @@ class ExperienceTypeScreen extends ConsumerWidget {
         border: Border.all(color: AppColors.border),
       ),
       child: IconButton(
-        onPressed: () => context.go('/onboarding'),
+        onPressed: () => context.go('/onboarding/interests'),
         icon: const Icon(Icons.arrow_back, size: 18),
         color: AppColors.textSecondary,
       ),

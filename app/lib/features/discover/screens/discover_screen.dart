@@ -157,6 +157,44 @@ class DiscoverScreen extends ConsumerWidget {
                             },
                           ),
                         ),
+                        const SizedBox(width: 4),
+                        Tooltip(
+                          richMessage: TextSpan(
+                            children: [
+                              TextSpan(
+                                text: 'Curated\n',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                  fontSize: 13,
+                                ),
+                              ),
+                              TextSpan(
+                                text: 'Guides selected by our travel experts based on reviews and quality.',
+                                style: TextStyle(color: Colors.white.withOpacity(0.9), fontSize: 12),
+                              ),
+                              TextSpan(
+                                text: '\n\nAI Match\n',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                  fontSize: 13,
+                                ),
+                              ),
+                              TextSpan(
+                                text: 'Personalized recommendations using machine learning to match your preferences.',
+                                style: TextStyle(color: Colors.white.withOpacity(0.9), fontSize: 12),
+                              ),
+                            ],
+                          ),
+                          preferBelow: false,
+                          child: IconBtn(
+                            icon: Icons.info_outline,
+                            size: 18,
+                            color: AppColors.textTertiary,
+                            onPressed: () {},
+                          ),
+                        ),
                       ],
                     ),
                   ),
