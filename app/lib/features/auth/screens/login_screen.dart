@@ -80,7 +80,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           height: 1.1,
                         ),
                       ),
-                      const SizedBox(height: AppSpacing.lg),
+                      const SizedBox(height: AppSpacing.md),
                       Text(
                         'Connect with local guides across\nSoutheast Asia — from Bangkok temples\nto Bali beaches.',
                         style: AppText.body.copyWith(
@@ -89,7 +89,31 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           height: 1.6,
                         ),
                       ),
-                      const SizedBox(height: AppSpacing.xxl),
+                      const SizedBox(height: AppSpacing.xl),
+                      // Tagline
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: AppColors.brand.withOpacity(0.15),
+                          borderRadius: BorderRadius.circular(AppRadius.full),
+                          border: Border.all(color: AppColors.brand.withOpacity(0.3)),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text('🌿', style: TextStyle(fontSize: 16)),
+                            const SizedBox(width: 8),
+                            Text(
+                              'Wander less. Worry less.',
+                              style: AppText.label.copyWith(
+                                color: AppColors.brand,
+                                fontStyle: FontStyle.italic,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: AppSpacing.lg),
                       _buildFeaturePills(),
                     ],
                   ),
@@ -179,7 +203,22 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text('Sign in', style: AppText.display),
-                const SizedBox(height: 6),
+                const SizedBox(height: 4),
+                // Tagline
+                Row(
+                  children: [
+                    Text('🌿', style: TextStyle(fontSize: 14)),
+                    const SizedBox(width: 6),
+                    Text(
+                      'Wander less. Worry less.',
+                      style: AppText.bodySmall.copyWith(
+                        color: AppColors.brand,
+                        fontStyle: FontStyle.italic,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
                 Text(
                   'Welcome back.',
                   style: AppText.body.copyWith(color: AppColors.textSecondary),

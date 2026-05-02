@@ -536,6 +536,13 @@ class _BookingRow extends StatelessWidget {
     final status = booking['status'] as String;
     final statusColor = _statusColor(status);
 
+    // Extract names for flag display
+    final guideName = booking['guide_name'] as String? ?? 'Guide';
+    final touristName = booking['tourist_name'] as String? ?? 'Tourist';
+    final guideFlag = CountryFlags.fromName(guideName);
+    final touristFlag = CountryFlags.fromFirstName(touristName.split(' ').first);
+    final destinationFlag = CountryFlags.fromLocation(booking['destination'] as String? ?? '');
+
     return Container(
       decoration: BoxDecoration(
         color: AppColors.surface,
@@ -549,10 +556,18 @@ class _BookingRow extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  booking['guide_name'] as String? ?? 'Guide',
-                  style: AppText.label,
-                  overflow: TextOverflow.ellipsis,
+                Row(
+                  children: [
+                    Text(guideFlag, style: const TextStyle(fontSize: 12)),
+                    const SizedBox(width: 4),
+                    Expanded(
+                      child: Text(
+                        guideName.split(' ').first,
+                        style: AppText.label,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
                 ),
                 Text(
                   booking['tour_type'] as String? ?? '',
@@ -563,11 +578,19 @@ class _BookingRow extends StatelessWidget {
           ),
           SizedBox(
             width: 70,
-            child: Text(
-              (booking['tour_date'] as String? ?? '').isNotEmpty
-                  ? (booking['tour_date'] as String).substring(5)
-                  : '',
-              style: AppText.caption,
+            child: Column(
+              children: [
+                Text(
+                  destinationFlag,
+                  style: const TextStyle(fontSize: 14),
+                ),
+                Text(
+                  (booking['tour_date'] as String? ?? '').isNotEmpty
+                      ? (booking['tour_date'] as String).substring(5)
+                      : '',
+                  style: AppText.caption,
+                ),
+              ],
             ),
           ),
           Expanded(
@@ -579,9 +602,18 @@ class _BookingRow extends StatelessWidget {
                   style: AppText.label,
                   overflow: TextOverflow.ellipsis,
                 ),
-                Text(
-                  booking['tourist_name'] as String? ?? '',
-                  style: AppText.caption,
+                Row(
+                  children: [
+                    Text(touristFlag, style: const TextStyle(fontSize: 12)),
+                    const SizedBox(width: 4),
+                    Expanded(
+                      child: Text(
+                        touristName,
+                        style: AppText.caption,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),

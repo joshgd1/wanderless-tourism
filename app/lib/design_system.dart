@@ -762,3 +762,278 @@ class AppLoading extends StatelessWidget {
     );
   }
 }
+
+/// Country flag helper for smart nationality detection
+class CountryFlags {
+  /// Get country flag emoji from a name, location, or country hint
+  static String fromName(String name) {
+    final lower = name.toLowerCase();
+
+    // Balinese/Indonesian name patterns
+    if (_isBalineseName(lower)) return '🇮🇩';
+
+    // Thai name patterns
+    if (_isThaiName(lower)) return '🇹🇭';
+
+    // Vietnamese name patterns
+    if (_isVietnameseName(lower)) return '🇻🇳';
+
+    // Filipino name patterns
+    if (_isFilipinoName(lower)) return '🇵🇭';
+
+    // Malay name patterns
+    if (_isMalayName(lower)) return '🇲🇾';
+
+    // Myanmar name patterns
+    if (_isMyanmarName(lower)) return '🇲🇲';
+
+    // Chinese name patterns
+    if (_isChineseName(lower)) return '🇨🇳';
+
+    // Korean name patterns
+    if (_isKoreanName(lower)) return '🇰🇷';
+
+    // Japanese name patterns
+    if (_isJapaneseName(lower)) return '🇯🇵';
+
+    // Indian name patterns
+    if (_isIndianName(lower)) return '🇮🇳';
+
+    // Western/European names
+    if (_isWesternName(lower, name)) return '🇬🇧';
+
+    // Default to globe
+    return '🌏';
+  }
+
+  /// Get country flag from location string (e.g., "Bangkok", "Bali")
+  static String fromLocation(String location) {
+    final lower = location.toLowerCase();
+
+    // Indonesia
+    if (lower.contains('bali') || lower.contains('jakarta') ||
+        lower.contains('yogyakarta') || lower.contains('surabaya') ||
+        lower.contains('nusapenida') || lower.contains('ubud')) {
+      return '🇮🇩';
+    }
+
+    // Thailand
+    if (lower.contains('bangkok') || lower.contains('chiang mai') ||
+        lower.contains('phuket') || lower.contains('samui') ||
+        lower.contains('pattaya') || lower.contains('krabi')) {
+      return '🇹🇭';
+    }
+
+    // Vietnam
+    if (lower.contains('hanoi') || lower.contains('ho chi minh') ||
+        lower.contains('danang') || lower.contains('hoi an')) {
+      return '🇻🇳';
+    }
+
+    // Philippines
+    if (lower.contains('cebu') || lower.contains('boracay') ||
+        lower.contains('palawan') || lower.contains('manila')) {
+      return '🇵🇭';
+    }
+
+    // Malaysia
+    if (lower.contains('kuala lumpur') || lower.contains('penang') ||
+        lower.contains('langkawi') || lower.contains('malacca')) {
+      return '🇲🇾';
+    }
+
+    // Singapore
+    if (lower.contains('singapore') || lower.contains('sentosa')) {
+      return '🇸🇬';
+    }
+
+    // Myanmar
+    if (lower.contains('yangon') || lower.contains('bagan') ||
+        lower.contains('mandalay')) {
+      return '🇲🇲';
+    }
+
+    // Laos
+    if (lower.contains('vientiane') || lower.contains('luang prabang')) {
+      return '🇱🇦';
+    }
+
+    // Cambodia
+    if (lower.contains('siem reap') || lower.contains('phnom penh')) {
+      return '🇰🇭';
+    }
+
+    // Japan
+    if (lower.contains('tokyo') || lower.contains('osaka') ||
+        lower.contains('kyoto') || lower.contains('bali')) {
+      return '🇯🇵';
+    }
+
+    return '🌏';
+  }
+
+  /// Get country flag from first name only (for tourists)
+  static String fromFirstName(String firstName) {
+    final lower = firstName.toLowerCase();
+
+    // Common first names by nationality
+    final americanBritish = [
+      'sarah', 'michael', 'james', 'emma', 'david', 'lisa', 'john',
+      'jennifer', 'william', 'elizabeth', 'richard', 'jessica', 'tom',
+      'ryan', 'sophie', 'olivia', 'james', 'benjamin', 'lucy', 'hannah',
+      'samuel', 'margaret', 'anne', 'simon', 'charlotte', 'emily',
+      'daniel', 'george', 'harry', 'jack', 'oliver'
+    ];
+
+    final german = [
+      'michael', 'thomas', 'andreas', 'stefan', 'werner', 'heinrich',
+      'max', 'hans', 'franz', 'klaus', 'uwe', 'dirk', 'thorsten'
+    ];
+
+    final french = [
+      'jean', 'pierre', 'marc', 'philippe', 'nicolas', 'antoine',
+      'marie', 'claire', 'sophie', 'cecile', 'nathalie', 'isabelle'
+    ];
+
+    final spanish = [
+      'juan', 'carlos', 'miguel', 'francisco', 'david', 'javier',
+      'maria', 'ana', 'carmen', 'isabel', 'elena', 'rosa'
+    ];
+
+    final italian = [
+      'marco', 'luca', 'giovanni', 'paolo', 'stefano', 'andrea',
+      'maría', 'giulia', 'sara', 'chiara', 'francesca', 'laura'
+    ];
+
+    final chinese = [
+      'wei', 'ming', 'fang', 'mei', 'hong', 'jun', 'hui',
+      'yan', 'jing', 'bo', 'yu', 'li', 'wang', 'zhang'
+    ];
+
+    final japanese = [
+      'yuki', 'kenji', 'takeshi', 'akira', 'haruki', 'sota',
+      'sakura', 'hinata', 'yuna', 'aoi', 'mika', 'ren'
+    ];
+
+    final korean = [
+      'min-jun', 'seo-yeon', 'ji-ho', 'yeon', 'ho-jin', 'seo',
+      'min', 'ji', 'sung', 'kim', 'park', 'choi'
+    ];
+
+    final indian = [
+      'arjun', 'rahul', 'vijay', 'amit', 'vikram', 'raj',
+      'priya', 'anita', 'sunita', 'kavita', 'deepa', 'meera'
+    ];
+
+    if (americanBritish.contains(lower)) return '🇺🇸';
+    if (german.contains(lower)) return '🇩🇪';
+    if (french.contains(lower)) return '🇫🇷';
+    if (spanish.contains(lower)) return '🇪🇸';
+    if (italian.contains(lower)) return '🇮🇹';
+    if (chinese.contains(lower)) return '🇨🇳';
+    if (japanese.contains(lower)) return '🇯🇵';
+    if (korean.contains(lower)) return '🇰🇷';
+    if (indian.contains(lower)) return '🇮🇳';
+
+    // Default to US/UK for western names
+    return '🌏';
+  }
+
+  static bool _isBalineseName(String name) {
+    final balinesePrefixes = ['wayan', 'made', 'ketut', 'nyoman', 'putu', 'gede', 'komang', 'agung', 'putra'];
+    for (final prefix in balinesePrefixes) {
+      if (name.startsWith('$prefix ') || name.startsWith(prefix)) return true;
+    }
+    return false;
+  }
+
+  static bool _isThaiName(String name) {
+    final thaiPatterns = ['somchai', 'somsri', 'chai', 'suda', 'porntip', 'montri', 'anucha', 'krit', 'kriangsak'];
+    for (final p in thaiPatterns) {
+      if (name.contains(p)) return true;
+    }
+    return false;
+  }
+
+  static bool _isVietnameseName(String name) {
+    final vietnamesePatterns = ['nguyen', 'tran', 'pham', 'le', 'hoang', 'vu', 'dang', 'bui', 'do', 'ho'];
+    for (final p in vietnamesePatterns) {
+      if (name.startsWith(p) || name.contains(' $p')) return true;
+    }
+    return false;
+  }
+
+  static bool _isFilipinoName(String name) {
+    final filipinoPatterns = ['jose', 'maria', 'juan', 'pedro', 'ana', 'carlos', 'ramon', 'fernando', 'rodrigo'];
+    for (final p in filipinoPatterns) {
+      if (name.startsWith(p) || name.startsWith('$p ')) return true;
+    }
+    return false;
+  }
+
+  static bool _isMalayName(String name) {
+    final malayPatterns = ['ahmad', 'muhammad', 'abdullah', 'zainal', 'haziq', 'aidil', 'fikri', 'akmal'];
+    for (final p in malayPatterns) {
+      if (name.startsWith(p)) return true;
+    }
+    return false;
+  }
+
+  static bool _isMyanmarName(String name) {
+    final myanmarPatterns = ['maung', 'ko', 'u', 'saw', 'kya', 'thu', 'myo', 'tun', 'aung', 'zaw'];
+    for (final p in myanmarPatterns) {
+      if (name.startsWith('$p ') || name.startsWith(p)) return true;
+    }
+    return false;
+  }
+
+  static bool _isChineseName(String name) {
+    final chineseSurnames = ['wang', 'li', 'zhang', 'liu', 'chen', 'yang', 'huang', 'zhao', 'wu', 'xu', 'sun', 'ma', 'zhu', 'hu', 'guo', 'he'];
+    for (final s in chineseSurnames) {
+      if (name.startsWith('$s ') || name.startsWith(s)) return true;
+    }
+    return false;
+  }
+
+  static bool _isKoreanName(String name) {
+    final koreanSurnames = ['kim', 'lee', 'park', 'choi', 'jung', 'kang', 'yoon', 'jang', 'lim'];
+    for (final s in koreanSurnames) {
+      if (name.startsWith('$s ') || name.startsWith(s)) return true;
+    }
+    return false;
+  }
+
+  static bool _isJapaneseName(String name) {
+    final japaneseSuffixes = ['ko', 'ki', 'mi', 'ya', 'ta', 'na', 'ra', 'shi', 'to', 'no', 'ri'];
+    final parts = name.split(' ');
+    if (parts.length >= 2) {
+      final lastPart = parts.last.toLowerCase();
+      for (final suffix in japaneseSuffixes) {
+        if (lastPart.endsWith(suffix) && lastPart.length > 2) return true;
+      }
+    }
+    return false;
+  }
+
+  static bool _isIndianName(String name) {
+    final indianPrefixes = ['arjun', 'rahul', 'vikram', 'amit', 'priya', 'anita', 'sunita', 'deepa', 'neha', 'kiran', 'raj', 'amit', 'sumit', 'vijay'];
+    for (final p in indianPrefixes) {
+      if (name.startsWith('$p ') || name.startsWith(p)) return true;
+    }
+    return false;
+  }
+
+  static bool _isWesternName(String lower, String original) {
+    // Check if mostly ASCII letters (western names rarely have unicode in first name position)
+    final firstName = original.split(' ').first;
+    final isAscii = firstName.runes.every((r) => r < 128);
+    if (!isAscii) return false;
+
+    // Common western first names
+    final western = ['sarah', 'michael', 'emma', 'james', 'david', 'lisa', 'john', 'jennifer', 'william', 'elizabeth', 'richard', 'jessica', 'tom', 'ryan', 'sophie', 'olivia', 'benjamin', 'lucy', 'anna', 'nicholas', 'peter', 'paul', 'andrew', 'stuart', 'mark', 'robert', 'mary', 'patricia', 'barbara', 'susan', 'margaret', 'dorothy', 'harry', 'oliver', 'jack', 'george', 'charlotte', 'amelia', 'isabella', 'harriet', 'catherine', 'thomas', 'charles', 'samuel', 'ethan', 'jacob', 'mason', 'logan', 'alexander', 'henry', 'oscar', 'lucas', 'matthew'];
+    for (final name in western) {
+      if (lower.startsWith('$name ') || lower.startsWith(name)) return true;
+    }
+    return false;
+  }
+}

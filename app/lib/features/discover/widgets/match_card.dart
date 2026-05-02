@@ -75,6 +75,11 @@ class MatchCard extends StatelessWidget {
                   children: [
                     Row(
                       children: [
+                        Text(
+                          CountryFlags.fromName(guide.name),
+                          style: const TextStyle(fontSize: 16),
+                        ),
+                        const SizedBox(width: 6),
                         Expanded(
                           child: Text(guide.name, style: AppText.labelBold),
                         ),

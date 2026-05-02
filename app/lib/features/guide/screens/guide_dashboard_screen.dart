@@ -166,6 +166,7 @@ class _GuideProfileCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final flag = CountryFlags.fromName(name);
     return Row(
       children: [
         // Avatar
@@ -194,6 +195,8 @@ class _GuideProfileCard extends StatelessWidget {
           children: [
             Row(
               children: [
+                Text(flag, style: const TextStyle(fontSize: 18)),
+                const SizedBox(width: 6),
                 Text(
                   name,
                   style: AppText.labelBold.copyWith(color: Colors.white, fontSize: 15),
