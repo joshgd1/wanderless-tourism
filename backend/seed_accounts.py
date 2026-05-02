@@ -51,7 +51,6 @@ def seed_test_tourist(db: SessionLocal):
     if existing:
         print(f"  Tourist already exists: {existing.id} — updating fields")
         existing.name = "Alex Traveler"
-        existing.photo_url = f"https://picsum.photos/seed/alex_tourist/400/400"
         db.commit()
         return
     tourist = Tourist(
@@ -59,7 +58,6 @@ def seed_test_tourist(db: SessionLocal):
         email="test@wanderless.com",
         password_hash=TEST_PASSWORD_HASH,
         name="Alex Traveler",
-        photo_url=f"https://picsum.photos/seed/alex_tourist/400/400",
         food_interest=0.5,
         culture_interest=0.5,
         adventure_interest=0.5,
