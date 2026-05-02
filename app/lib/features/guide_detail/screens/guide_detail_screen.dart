@@ -49,186 +49,186 @@ class GuideDetailScreen extends ConsumerWidget {
       children: [
         Positioned.fill(
           child: CustomScrollView(
-      slivers: [
-        SliverAppBar(
-          expandedHeight: 300,
-          pinned: true,
-          backgroundColor: AppColors.textPrimary,
-          leadingWidth: 0,
-          leading: const SizedBox.shrink(),
-          flexibleSpace: FlexibleSpaceBar(
-            background: Stack(
-              fit: StackFit.expand,
-              children: [
-                CachedNetworkImage(
-                  imageUrl: guide.photoUrl,
-                  fit: BoxFit.cover,
-                  placeholder: (_, __) => Container(color: AppColors.textSecondary),
-                  errorWidget: (_, __, ___) => Container(color: AppColors.textSecondary),
-                ),
-                Container(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [
-                        Colors.black.withOpacity(0.3),
-                        Colors.transparent,
-                        Colors.black.withOpacity(0.5),
-                      ],
-                      stops: const [0.0, 0.4, 1.0],
-                    ),
-                  ),
-                ),
-                Positioned(
-                  top: MediaQuery.of(context).padding.top + 8,
-                  left: 16,
-                  child: _FloatingBackButton(onTap: () => context.pop()),
-                ),
-                Positioned(
-                  left: 16,
-                  top: MediaQuery.of(context).padding.top + 60,
-                  child: _GuideFloatingCard(guide: guide),
-                ),
-              ],
-            ),
-          ),
-        ),
-        SliverToBoxAdapter(
-          child: Container(
-            decoration: BoxDecoration(
-              color: AppColors.background,
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(AppRadius.lg)),
-            ),
-            padding: const EdgeInsets.all(AppSpacing.lg),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: _InfoCard(
-                        icon: Icons.translate,
-                        color: AppColors.success,
-                        title: 'Languages',
-                        value: guide.languagePairs.isNotEmpty
-                            ? '${_uniqueLanguages(guide.languagePairs)}'
-                            : '1',
-                        subtitle: 'languages',
+            slivers: [
+              SliverAppBar(
+                expandedHeight: 300,
+                pinned: true,
+                backgroundColor: AppColors.textPrimary,
+                leadingWidth: 0,
+                leading: const SizedBox.shrink(),
+                flexibleSpace: FlexibleSpaceBar(
+                  background: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      CachedNetworkImage(
+                        imageUrl: guide.photoUrl,
+                        fit: BoxFit.cover,
+                        placeholder: (_, __) => Container(color: AppColors.textSecondary),
+                        errorWidget: (_, __, ___) => Container(color: AppColors.textSecondary),
                       ),
-                    ),
-                    const SizedBox(width: AppSpacing.sm),
-                    Expanded(
-                      child: _InfoCard(
-                        icon: Icons.group,
-                        color: AppColors.info,
-                        title: 'Max Group',
-                        value: '${guide.groupSizePreferred}',
-                        subtitle: 'people',
-                      ),
-                    ),
-                    const SizedBox(width: AppSpacing.sm),
-                    Expanded(
-                      child: _InfoCard(
-                        icon: Icons.account_balance_wallet,
-                        color: Colors.orange,
-                        title: 'Budget',
-                        value: guide.budgetTier[0].toUpperCase(),
-                        subtitle: guide.budgetTier.substring(1),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: AppSpacing.lg),
-                _SectionHeader(label: 'About', icon: Icons.person_outline),
-                const SizedBox(height: AppSpacing.sm),
-                AppCard(
-                  child: Text(guide.bio, style: AppText.body.copyWith(height: 1.6)),
-                ),
-                if (guide.expertiseTags.isNotEmpty) ...[
-                  const SizedBox(height: AppSpacing.lg),
-                  _SectionHeader(label: 'Expertise', icon: Icons.star_outline),
-                  const SizedBox(height: AppSpacing.sm),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: guide.expertiseTags.map((tag) {
-                      return Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      Container(
                         decoration: BoxDecoration(
-                          color: AppColors.brand.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(AppRadius.full),
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [
+                              Colors.black.withOpacity(0.3),
+                              Colors.transparent,
+                              Colors.black.withOpacity(0.5),
+                            ],
+                            stops: const [0.0, 0.4, 1.0],
+                          ),
                         ),
-                        child: Text(
-                          tag,
-                          style: AppText.label.copyWith(color: AppColors.brand),
-                        ),
-                      );
-                    }).toList(),
+                      ),
+                      Positioned(
+                        top: MediaQuery.of(context).padding.top + 8,
+                        left: 16,
+                        child: _FloatingBackButton(onTap: () => context.pop()),
+                      ),
+                      Positioned(
+                        left: 16,
+                        top: MediaQuery.of(context).padding.top + 60,
+                        child: _GuideFloatingCard(guide: guide),
+                      ),
+                    ],
                   ),
-                ],
-                if (guide.locationCoverage.isNotEmpty) ...[
-                  const SizedBox(height: AppSpacing.lg),
-                  _SectionHeader(label: 'Locations', icon: Icons.place_outlined),
-                  const SizedBox(height: AppSpacing.sm),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: guide.locationCoverage.map((loc) {
-                      return AppCard(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(Icons.location_on, size: 14, color: AppColors.textTertiary),
-                            const SizedBox(width: 4),
-                            Text(loc, style: AppText.label),
-                          ],
-                        ),
-                      );
-                    }).toList(),
+                ),
+              ),
+              SliverToBoxAdapter(
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: AppColors.background,
+                    borderRadius: const BorderRadius.vertical(top: Radius.circular(AppRadius.lg)),
                   ),
-                ],
-                if (guide.languagePairs.isNotEmpty) ...[
-                  const SizedBox(height: AppSpacing.lg),
-                  _SectionHeader(label: 'Languages Offered', icon: Icons.translate),
-                  const SizedBox(height: AppSpacing.sm),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: guide.languagePairs.map((lp) {
-                      final langs = lp.split('→');
-                      return AppCard(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Container(
-                              width: 28,
-                              height: 28,
+                  padding: const EdgeInsets.all(AppSpacing.lg),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _InfoCard(
+                              icon: Icons.translate,
+                              color: AppColors.success,
+                              title: 'Languages',
+                              value: guide.languagePairs.isNotEmpty
+                                  ? '${_uniqueLanguages(guide.languagePairs)}'
+                                  : '1',
+                              subtitle: 'languages',
+                            ),
+                          ),
+                          const SizedBox(width: AppSpacing.sm),
+                          Expanded(
+                            child: _InfoCard(
+                              icon: Icons.group,
+                              color: AppColors.info,
+                              title: 'Max Group',
+                              value: '${guide.groupSizePreferred}',
+                              subtitle: 'people',
+                            ),
+                          ),
+                          const SizedBox(width: AppSpacing.sm),
+                          Expanded(
+                            child: _InfoCard(
+                              icon: Icons.account_balance_wallet,
+                              color: Colors.orange,
+                              title: 'Budget',
+                              value: guide.budgetTier[0].toUpperCase(),
+                              subtitle: guide.budgetTier.substring(1),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: AppSpacing.lg),
+                      _SectionHeader(label: 'About', icon: Icons.person_outline),
+                      const SizedBox(height: AppSpacing.sm),
+                      AppCard(
+                        child: Text(guide.bio, style: AppText.body.copyWith(height: 1.6)),
+                      ),
+                      if (guide.expertiseTags.isNotEmpty) ...[
+                        const SizedBox(height: AppSpacing.lg),
+                        _SectionHeader(label: 'Expertise', icon: Icons.star_outline),
+                        const SizedBox(height: AppSpacing.sm),
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: guide.expertiseTags.map((tag) {
+                            return Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                               decoration: BoxDecoration(
-                                color: AppColors.success.withOpacity(0.1),
-                                shape: BoxShape.circle,
+                                color: AppColors.brand.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(AppRadius.full),
                               ),
-                              child: const Icon(Icons.translate, size: 14, color: AppColors.success),
-                            ),
-                            const SizedBox(width: 8),
-                            Text(
-                              langs.length >= 2
-                                  ? '${langs[0].trim()} → ${langs[1].trim()}'
-                                  : lp,
-                              style: AppText.label,
-                            ),
-                          ],
+                              child: Text(
+                                tag,
+                                style: AppText.label.copyWith(color: AppColors.brand),
+                              ),
+                            );
+                          }).toList(),
                         ),
-                      );
-                    }).toList(),
+                      ],
+                      if (guide.locationCoverage.isNotEmpty) ...[
+                        const SizedBox(height: AppSpacing.lg),
+                        _SectionHeader(label: 'Locations', icon: Icons.place_outlined),
+                        const SizedBox(height: AppSpacing.sm),
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: guide.locationCoverage.map((loc) {
+                            return AppCard(
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Icon(Icons.location_on, size: 14, color: AppColors.textTertiary),
+                                  const SizedBox(width: 4),
+                                  Text(loc, style: AppText.label),
+                                ],
+                              ),
+                            );
+                          }).toList(),
+                        ),
+                      ],
+                      if (guide.languagePairs.isNotEmpty) ...[
+                        const SizedBox(height: AppSpacing.lg),
+                        _SectionHeader(label: 'Languages Offered', icon: Icons.translate),
+                        const SizedBox(height: AppSpacing.sm),
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: guide.languagePairs.map((lp) {
+                            final langs = lp.split('→');
+                            return AppCard(
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Container(
+                                    width: 28,
+                                    height: 28,
+                                    decoration: BoxDecoration(
+                                      color: AppColors.success.withOpacity(0.1),
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: const Icon(Icons.translate, size: 14, color: AppColors.success),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    langs.length >= 2
+                                        ? '${langs[0].trim()} → ${langs[1].trim()}'
+                                        : lp,
+                                    style: AppText.label,
+                                  ),
+                                ],
+                              ),
+                            );
+                          }).toList(),
+                        ),
+                      ],
+                      const SizedBox(height: 100),
+                    ],
                   ),
-                ],
-                const SizedBox(height: 100),
-              ],
-            ),
-          ),
+                ),
         ),
         Positioned(
           left: 0,
