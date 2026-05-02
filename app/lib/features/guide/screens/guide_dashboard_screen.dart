@@ -82,6 +82,7 @@ class _GuideDashboardScreenState extends ConsumerState<GuideDashboardScreen> wit
                               return _GuideFloatingCard(
                                 photoUrl: guide['photo_url'] ?? '',
                                 name: guide['name'] ?? authState.guideName ?? 'Guide',
+                                guideId: guide['id'] ?? '',
                                 ratingHistory: (guide['rating_history'] ?? 0.0).toDouble(),
                                 ratingCount: guide['rating_count'] ?? 0,
                                 licenseVerified: guide['license_verified'] ?? false,
@@ -314,6 +315,7 @@ class _HistoryTab extends ConsumerWidget {
 class _GuideFloatingCard extends StatelessWidget {
   final String photoUrl;
   final String name;
+  final String guideId;
   final double ratingHistory;
   final int ratingCount;
   final bool licenseVerified;
@@ -321,6 +323,7 @@ class _GuideFloatingCard extends StatelessWidget {
   const _GuideFloatingCard({
     required this.photoUrl,
     required this.name,
+    required this.guideId,
     required this.ratingHistory,
     required this.ratingCount,
     required this.licenseVerified,
@@ -391,6 +394,15 @@ class _GuideFloatingCard extends StatelessWidget {
                         fontWeight: FontWeight.bold,
                       ),
                       overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    guideId,
+                    style: TextStyle(
+                      color: Colors.white.withOpacity(0.55),
+                      fontSize: 11,
+                      fontWeight: FontWeight.w400,
                     ),
                   ),
                   if (licenseVerified) ...[
