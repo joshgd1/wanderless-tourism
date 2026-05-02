@@ -351,10 +351,12 @@ class _CurrentJobsTab extends ConsumerWidget {
                 child: _JobCard(
                   booking: booking,
                   onAccept: booking['status'] == 'REQUESTED'
-                      ? () => _updateStatus(context, ref, booking['id'], 'CONFIRMED')
+                      ? () => _confirmAndUpdate(context, ref, booking['id'], 'CONFIRMED',
+                            'Accept this booking?', 'Once accepted, the tourist will be notified.')
                       : null,
                   onDecline: booking['status'] == 'REQUESTED'
-                      ? () => _updateStatus(context, ref, booking['id'], 'CANCELLED')
+                      ? () => _confirmAndUpdate(context, ref, booking['id'], 'CANCELLED',
+                            'Decline this booking?', 'The tourist will be notified and can find another guide.')
                       : null,
                 ),
               );
@@ -363,6 +365,37 @@ class _CurrentJobsTab extends ConsumerWidget {
         );
       },
     );
+  }
+
+  Future<void> _confirmAndUpdate(
+    BuildContext context,
+    WidgetRef ref,
+    int bookingId,
+    String status,
+    String title,
+    String body,
+  ) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(title, style: AppText.h3),
+        content: Text(body, style: AppText.body),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text('Cancel', style: AppText.label.copyWith(color: AppColors.textSecondary)),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: Text(status == 'CONFIRMED' ? 'Accept' : 'Decline',
+                style: AppText.label.copyWith(
+                    color: status == 'CONFIRMED' ? AppColors.success : AppColors.error)),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+    await _updateStatus(context, ref, bookingId, status);
   }
 
   Future<void> _updateStatus(

@@ -136,44 +136,29 @@ final routerProvider = Provider<GoRouter>((ref) {
       // Guide dashboard — protected by guide auth
       GoRoute(
         path: '/guide/dashboard',
-        builder: (context, state) {
+        redirect: (context, state) {
           final guideAuth = ProviderScope.containerOf(context).read(guideAuthProvider);
-          if (!guideAuth.isAuthenticated) {
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              context.go('/guide/login');
-            });
-            return const SizedBox.shrink();
-          }
-          return const GuideDashboardScreen();
+          return guideAuth.isAuthenticated ? null : '/guide/login';
         },
+        builder: (_, __) => const GuideDashboardScreen(),
       ),
       GoRoute(
         path: '/guide/jobs',
-        builder: (context, state) {
+        redirect: (context, state) {
           final guideAuth = ProviderScope.containerOf(context).read(guideAuthProvider);
-          if (!guideAuth.isAuthenticated) {
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              context.go('/guide/login');
-            });
-            return const SizedBox.shrink();
-          }
-          return const GuideJobsScreen();
+          return guideAuth.isAuthenticated ? null : '/guide/login';
         },
+        builder: (_, __) => const GuideJobsScreen(),
       ),
 
       // Business jobs — protected by business auth
       GoRoute(
         path: '/business/jobs',
-        builder: (context, state) {
+        redirect: (context, state) {
           final businessAuth = ProviderScope.containerOf(context).read(businessAuthProvider);
-          if (!businessAuth.isAuthenticated) {
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              context.go('/business/login');
-            });
-            return const SizedBox.shrink();
-          }
-          return const BusinessJobsScreen();
+          return businessAuth.isAuthenticated ? null : '/business/login';
         },
+        builder: (_, __) => const BusinessJobsScreen(),
       ),
 
       // Onboarding flow (no auth required — accessible for new signups)
