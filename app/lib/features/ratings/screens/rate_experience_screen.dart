@@ -270,4 +270,3 @@ class _RatingDimensionState extends State<_RatingDimension> {
   }
 }
 
-}

@@ -334,4 +334,3 @@ class _OnboardingStepper extends StatelessWidget {
   }
 }
 
-}

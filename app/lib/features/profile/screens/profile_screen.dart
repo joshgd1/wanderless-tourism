@@ -332,4 +332,3 @@ class _TouristFloatingCard extends StatelessWidget {
   }
 }
 
-}

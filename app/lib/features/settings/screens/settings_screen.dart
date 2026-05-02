@@ -296,4 +296,3 @@ class _ConnectionGuideTile extends StatelessWidget {
   }
 }
 
-}

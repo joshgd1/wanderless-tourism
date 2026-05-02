@@ -441,4 +441,3 @@ class _BusinessFloatingCard extends StatelessWidget {
   }
 }
 
-}
