@@ -102,11 +102,11 @@ _REVERSE_BUDGET = {v: k for k, v in _BUDGET_MAP.items()}
 def _build_tourist_features(t: Tourist) -> np.ndarray:
     """Build numerical feature vector from tourist preferences."""
     return np.array([
-        t.food_interest,
-        t.culture_interest,
-        t.adventure_interest,
-        t.pace_preference,
-        t.budget_level,
+        t.food_interest or 0.5,
+        t.culture_interest or 0.5,
+        t.adventure_interest or 0.5,
+        t.pace_preference or 0.5,
+        t.budget_level or 0.5,
     ], dtype=np.float32)
 
 
@@ -122,7 +122,7 @@ def _build_guide_features(g: Guide) -> np.ndarray:
 
     return np.concatenate([
         ev,  # 3-dim expertise
-        [g.pace_style, budget_val],  # 2-dim
+        [g.pace_style or 0.5, budget_val],  # 2-dim
     ]).astype(np.float32)
 
 
