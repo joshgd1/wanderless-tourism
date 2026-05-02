@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'api_client.dart';
 
@@ -51,9 +52,14 @@ class BusinessAuthNotifier extends StateNotifier<BusinessAuthState> {
   static const _nameKey = 'business_name';
   static const _emailKey = 'business_email';
 
+  static const _secure = FlutterSecureStorage(
+    aOptions: AndroidOptions(encryptedSharedPreferences: true),
+  );
+
   Future<void> _loadFromStorage() async {
     final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString(_tokenKey);
+    // JWT token stored in encrypted secure storage; rest in SharedPreferences
+    final token = await _secure.read(key: _tokenKey);
     final id = prefs.getString(_idKey);
     final name = prefs.getString(_nameKey);
     final email = prefs.getString(_emailKey);
@@ -71,12 +77,13 @@ class BusinessAuthNotifier extends StateNotifier<BusinessAuthState> {
   Future<void> _saveToStorage() async {
     final prefs = await SharedPreferences.getInstance();
     if (state.token != null) {
-      await prefs.setString(_tokenKey, state.token!);
+      // JWT token stored in encrypted secure storage
+      await _secure.write(key: _tokenKey, value: state.token!);
       await prefs.setString(_idKey, state.businessOwnerId!);
       if (state.businessName != null) await prefs.setString(_nameKey, state.businessName!);
       if (state.email != null) await prefs.setString(_emailKey, state.email!);
     } else {
-      await prefs.remove(_tokenKey);
+      await _secure.delete(key: _tokenKey);
       await prefs.remove(_idKey);
       await prefs.remove(_nameKey);
       await prefs.remove(_emailKey);
