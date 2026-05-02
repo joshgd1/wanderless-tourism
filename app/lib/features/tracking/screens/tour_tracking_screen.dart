@@ -23,6 +23,13 @@ class _TourTrackingScreenState extends ConsumerState<TourTrackingScreen> {
   Map<String, dynamic>? _locationData;
   bool _loading = true;
   String? _error;
+  bool _isDemoMode = false;
+
+  // Demo mode: simulated Chiang Mai tour route
+  static const _demoGuideLat = 18.7925;
+  static const _demoGuideLng = 98.9880;
+  static const _demoTouristLat = 18.7870;
+  static const _demoTouristLng = 98.9915;
 
   @override
   void initState() {
@@ -46,16 +53,30 @@ class _TourTrackingScreenState extends ConsumerState<TourTrackingScreen> {
           _locationData = data;
           _loading = false;
           _error = null;
+          _isDemoMode = false;
         });
       }
     } catch (e) {
       if (mounted) {
-        setState(() {
-          _error = 'Unable to load location';
-          _loading = false;
-        });
+        // Access blocked — enable demo mode so the map is still visible
+        _enableDemoMode();
       }
     }
+  }
+
+  void _enableDemoMode() {
+    setState(() {
+      _isDemoMode = true;
+      _loading = false;
+      _error = null;
+      _locationData = {
+        'guide_lat': _demoGuideLat,
+        'guide_lng': _demoGuideLng,
+        'tourist_lat': _demoTouristLat,
+        'tourist_lng': _demoTouristLng,
+        'updated_at': DateTime.now().toIso8601String(),
+      };
+    });
   }
 
   LatLng? get _guideLocation {
@@ -163,38 +184,68 @@ class _TourTrackingScreenState extends ConsumerState<TourTrackingScreen> {
                     : Column(
                         children: [
                           Expanded(
-                            child: FlutterMap(
-                              options: MapOptions(
-                                initialCenter: _center,
-                                initialZoom: _zoom,
-                              ),
+                            child: Stack(
                               children: [
-                                TileLayer(
-                                  urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                                  userAgentPackageName: 'com.wanderless.app',
+                                FlutterMap(
+                                  options: MapOptions(
+                                    initialCenter: _center,
+                                    initialZoom: _zoom,
+                                  ),
+                                  children: [
+                                    TileLayer(
+                                      urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                                      userAgentPackageName: 'com.wanderless.app',
+                                    ),
+                                    if (_guideLocation != null)
+                                      MarkerLayer(markers: [
+                                        Marker(
+                                          point: _guideLocation!,
+                                          width: 48,
+                                          height: 48,
+                                          child: _LocationMarker(
+                                            color: AppColors.info,
+                                            icon: Icons.person,
+                                          ),
+                                        ),
+                                        if (_touristLocation != null)
+                                          Marker(
+                                            point: _touristLocation!,
+                                            width: 48,
+                                            height: 48,
+                                            child: _LocationMarker(
+                                              color: AppColors.success,
+                                              icon: Icons.person,
+                                            ),
+                                          ),
+                                      ]),
+                                  ],
                                 ),
-                                MarkerLayer(markers: [
-                                  if (_guideLocation != null)
-                                    Marker(
-                                      point: _guideLocation!,
-                                      width: 48,
-                                      height: 48,
-                                      child: _LocationMarker(
-                                        color: AppColors.info,
-                                        icon: Icons.person,
+                                if (_isDemoMode)
+                                  Positioned(
+                                    top: 12,
+                                    left: 0,
+                                    right: 0,
+                                    child: Center(
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                                        decoration: BoxDecoration(
+                                          color: AppColors.warning.withOpacity(0.95),
+                                          borderRadius: BorderRadius.circular(20),
+                                        ),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            const Icon(Icons.science, color: Colors.white, size: 16),
+                                            const SizedBox(width: 6),
+                                            Text(
+                                              'Demo Mode — Example Tour Route',
+                                              style: AppText.captionBold.copyWith(color: Colors.white),
+                                            ),
+                                          ],
+                                        ),
                                       ),
                                     ),
-                                  if (_touristLocation != null)
-                                    Marker(
-                                      point: _touristLocation!,
-                                      width: 48,
-                                      height: 48,
-                                      child: _LocationMarker(
-                                        color: AppColors.success,
-                                        icon: Icons.person,
-                                      ),
-                                    ),
-                                ]),
+                                  ),
                               ],
                             ),
                           ),
