@@ -1151,6 +1151,7 @@ async def create_booking(
 
     hourly_rate = _TIER_HOURLY_RATE.get(guide.budget_tier, 500.0)
     gross_value = hourly_rate * duration
+    insurance_pct = 0.05  # 5% insurance fee
 
     # Capture commission rate from guide's owner at booking time
     commission_rate = 0.15
@@ -1168,6 +1169,7 @@ async def create_booking(
         group_size=group_size,
         gross_value=gross_value,
         platform_commission_pct=commission_rate,
+        insurance_pct=insurance_pct,
         status="REQUESTED",
         payment_status="held_escrow",
     )
@@ -1204,7 +1206,17 @@ async def create_booking(
         logger.info(f"booking.linked_to_trip_plan booking_id={b.id} plan_id={trip_plan.id}")
 
     logger.info(f"booking.created booking_id={b.id} tourist_id={b.tourist_id} guide_id={b.guide_id} gross_value={gross_value}")
-    return {"id": b.id, "status": b.status, "gross_value": gross_value}
+    return {
+        "id": b.id,
+        "status": b.status,
+        "gross_value": b.gross_value,
+        "fee_breakdown": {
+            "gross_value": b.gross_value,
+            "platform_commission": round(b.gross_value * b.platform_commission_pct, 2),
+            "insurance": round(b.gross_value * (b.insurance_pct or 0), 2),
+            "net_to_guide": round(b.gross_value * (1 - b.platform_commission_pct - (b.insurance_pct or 0)), 2),
+        },
+    }
 
 
 @app.get("/api/bookings/{booking_id}")
@@ -1228,8 +1240,17 @@ async def get_booking(
         "duration_hours": b.duration_hours,
         "group_size": b.group_size,
         "gross_value": b.gross_value,
+        "platform_commission_pct": b.platform_commission_pct,
+        "insurance_pct": b.insurance_pct,
         "status": b.status,
         "payment_status": b.payment_status,
+        # Explicit fee breakdown
+        "fee_breakdown": {
+            "gross_value": b.gross_value,
+            "platform_commission": round(b.gross_value * b.platform_commission_pct, 2),
+            "insurance": round(b.gross_value * (b.insurance_pct or 0), 2),
+            "net_to_guide": round(b.gross_value * (1 - b.platform_commission_pct - (b.insurance_pct or 0)), 2),
+        },
     }
 
 
@@ -1257,6 +1278,12 @@ async def list_bookings(
             "gross_value": b.gross_value,
             "status": b.status,
             "payment_status": b.payment_status,
+            "fee_breakdown": {
+                "gross_value": b.gross_value,
+                "platform_commission": round(b.gross_value * b.platform_commission_pct, 2),
+                "insurance": round(b.gross_value * (b.insurance_pct or 0), 2),
+                "net_to_guide": round(b.gross_value * (1 - b.platform_commission_pct - (b.insurance_pct or 0)), 2),
+            },
         }
         for b in bookings
     ]
@@ -1286,6 +1313,12 @@ async def list_guide_bookings(
             "gross_value": b.gross_value,
             "status": b.status,
             "payment_status": b.payment_status,
+            "fee_breakdown": {
+                "gross_value": b.gross_value,
+                "platform_commission": round(b.gross_value * b.platform_commission_pct, 2),
+                "insurance": round(b.gross_value * (b.insurance_pct or 0), 2),
+                "net_to_guide": round(b.gross_value * (1 - b.platform_commission_pct - (b.insurance_pct or 0)), 2),
+            },
         }
         for b in bookings
     ]
@@ -1550,6 +1583,9 @@ async def list_trip_plans(
             "tour_date": p.tour_date,
             "duration_hours": p.duration_hours,
             "group_size": p.group_size,
+            "negotiation_rounds": p.negotiation_rounds or 0,
+            "alternatives": p.alternatives,
+            "guide_proposed_stops": p.guide_proposed_stops,
             "created_at": p.created_at.isoformat() if p.created_at else None,
         }
         for p in plans
@@ -1572,6 +1608,9 @@ async def get_trip_plan(plan_id: int, db: Session = Depends(get_db)):
         "tour_date": p.tour_date,
         "duration_hours": p.duration_hours,
         "group_size": p.group_size,
+        "negotiation_rounds": p.negotiation_rounds or 0,
+        "alternatives": p.alternatives,
+        "guide_proposed_stops": p.guide_proposed_stops,
         "created_at": p.created_at.isoformat() if p.created_at else None,
     }
 
@@ -1621,6 +1660,363 @@ async def accept_trip_plan(
     db.commit()
     logger.info(f"trip_plan.accepted plan_id={plan_id} guide_id={guide_id}")
     return {"id": p.id, "status": p.status, "guide_id": p.guide_id}
+
+
+@app.patch("/api/trip-plans/{plan_id}/counter")
+async def counter_trip_plan(
+    plan_id: int,
+    data: dict,
+    guide_id: str = Depends(_get_guide_id),
+    db: Session = Depends(get_db),
+):
+    """
+    Guide counters a trip plan with modified stops and/or alternatives.
+    Increments negotiation_rounds. Changes status to TOURIST_REVIEWING.
+    Max 2 rounds — if negotiation_rounds already >= 2, returns 400.
+    Accepts: { guide_proposed_stops: [...], alternatives: [{rejected_stop, alternatives:[...]}], tour_date?, duration_hours? }
+    """
+    p = db.query(models.TripPlan).filter_by(id=plan_id).first()
+    if not p:
+        raise HTTPException(status_code=404, detail="Trip plan not found")
+
+    # Only the assigned guide can counter
+    if p.guide_id != guide_id:
+        raise HTTPException(status_code=403, detail="Not your trip plan to counter")
+
+    # Can counter from OPEN (guide proposes initial plan) or GUIDE_PROPOSED (counter-offer)
+    if p.status not in ("OPEN", "GUIDE_PROPOSED"):
+        raise HTTPException(status_code=400, detail=f"Cannot counter plan with status {p.status}")
+
+    # Hard cap: max 2 negotiation rounds
+    current_rounds = p.negotiation_rounds or 0
+    if current_rounds >= 2:
+        raise HTTPException(status_code=400, detail="Maximum negotiation rounds (2) reached")
+
+    # Update guide's proposed stops
+    if "guide_proposed_stops" in data:
+        p.guide_proposed_stops = data["guide_proposed_stops"]
+
+    # Update alternatives (what guide proposes when a stop is unavailable)
+    if "alternatives" in data:
+        p.alternatives = data["alternatives"]
+
+    # Guide can also update timing
+    if "tour_date" in data:
+        p.tour_date = data["tour_date"]
+    if "duration_hours" in data:
+        p.duration_hours = data["duration_hours"]
+    if "group_size" in data:
+        p.group_size = data["group_size"]
+
+    p.negotiation_rounds = current_rounds + 1
+    p.status = "TOURIST_REVIEWING"
+
+    db.commit()
+    logger.info(
+        f"trip_plan.counter plan_id={plan_id} guide_id={guide_id} "
+        f"round={p.negotiation_rounds}"
+    )
+    return {
+        "id": p.id,
+        "status": p.status,
+        "negotiation_rounds": p.negotiation_rounds,
+        "guide_proposed_stops": p.guide_proposed_stops,
+        "alternatives": p.alternatives,
+    }
+
+
+@app.post("/api/trip-plans/{plan_id}/tourist_review")
+async def tourist_review_trip_plan(
+    plan_id: int,
+    data: dict,
+    tourist_id: str = Depends(_get_tourist_id),
+    db: Session = Depends(get_db),
+):
+    """
+    Tourist reviews a guide's proposed (or counter-proposed) trip plan.
+    Accept → status becomes ACCEPTED.
+    Request changes → status becomes GUIDE_PROPOSED (guide re-counter-offer).
+      If negotiation_rounds >= 2 when requesting changes → auto-REJECTED (cap reached).
+    """
+    p = db.query(models.TripPlan).filter_by(id=plan_id).first()
+    if not p:
+        raise HTTPException(status_code=404, detail="Trip plan not found")
+
+    if p.tourist_id != tourist_id:
+        raise HTTPException(status_code=403, detail="Not your trip plan")
+
+    if p.status != "TOURIST_REVIEWING":
+        raise HTTPException(status_code=400, detail=f"Cannot review plan with status {p.status}")
+
+    action = data.get("action")  # "accept" | "request_changes"
+
+    if action == "accept":
+        p.status = "ACCEPTED"
+        db.commit()
+        logger.info(f"trip_plan.accepted_by_tourist plan_id={plan_id}")
+        return {"id": p.id, "status": p.status, "negotiation_rounds": p.negotiation_rounds}
+
+    elif action == "request_changes":
+        current_rounds = p.negotiation_rounds or 0
+        if current_rounds >= 2:
+            # Auto-reject when tourist requests changes after 2 rounds
+            p.status = "REJECTED"
+            # Log rejection for ML feedback
+            rejection = models.RejectionLog(
+                trip_plan_id=p.id,
+                guide_id=p.guide_id,
+                tourist_id=tourist_id,
+                rejection_reason="round_cap_reached",
+                alternatives_offered=p.alternatives,
+            )
+            db.add(rejection)
+            db.commit()
+            logger.warning(
+                f"trip_plan.auto_rejected plan_id={plan_id} "
+                f"reason=round_cap_reached tourist_requests_changes_at_round_{current_rounds}"
+            )
+            return {
+                "id": p.id,
+                "status": p.status,
+                "negotiation_rounds": p.negotiation_rounds,
+                "detail": "Maximum negotiation rounds (2) reached. Plan auto-rejected."
+            }
+
+        # Send back to guide for counter-offer
+        p.status = "GUIDE_PROPOSED"
+        if "tourist_stops" in data:
+            # Tourist can suggest modifications alongside their change request
+            pass  # stored in proposed_stops already; guide counters from their own proposed_stops
+        db.commit()
+        logger.info(
+            f"trip_plan.tourist_requests_changes plan_id={plan_id} "
+            f"round={current_rounds}"
+        )
+        return {"id": p.id, "status": p.status, "negotiation_rounds": p.negotiation_rounds}
+
+    else:
+        raise HTTPException(status_code=400, detail="action must be 'accept' or 'request_changes'")
+
+
+# ─── Checkpoint endpoints (GPS + photo at tour stops) ─────────────────────────
+
+@app.post("/api/match-bids")
+async def create_match_bid(
+    data: dict,
+    authorization: str | None = Header(None),
+    db: Session = Depends(get_db),
+):
+    """
+    Place a bid on a trip plan. Accepts guide or tourist JWT.
+    If the other party has already bid on the same plan → immediate MATCH.
+    """
+    guide_id = _get_guide_id_optional(authorization)
+    tourist_id = _get_tourist_id_optional(authorization)
+
+    if not guide_id and not tourist_id:
+        raise HTTPException(status_code=401, detail="Authorization required")
+
+    bidder_id = guide_id or tourist_id
+    bidder_type = "guide" if guide_id else "tourist"
+
+    trip_plan_id = data.get("trip_plan_id")
+    if not trip_plan_id:
+        raise HTTPException(status_code=400, detail="trip_plan_id required")
+
+    plan = db.query(models.TripPlan).filter_by(id=trip_plan_id).first()
+    if not plan:
+        raise HTTPException(status_code=404, detail="Trip plan not found")
+
+    # Target is always the other party
+    target_id = plan.guide_id if bidder_type == "tourist" else plan.tourist_id
+    target_type = "guide" if bidder_type == "tourist" else "tourist"
+
+    if not target_id:
+        raise HTTPException(status_code=400, detail="No counterparty assigned to this plan yet")
+
+    # Check for existing opposing bid (the other party already bid → it's a MATCH)
+    opposing = db.query(models.MatchBid).filter(
+        models.MatchBid.trip_plan_id == trip_plan_id,
+        models.MatchBid.bidder_type == target_type,
+        models.MatchBid.bidder_id == target_id,
+        models.MatchBid.status == "PENDING",
+    ).first()
+
+    bid = models.MatchBid(
+        bidder_id=bidder_id,
+        bidder_type=bidder_type,
+        target_id=target_id,
+        target_type=target_type,
+        trip_plan_id=trip_plan_id,
+        proposed_stops=plan.proposed_stops,
+        status="MATCHED" if opposing else "PENDING",
+    )
+    db.add(bid)
+
+    if opposing:
+        opposing.status = "MATCHED"
+        logger.info(
+            f"match.match_created bid_id={bid.id} plan_id={trip_plan_id} "
+            f"bidder={bidder_id} target={target_id}"
+        )
+    else:
+        logger.info(
+            f"match_bid.placed bid_id={bid.id} plan_id={trip_plan_id} "
+            f"bidder={bidder_id} awaiting_counter_bid"
+        )
+
+    db.commit()
+    db.refresh(bid)
+    return {
+        "id": bid.id,
+        "status": bid.status,
+        "matched": bid.status == "MATCHED",
+        "trip_plan_id": bid.trip_plan_id,
+    }
+
+
+@app.get("/api/match-bids")
+async def list_match_bids(
+    authorization: str | None = Header(None),
+    db: Session = Depends(get_db),
+):
+    """List all bids involving the current user (as bidder or target)."""
+    guide_id = _get_guide_id_optional(authorization)
+    tourist_id = _get_tourist_id_optional(authorization)
+
+    if not guide_id and not tourist_id:
+        raise HTTPException(status_code=401, detail="Authorization required")
+
+    user_id = guide_id or tourist_id
+
+    bids = db.query(models.MatchBid).filter(
+        (models.MatchBid.bidder_id == user_id) | (models.MatchBid.target_id == user_id)
+    ).order_by(models.MatchBid.created_at.desc()).all()
+
+    return [
+        {
+            "id": b.id,
+            "bidder_id": b.bidder_id,
+            "bidder_type": b.bidder_type,
+            "target_id": b.target_id,
+            "target_type": b.target_type,
+            "trip_plan_id": b.trip_plan_id,
+            "proposed_stops": b.proposed_stops,
+            "status": b.status,
+            "created_at": b.created_at.isoformat() if b.created_at else None,
+        }
+        for b in bids
+    ]
+
+
+# ─── Checkpoint endpoints (GPS + photo at tour stops) ──────────────────────────
+
+@app.post("/api/bookings/{booking_id}/checkpoints")
+async def create_checkpoint(
+    booking_id: int,
+    data: dict,
+    authorization: str | None = Header(None),
+    db: Session = Depends(get_db),
+):
+    """
+    Record a GPS + photo checkpoint during an active tour.
+    Either the guide or tourist can add checkpoints.
+    The photo_url is stored externally (Cloudinary/S3/etc.) — this endpoint records the metadata.
+    """
+    guide_id = _get_guide_id_optional(authorization)
+    tourist_id = _get_tourist_id_optional(authorization)
+
+    if not guide_id and not tourist_id:
+        raise HTTPException(status_code=401, detail="Authorization required")
+
+    booking = db.query(models.Booking).filter_by(id=booking_id).first()
+    if not booking:
+        raise HTTPException(status_code=404, detail="Booking not found")
+
+    # Verify participant
+    if guide_id and booking.guide_id != guide_id:
+        raise HTTPException(status_code=403, detail="You are not the guide for this booking")
+    if tourist_id and booking.tourist_id != tourist_id:
+        raise HTTPException(status_code=403, detail="You are not the tourist for this booking")
+
+    stop_name = data.get("stop_name")
+    lat = data.get("lat")
+    lng = data.get("lng")
+    if not stop_name or lat is None or lng is None:
+        raise HTTPException(status_code=400, detail="stop_name, lat, and lng are required")
+
+    # Auto-assign sequence order as the next number for this booking
+    existing = db.query(models.Checkpoint).filter_by(booking_id=booking_id).count()
+
+    cp = models.Checkpoint(
+        booking_id=booking_id,
+        stop_name=stop_name,
+        lat=lat,
+        lng=lng,
+        photo_url=data.get("photo_url"),
+        caption=data.get("caption"),
+        sequence_order=data.get("sequence_order", existing),
+    )
+    db.add(cp)
+    db.commit()
+    db.refresh(cp)
+    logger.info(
+        f"checkpoint.created booking_id={booking_id} stop={stop_name} "
+        f"seq={cp.sequence_order} by={guide_id or tourist_id}"
+    )
+    return {
+        "id": cp.id,
+        "booking_id": cp.booking_id,
+        "stop_name": cp.stop_name,
+        "lat": cp.lat,
+        "lng": cp.lng,
+        "photo_url": cp.photo_url,
+        "caption": cp.caption,
+        "sequence_order": cp.sequence_order,
+    }
+
+
+@app.get("/api/bookings/{booking_id}/checkpoints")
+async def list_checkpoints(
+    booking_id: int,
+    authorization: str | None = Header(None),
+    db: Session = Depends(get_db),
+):
+    """List all checkpoints for a booking (used to assemble the souvenir montage)."""
+    guide_id = _get_guide_id_optional(authorization)
+    tourist_id = _get_tourist_id_optional(authorization)
+
+    if not guide_id and not tourist_id:
+        raise HTTPException(status_code=401, detail="Authorization required")
+
+    booking = db.query(models.Booking).filter_by(id=booking_id).first()
+    if not booking:
+        raise HTTPException(status_code=404, detail="Booking not found")
+
+    if guide_id and booking.guide_id != guide_id and booking.tourist_id != tourist_id:
+        raise HTTPException(status_code=403, detail="Not a participant of this booking")
+    if tourist_id and booking.tourist_id != tourist_id and booking.guide_id != guide_id:
+        raise HTTPException(status_code=403, detail="Not a participant of this booking")
+
+    checkpoints = (
+        db.query(models.Checkpoint)
+        .filter_by(booking_id=booking_id)
+        .order_by(models.Checkpoint.sequence_order)
+        .all()
+    )
+    return [
+        {
+            "id": c.id,
+            "stop_name": c.stop_name,
+            "lat": c.lat,
+            "lng": c.lng,
+            "photo_url": c.photo_url,
+            "caption": c.caption,
+            "sequence_order": c.sequence_order,
+            "created_at": c.created_at.isoformat() if c.created_at else None,
+        }
+        for c in checkpoints
+    ]
 
 
 @app.put("/api/trip-plans/{plan_id}")
