@@ -93,8 +93,8 @@ class GuideDetailScreen extends ConsumerWidget {
                     ],
                   ),
                 ),
-              ),
-              SliverToBoxAdapter(
+            ],
+            SliverToBoxAdapter(
                 child: Container(
                   decoration: BoxDecoration(
                     color: AppColors.background,
@@ -225,11 +225,10 @@ class GuideDetailScreen extends ConsumerWidget {
                           }).toList(),
                         ),
                       ],
-                        const SizedBox(height: 100),
-                      ],
+                      const SizedBox(height: 100),
+                    ],
                     ),
                   ),
-                ),
         Positioned(
           left: 0,
           right: 0,
