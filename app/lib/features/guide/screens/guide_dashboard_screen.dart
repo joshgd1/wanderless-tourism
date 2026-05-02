@@ -569,6 +569,7 @@ class _GuideBookingCard extends StatelessWidget {
                       Text(
                         'Tourist',
                         style: TextStyle(fontSize: 12, color: Colors.grey[500]),
+                      ),
                       Text(
                         booking['tourist_name'] as String? ?? 'Unknown Tourist',
                         style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15),

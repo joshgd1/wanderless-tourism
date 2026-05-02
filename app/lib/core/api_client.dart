@@ -91,6 +91,14 @@ class ApiClient {
     return resp.data as Map<String, dynamic>;
   }
 
+  Future<Map<String, dynamic>> getGuideMe() async {
+    final resp = await _dioInstance.get(
+      '/guides/auth/me',
+      options: Options(headers: _authHeaders),
+    );
+    return resp.data as Map<String, dynamic>;
+  }
+
   Future<List<dynamic>> getMatches(String touristId, {int topN = 5, String? destination}) async {
     final params = <String, dynamic>{'top_n': topN};
     if (destination != null && destination.isNotEmpty) {
