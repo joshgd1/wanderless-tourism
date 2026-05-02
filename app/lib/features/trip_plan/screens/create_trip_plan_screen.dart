@@ -24,8 +24,53 @@ class _CreateTripPlanScreenState extends ConsumerState<CreateTripPlanScreen> {
   final List<ProposedStop> _stops = [];
 
   bool _isSubmitting = false;
+  bool _isLoadingSuggestions = false;
 
   final _allInterests = ['Food', 'Culture', 'Adventure', 'Nature', 'Wellness', 'History'];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSuggestions();
+  }
+
+  Future<void> _loadSuggestions() async {
+    final authState = ref.read(authProvider);
+    final touristId = authState.touristId;
+    if (touristId == null) return;
+
+    setState(() => _isLoadingSuggestions = true);
+    try {
+      final api = ApiClient();
+      final destinations = await api.getMlDestinationRecommendations(touristId);
+      if (!mounted || destinations.isEmpty) return;
+
+      final top = destinations.first;
+      final tags = (top['tags'] as List?)?.cast<String>() ?? [];
+      final topDestination = top['name'] as String? ?? '';
+
+      if (topDestination.isNotEmpty) {
+        _destController.text = topDestination;
+      }
+
+      // Pre-select interests that match destination tags
+      final matchedInterests = _allInterests
+          .where((interest) => tags.contains(interest.toLowerCase()))
+          .map((interest) => interest.toLowerCase())
+          .toList();
+
+      if (matchedInterests.isNotEmpty) {
+        setState(() {
+          _selectedInterests.clear();
+          _selectedInterests.addAll(matchedInterests);
+        });
+      }
+    } catch (_) {
+      // Silently ignore — form works without suggestions
+    } finally {
+      if (mounted) setState(() => _isLoadingSuggestions = false);
+    }
+  }
 
   void _addStop() {
     showModalBottomSheet(
