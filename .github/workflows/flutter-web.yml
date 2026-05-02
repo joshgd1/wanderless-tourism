@@ -29,6 +29,7 @@ jobs:
           cd app
           flutter pub get
           flutter create --platforms=web .
+          flutter clean
 
       - run: flutter build web --base-href=/wanderless-tourism/ --output-dir=docs
         working-directory: ./app
