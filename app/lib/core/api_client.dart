@@ -87,7 +87,10 @@ class ApiClient {
   }
 
   Future<Map<String, dynamic>> getGuide(String guideId) async {
-    final resp = await _dioInstance.get('/guides/$guideId');
+    final resp = await _dioInstance.get(
+      '/guides/$guideId',
+      options: Options(headers: _authHeaders),
+    );
     return resp.data as Map<String, dynamic>;
   }
 
@@ -144,7 +147,10 @@ class ApiClient {
   // ─── Tourist ───────────────────────────────────────────────────────────────
 
   Future<Map<String, dynamic>> getTourist(String touristId) async {
-    final resp = await _dioInstance.get('/tourists/$touristId');
+    final resp = await _dioInstance.get(
+      '/tourists/$touristId',
+      options: Options(headers: _authHeaders),
+    );
     return resp.data as Map<String, dynamic>;
   }
 

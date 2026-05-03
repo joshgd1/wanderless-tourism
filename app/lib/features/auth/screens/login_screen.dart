@@ -257,9 +257,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   ),
                 ),
                 const SizedBox(height: 4),
-                GhostButton(
-                  label: 'Create an account',
-                  onPressed: () => context.push('/signup'),
+                SizedBox(
+                  width: double.infinity,
+                  child: GhostButton(
+                    label: 'Create an account',
+                    onPressed: () => context.push('/signup'),
+                  ),
                 ),
                 const SizedBox(height: AppSpacing.lg),
                 const AppDivider(),
