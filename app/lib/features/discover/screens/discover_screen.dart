@@ -10,10 +10,10 @@ import '../widgets/match_card.dart';
 final _filterDestinationMap = {
   'Recommended': null,
   'All': null,
-  'Cultural': 'Old City',
-  'Nature': 'Doi Suthep',
-  'Adventure': 'Mae Sa Valley',
-  'Wellness': 'Nimman',
+  'Cultural': 'Chinatown',
+  'Nature': 'Gardens by the Bay',
+  'Adventure': 'Sentosa',
+  'Wellness': 'Marina Bay',
 };
 
 final matchesProvider = FutureProvider<List<MatchedGuide>>((ref) async {
@@ -42,7 +42,7 @@ final _selectedFilterProvider = StateProvider<String>((_) => 'Recommended');
 final _smartModeProvider = StateProvider<bool>((_) => false);
 final _searchQueryProvider = StateProvider<String>((_) => '');
 
-// Static fallback destinations (Singapore) — used when API fails
+// Static fallback destinations — Singapore, Malaysia, Thailand, Bali order
 final _staticDestinations = [
   _Destination(
     name: 'Marina Bay',
@@ -71,6 +71,27 @@ final _staticDestinations = [
     imageUrl: 'https://images.unsplash.com/photo-1513836279014-a89f7d76ae86?w=800&q=80',
     guideCount: 29,
     tag: 'Nature & Light Show',
+  ),
+  _Destination(
+    name: 'Petronas Towers',
+    country: 'Malaysia',
+    imageUrl: 'https://images.unsplash.com/photo-1598935898639-81586f7d2129?w=800&q=80',
+    guideCount: 34,
+    tag: 'City Landmark',
+  ),
+  _Destination(
+    name: 'Chiang Mai',
+    country: 'Thailand',
+    imageUrl: 'https://images.unsplash.com/photo-1512553269949-a524842f5ab4?w=800&q=80',
+    guideCount: 41,
+    tag: 'Temples & Culture',
+  ),
+  _Destination(
+    name: 'Ubud',
+    country: 'Bali',
+    imageUrl: 'https://images.unsplash.com/photo-1537996194471-e657df975ab4?w=800&q=80',
+    guideCount: 28,
+    tag: 'Nature & Arts',
   ),
 ];
 

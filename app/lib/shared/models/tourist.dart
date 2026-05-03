@@ -26,19 +26,28 @@ class Tourist {
   });
 
   factory Tourist.fromJson(Map<String, dynamic> json) {
+    // Handle both 'id' and 'tourist_id' field names from backend
+    final id = json['id'] as String? ?? json['tourist_id'] as String? ?? '';
     return Tourist(
-      id: json['id'] as String,
+      id: id,
       name: json['name'] as String? ?? 'Tourist',
-      photoUrl: json['photo_url'] as String? ?? '',
-      foodInterest: (json['food_interest'] as num).toDouble(),
-      cultureInterest: (json['culture_interest'] as num).toDouble(),
-      adventureInterest: (json['adventure_interest'] as num).toDouble(),
-      pacePreference: (json['pace_preference'] as num).toDouble(),
-      budgetLevel: (json['budget_level'] as num).toDouble(),
+      photoUrl: json['photo_url'] as String? ?? json['photoUrl'] as String? ?? '',
+      foodInterest: _toDouble(json['food_interest']),
+      cultureInterest: _toDouble(json['culture_interest']),
+      adventureInterest: _toDouble(json['adventure_interest']),
+      pacePreference: _toDouble(json['pace_preference']),
+      budgetLevel: _toDouble(json['budget_level']),
       language: json['language'] as String? ?? 'en',
       ageGroup: json['age_group'] as String? ?? 'Adult',
       travelStyle: json['travel_style'] as String? ?? 'Independent',
     );
+  }
+
+  static double _toDouble(dynamic value) {
+    if (value == null) return 0.5;
+    if (value is num) return value.toDouble();
+    if (value is String) return double.tryParse(value) ?? 0.5;
+    return 0.5;
   }
 
   Map<String, dynamic> toJson() => {

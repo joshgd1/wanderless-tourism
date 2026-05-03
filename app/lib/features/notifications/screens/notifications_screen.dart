@@ -77,7 +77,7 @@ class _NotificationList extends StatelessWidget {
         icon: Icons.location_on,
         color: AppColors.info,
         title: 'Guide is on the way',
-        subtitle: 'Somchai started the tour and is heading to your location.',
+        subtitle: 'Mei Ling started the tour and is heading to your location.',
         time: '4 hours ago',
         unread: true,
       ),

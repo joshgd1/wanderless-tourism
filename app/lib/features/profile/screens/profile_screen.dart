@@ -11,9 +11,14 @@ final profileProvider = FutureProvider<Tourist?>((ref) async {
   final authState = ref.watch(authProvider);
   final touristId = authState.touristId;
   if (touristId == null) return null;
-  final api = ApiClient();
-  final data = await api.getTourist(touristId);
-  return Tourist.fromJson(data);
+  try {
+    final api = ApiClient();
+    final data = await api.getTourist(touristId);
+    return Tourist.fromJson(data);
+  } catch (e) {
+    // Tourist record may not exist yet — return null to show empty state
+    return null;
+  }
 });
 
 class ProfileScreen extends ConsumerWidget {

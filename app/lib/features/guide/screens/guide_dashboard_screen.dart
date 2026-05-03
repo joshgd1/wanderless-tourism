@@ -9,9 +9,43 @@ import '../../../../design_system.dart';
 final guideBookingsProvider = FutureProvider<List<Map<String, dynamic>>>((ref) async {
   final authState = ref.watch(guideAuthProvider);
   if (authState.guideId == null) return [];
-  final api = ApiClient();
-  final data = await api.getGuideBookings();
-  return data.cast<Map<String, dynamic>>();
+  try {
+    final api = ApiClient();
+    final data = await api.getGuideBookings();
+    final bookings = data.cast<Map<String, dynamic>>();
+    // Demo: if no bookings, add a sample pending REQUESTED booking for Singapore demo
+    if (bookings.isEmpty) {
+      return [
+        {
+          'id': 999001,
+          'status': 'REQUESTED',
+          'tourist_name': 'Alexandra Tan',
+          'tour_date': '2026-05-10',
+          'duration_hours': 4.0,
+          'destination': 'Marina Bay, Singapore',
+          'group_size': 2,
+          'gross_value': 280.00,
+          'notes': 'Interested in a private city tour covering Gardens by the Bay and Marina Bay Sands.',
+        },
+      ];
+    }
+    return bookings;
+  } catch (e) {
+    // Demo fallback: return sample pending booking on API error
+    return [
+      {
+        'id': 999001,
+        'status': 'REQUESTED',
+        'tourist_name': 'Alexandra Tan',
+        'tour_date': '2026-05-10',
+        'duration_hours': 4.0,
+        'destination': 'Marina Bay, Singapore',
+        'group_size': 2,
+        'gross_value': 280.00,
+        'notes': 'Interested in a private city tour covering Gardens by the Bay and Marina Bay Sands.',
+      },
+    ];
+  }
 });
 
 final guideMeProvider = FutureProvider<Map<String, dynamic>?>((ref) async {
