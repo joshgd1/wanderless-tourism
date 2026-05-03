@@ -17,7 +17,7 @@ from sqlalchemy.orm import Session
 
 from database import init_db, get_db, compute_dot_range
 from matching import compatibility_score, top_matches
-from ml import fit_recommender
+from ml import fit_recommender, get_review_intelligence, compute_booking_quote
 import models  # noqa: F401 — models registered with Base.metadata
 
 load_dotenv()
@@ -201,8 +201,21 @@ async def lifespan(app: FastAPI):
     ratings = db.query(models.Rating).all()
     fit_recommender(tourists, guides, ratings)
 
+    # Build review intelligence profiles for all guides
+    intelligence = get_review_intelligence()
+    reviews_by_guide: dict[str, list[dict]] = {}
+    for r in ratings:
+        if r.guide_id not in reviews_by_guide:
+            reviews_by_guide[r.guide_id] = []
+        reviews_by_guide[r.guide_id].append({
+            "text": f"Rating {r.rating}/5 for guide {r.guide_id}",
+            "rating": r.rating,
+        })
+    for gid, rlist in reviews_by_guide.items():
+        intelligence.analyze_guide(gid, rlist)
+
     db.close()
-    logger.info("wanderless.startup database_seeded ml_recommender_fitted")
+    logger.info("wanderless.startup database_seeded ml_recommender_fitted review_intelligence_fitted")
     yield
     logger.info("wanderless.shutdown server_shutdown")
 
@@ -1519,6 +1532,132 @@ async def create_rating(
     db.refresh(r)
     logger.info(f"rating.created tourist_id={tourist_id} guide_id={r.guide_id} rating={r.rating}")
     return {"id": r.id, "rating": r.rating}
+
+
+# ─── Review Intelligence endpoints ────────────────────────────────────────────────
+
+@app.get("/api/reviews/guide/{guide_id}/profile")
+async def get_guide_review_profile(
+    guide_id: str,
+    db: Session = Depends(get_db),
+):
+    """
+    Get a comprehensive review intelligence profile for a guide.
+    Returns traveler-type tags, topic scores, strengths, improvement signals,
+    sentiment trend, and matching tags for guide-tourist matching.
+    """
+    reviews = db.query(models.Rating).filter_by(guide_id=guide_id).all()
+    if not reviews:
+        return {
+            "guide_id": guide_id,
+            "n_reviews": 0,
+            "profile": None,
+            "matching_tags": {"traveler_types": [], "topics": [], "sentiment": "no_data"},
+        }
+
+    # Get associated bookings for review text if available
+    review_data = []
+    for r in reviews:
+        review_text = ""
+        # Check if there's a text review in the booking or a separate review table
+        # For now, construct from rating metadata
+        booking = db.query(models.Booking).filter_by(id=r.booking_id).first() if r.booking_id else None
+        review_data.append({
+            "text": f"Rating {r.rating}/5 for guide {r.guide_id}",
+            "rating": r.rating,
+            "tourist_id": r.tourist_id,
+        })
+
+    intelligence = get_review_intelligence()
+    profile = intelligence.analyze_guide(guide_id, review_data)
+    matching_tags = intelligence.matching_tags_for_guide(guide_id)
+
+    return {
+        "guide_id": guide_id,
+        "n_reviews": len(reviews),
+        "profile": profile,
+        "matching_tags": matching_tags,
+    }
+
+
+@app.post("/api/reviews/batch/profile")
+async def batch_guide_review_profiles(
+    guide_ids: list[str],
+    db: Session = Depends(get_db),
+):
+    """
+    Get review intelligence profiles for multiple guides at once.
+    Used by the matching system to enrich guide profiles.
+    """
+    intelligence = get_review_intelligence()
+    results = []
+    for gid in guide_ids:
+        reviews = db.query(models.Rating).filter_by(guide_id=gid).all()
+        if not reviews:
+            results.append({
+                "guide_id": gid,
+                "n_reviews": 0,
+                "profile": None,
+                "matching_tags": {"traveler_types": [], "topics": [], "sentiment": "no_data"},
+            })
+            continue
+        review_data = [{"text": f"Rating {r.rating}/5", "rating": r.rating} for r in reviews]
+        profile = intelligence.analyze_guide(gid, review_data)
+        matching_tags = intelligence.matching_tags_for_guide(gid)
+        results.append({
+            "guide_id": gid,
+            "n_reviews": len(reviews),
+            "profile": profile,
+            "matching_tags": matching_tags,
+        })
+    return {"guides": results}
+
+
+# ─── Dynamic Pricing endpoint ────────────────────────────────────────────────────
+
+@app.post("/api/pricing/quote")
+async def get_booking_quote(
+    data: dict,
+    db: Session = Depends(get_db),
+):
+    """
+    Compute dynamic pricing for a proposed booking.
+    Returns per-person price, total price, surge level, and breakdown.
+    Price quote expires in 15 minutes.
+    """
+    base_interest = data.get("interest", "mixed")
+    duration_hours = float(data.get("duration_hours", 4.0))
+    group_size = int(data.get("group_size", 2))
+    tour_date = data.get("tour_date")  # ISO string
+    tour_hour = data.get("tour_hour")  # 0-23
+    guide_id = data.get("guide_id")
+
+    guide_rating = None
+    guide_rating_count = None
+    booking_demand = 0.5  # default midpoint
+
+    if guide_id:
+        guide = db.query(models.Guide).filter_by(id=guide_id).first()
+        if guide:
+            guide_rating = guide.rating_history
+            guide_rating_count = guide.rating_count
+            # Estimate demand from recent booking count
+            recent_bookings = db.query(models.Booking).filter_by(guide_id=guide_id).count()
+            # Normalize: 0 bookings = 0 demand, 20+ bookings = 1.0
+            booking_demand = min(1.0, recent_bookings / 20.0)
+
+    quote = compute_booking_quote(
+        base_interest=base_interest,
+        duration_hours=duration_hours,
+        group_size=group_size,
+        tour_date=tour_date,
+        tour_hour=tour_hour,
+        guide_rating=guide_rating,
+        guide_rating_count=guide_rating_count,
+        booking_demand=booking_demand,
+    )
+
+    return quote
 
 
 # ─── TripPlan endpoints (Grab-style tourist-proposes flow) ─────────────────────
