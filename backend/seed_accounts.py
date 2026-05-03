@@ -79,9 +79,9 @@ def seed_test_guide(db: SessionLocal):
     if existing:
         print(f"  Guide already exists: {existing.id} — updating fields")
         existing.password_hash = TEST_PASSWORD_HASH
-        existing.name = "Somchai Thailand"
-        existing.bio = "Local guide with 8 years of experience showing visitors the authentic side of Chiang Mai — from hidden temples to the best street food stalls. Born and raised here, I love sharing my culture."
-        existing.photo_url = f"https://picsum.photos/seed/somchai_guide/400/400"
+        existing.name = "Mei Ling"
+        existing.bio = "Passionate Singapore guide specializing in cultural heritage walks through Chinatown, Little India, and Gardens by the Bay. Let me show you the authentic side of Singapore — from hidden hawker stalls to stunning skyline views."
+        existing.photo_url = f"https://picsum.photos/seed/mei_ling_guide/400/400"
         existing.license_verified = True
         db.commit()
         return existing
@@ -92,9 +92,9 @@ def seed_test_guide(db: SessionLocal):
         return None
     guide.email = "guide@wanderless.com"
     guide.password_hash = TEST_PASSWORD_HASH
-    guide.name = "Somchai Thailand"
-    guide.bio = "Local guide with 8 years of experience showing visitors the authentic side of Chiang Mai — from hidden temples to the best street food stalls. Born and raised here, I love sharing my culture."
-    guide.photo_url = f"https://picsum.photos/seed/somchai_guide/400/400"
+    guide.name = "Mei Ling"
+    guide.bio = "Passionate Singapore guide specializing in cultural heritage walks through Chinatown, Little India, and Gardens by the Bay. Let me show you the authentic side of Singapore — from hidden hawker stalls to stunning skyline views."
+    guide.photo_url = f"https://picsum.photos/seed/mei_ling_guide/400/400"
     guide.license_verified = True
     db.commit()
     print(f"  Guide: guide@wanderless.com / wanderless123  (id={guide.id}, name={guide.name})")

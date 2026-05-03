@@ -179,25 +179,30 @@ class ProfileScreen extends ConsumerWidget {
                       ),
                     ),
                     const SizedBox(height: AppSpacing.lg),
-                    SecondaryButton(
-                      label: 'Update Preferences',
-                      icon: Icons.edit,
-                      onPressed: () => context.go('/onboarding'),
-                    ),
-                    const SizedBox(height: AppSpacing.sm),
-                    SizedBox(
-                      width: double.infinity,
-                      child: GhostButton(
-                        label: 'Sign Out',
-                        icon: Icons.logout,
-                        color: AppColors.error,
-                        onPressed: () async {
-                          await ref.read(authProvider.notifier).logout();
-                          if (context.mounted) {
-                            context.go('/login');
-                          }
-                        },
-                      ),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: SecondaryButton(
+                            label: 'Update Preferences',
+                            icon: Icons.edit,
+                            onPressed: () => context.go('/onboarding'),
+                          ),
+                        ),
+                        const SizedBox(width: AppSpacing.sm),
+                        Expanded(
+                          child: GhostButton(
+                            label: 'Sign Out',
+                            icon: Icons.logout,
+                            color: AppColors.error,
+                            onPressed: () async {
+                              await ref.read(authProvider.notifier).logout();
+                              if (context.mounted) {
+                                context.go('/login');
+                              }
+                            },
+                          ),
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 100),
                   ],
