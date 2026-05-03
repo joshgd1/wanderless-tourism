@@ -42,35 +42,35 @@ final _selectedFilterProvider = StateProvider<String>((_) => 'Recommended');
 final _smartModeProvider = StateProvider<bool>((_) => false);
 final _searchQueryProvider = StateProvider<String>((_) => '');
 
-// Static fallback destinations (Chiang Mai area) — used when API fails
+// Static fallback destinations (Singapore) — used when API fails
 final _staticDestinations = [
   _Destination(
-    name: 'Chiang Mai',
-    country: 'Thailand',
-    imageUrl: 'https://images.unsplash.com/photo-1512553269940-b59cc4c7a3c5?w=800&q=80',
-    guideCount: 48,
-    tag: 'Cultural Heritage',
+    name: 'Marina Bay',
+    country: 'Singapore',
+    imageUrl: 'https://images.unsplash.com/photo-1525625293386-3f8f99389edd?w=800&q=80',
+    guideCount: 52,
+    tag: 'Waterfront Skyline',
   ),
   _Destination(
-    name: 'Doi Suthep',
-    country: 'Chiang Mai',
-    imageUrl: 'https://images.unsplash.com/photo-1528360983277-13d401cdc186?w=800&q=80',
-    guideCount: 24,
-    tag: 'Mountain Temple',
+    name: 'Chinatown',
+    country: 'Singapore',
+    imageUrl: 'https://images.unsplash.com/photo-1559628376-64e7d7b67a5a?w=800&q=80',
+    guideCount: 38,
+    tag: 'Heritage & Food',
   ),
   _Destination(
-    name: 'Old City',
-    country: 'Chiang Mai',
-    imageUrl: 'https://images.unsplash.com/photo-1598935898639-81586f7d2129?w=800&q=80',
-    guideCount: 36,
-    tag: 'Historic Center',
+    name: 'Sentosa',
+    country: 'Singapore',
+    imageUrl: 'https://images.unsplash.com/photo-1505852679233-d9fd70c2dz2d?w=800&q=80',
+    guideCount: 45,
+    tag: 'Beach & Attractions',
   ),
   _Destination(
-    name: 'Nimman',
-    country: 'Chiang Mai',
-    imageUrl: 'https://images.unsplash.com/photo-1552465011-b4e21bf6e79a?w=800&q=80',
-    guideCount: 31,
-    tag: 'Café & Culture',
+    name: 'Gardens by the Bay',
+    country: 'Singapore',
+    imageUrl: 'https://images.unsplash.com/photo-1513836279014-a89f7d76ae86?w=800&q=80',
+    guideCount: 29,
+    tag: 'Nature & Light Show',
   ),
 ];
 
@@ -85,10 +85,10 @@ final destinationsProvider = FutureProvider<List<_Destination>>((ref) async {
     return data.map((d) {
       final map = d as Map<String, dynamic>;
       return _Destination(
-        name: map['destination'] as String? ?? 'Chiang Mai',
-        country: map['region'] as String? ?? 'Thailand',
+        name: map['destination'] as String? ?? 'Singapore',
+        country: map['region'] as String? ?? 'Singapore',
         imageUrl: map['image_url'] as String? ??
-            'https://images.unsplash.com/photo-1512553269940-b59cc4c7a3c5?w=800&q=80',
+            'https://images.unsplash.com/photo-1525625293386-3f8f99389edd?w=800&q=80',
         guideCount: map['guide_count'] as int? ?? 20,
         tag: map['tag'] as String? ?? 'Popular',
       );

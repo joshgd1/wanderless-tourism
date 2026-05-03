@@ -844,6 +844,13 @@ class CountryFlags {
       return '🇮🇩';
     }
 
+    // Singapore
+    if (lower.contains('singapore') || lower.contains('sentosa') ||
+        lower.contains('marina bay') || lower.contains('chinatown') ||
+        lower.contains('gardens by the bay')) {
+      return '🇸🇬';
+    }
+
     // Thailand
     if (lower.contains('bangkok') || lower.contains('chiang mai') ||
         lower.contains('phuket') || lower.contains('samui') ||
@@ -867,11 +874,6 @@ class CountryFlags {
     if (lower.contains('kuala lumpur') || lower.contains('penang') ||
         lower.contains('langkawi') || lower.contains('malacca')) {
       return '🇲🇾';
-    }
-
-    // Singapore
-    if (lower.contains('singapore') || lower.contains('sentosa')) {
-      return '🇸🇬';
     }
 
     // Myanmar

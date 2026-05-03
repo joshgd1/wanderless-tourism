@@ -157,7 +157,7 @@ class MatchCard extends StatelessWidget {
                         Text(
                           guide.locationCoverage.isNotEmpty
                               ? guide.locationCoverage.first
-                              : 'Chiang Mai',
+                              : 'Singapore',
                           style: AppText.caption,
                         ),
                       ],

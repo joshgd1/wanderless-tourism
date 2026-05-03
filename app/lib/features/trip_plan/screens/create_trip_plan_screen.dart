@@ -240,7 +240,7 @@ class _CreateTripPlanScreenState extends ConsumerState<CreateTripPlanScreen> {
                         const SizedBox(height: AppSpacing.sm),
                         AppTextField(
                           controller: _destController,
-                          hint: 'e.g. Chiang Mai, Thailand',
+                          hint: 'e.g. Singapore',
                           prefix: const Icon(Icons.tour_outlined, size: 18, color: AppColors.textTertiary),
                         ),
                       ],

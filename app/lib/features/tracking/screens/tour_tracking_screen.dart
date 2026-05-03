@@ -25,11 +25,11 @@ class _TourTrackingScreenState extends ConsumerState<TourTrackingScreen> {
   String? _error;
   bool _isDemoMode = false;
 
-  // Demo mode: simulated Chiang Mai tour route
-  static const _demoGuideLat = 18.7925;
-  static const _demoGuideLng = 98.9880;
-  static const _demoTouristLat = 18.7870;
-  static const _demoTouristLng = 98.9915;
+  // Demo mode: simulated Singapore tour route
+  static const _demoGuideLat = 1.2816;
+  static const _demoGuideLng = 103.8176;
+  static const _demoTouristLat = 1.2855;
+  static const _demoTouristLng = 103.8110;
 
   @override
   void initState() {
