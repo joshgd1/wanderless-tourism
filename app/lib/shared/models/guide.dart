@@ -45,8 +45,8 @@ class Guide {
       groupSizePreferred: json['group_size_preferred'] as int,
       budgetTier: json['budget_tier'] as String,
       locationCoverage: List<String>.from(json['location_coverage'] ?? []),
-      ratingHistory: (json['rating_history'] as num).toDouble(),
-      ratingCount: json['rating_count'] as int,
+      ratingHistory: (json['rating'] as num).toDouble(),
+      ratingCount: json['review_count'] as int,
       specialties: List<String>.from(json['specialties'] ?? []),
       personalityVector: json['personality_vector'] != null
           ? List<double>.from((json['personality_vector'] as List).map((e) => (e as num).toDouble()))
@@ -106,8 +106,8 @@ class MatchedGuide {
       expertiseTags: List<String>.from(json['expertise_tags'] ?? []),
       languagePairs: List<String>.from(json['language_pairs'] ?? []),
       locationCoverage: List<String>.from(json['location_coverage'] ?? []),
-      ratingHistory: (json['rating_history'] as num).toDouble(),
-      ratingCount: json['rating_count'] as int,
+      ratingHistory: (json['rating'] as num).toDouble(),
+      ratingCount: json['review_count'] as int,
       budgetTier: json['budget_tier'] as String,
       licenseVerified: json['license_verified'] as bool? ?? false,
       score: (json['score'] as num).toDouble(),

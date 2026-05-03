@@ -276,8 +276,8 @@ class _GuideCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final name = guide['name'] ?? 'Guide';
     final guideId = guide['id'] ?? '';
-    final ratingCount = guide['rating_count'] ?? 0;
-    final ratingHistory = (guide['rating_history'] ?? 0.0).toDouble();
+    final ratingCount = guide['review_count'] ?? 0;
+    final rating = (guide['rating'] ?? 0.0).toDouble();
     final licenseVerified = guide['license_verified'] ?? false;
 
     return AppCard(
@@ -312,7 +312,7 @@ class _GuideCard extends StatelessWidget {
                     const Icon(Icons.star, color: Color(0xFFFBBF24), size: 12),
                     const SizedBox(width: 4),
                     Text(
-                      '${ratingHistory.toStringAsFixed(1)} ($ratingCount)',
+                      '${rating.toStringAsFixed(1)} ($ratingCount)',
                       style: AppText.caption,
                     ),
                   ],

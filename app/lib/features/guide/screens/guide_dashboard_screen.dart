@@ -93,8 +93,8 @@ class _GuideDashboardScreenState extends ConsumerState<GuideDashboardScreen>
                                         name: guide['name'] ?? authState.guideName ?? 'Guide',
                                         guideId: guide['id'] ?? '',
                                         photoUrl: guide['photo_url'] ?? '',
-                                        rating: (guide['rating_history'] ?? 0.0).toDouble(),
-                                        ratingCount: guide['rating_count'] ?? 0,
+                                        rating: (guide['rating'] ?? 0.0).toDouble(),
+                                        ratingCount: guide['review_count'] ?? 0,
                                         licenseVerified: guide['license_verified'] ?? false,
                                       );
                                     },
