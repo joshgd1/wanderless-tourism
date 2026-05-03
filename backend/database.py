@@ -173,7 +173,7 @@ def compute_dot_range(db: Session) -> tuple[float, float]:
         return [x / norm for x in v] if norm else v
 
     def expertise_vec(g: Guide) -> list[float]:
-        tags = g.expertise_tags.split("|")
+        tags = (g.expertise_tags or "").split("|")
         expertise_map = {
             "food": (1.0, 0.0, 0.0),
             "culture": (0.0, 1.0, 0.0),

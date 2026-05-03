@@ -69,7 +69,7 @@ def interest_vec(tourist: Tourist) -> list[float]:
 
 def expertise_vec(guide: Guide) -> list[float]:
     ev = [0.0, 0.0, 0.0]
-    for tag in guide.expertise_tags.split("|"):
+    for tag in (guide.expertise_tags or "").split("|"):
         if tag in EXPERTISE_MAP:
             for i, v in enumerate(EXPERTISE_MAP[tag]):
                 ev[i] = max(ev[i], v)
@@ -165,12 +165,12 @@ def compatibility_score(
     dot_min, dot_max = dot_range
     nd = (raw_dot(tourist, guide) - dot_min) / (dot_max - dot_min)
 
-    lang_match = 1.0 if tourist.language in [lp.split("→")[0] for lp in guide.language_pairs.split("|")] else 0.0
+    lang_match = 1.0 if tourist.language in [lp.split("→")[0] for lp in (guide.language_pairs or "").split("|")] else 0.0
 
     budget_diff = abs(tourist.budget_level - TIER_MAP.get(guide.budget_tier, 0.55))
     budget_compat = clamp(1.0 - budget_diff * 0.40, 0.6, 1.0)
 
-    pace_diff = abs(tourist.pace_preference - guide.pace_style)
+    pace_diff = abs(tourist.pace_preference - (guide.pace_style or tourist.pace_preference or 0.5))
     pace_compat = clamp(1.0 - pace_diff * 0.35, 0.6, 1.0)
 
     compat = budget_compat * pace_compat
