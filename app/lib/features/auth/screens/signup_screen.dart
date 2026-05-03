@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/auth_provider.dart';
 import '../../../../design_system.dart';
-import '../../../discover/screens/discover_screen.dart';
+import '../../../features/discover/screens/discover_screen.dart';
 
 class SignupScreen extends ConsumerStatefulWidget {
   const SignupScreen({super.key});

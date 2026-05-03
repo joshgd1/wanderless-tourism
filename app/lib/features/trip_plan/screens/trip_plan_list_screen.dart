@@ -756,7 +756,7 @@ class _PlanDetailSheet extends StatelessWidget {
         const SizedBox(height: AppSpacing.lg),
       ],
     );
-  }
+  });
 }
 
 class _DetailRow extends StatelessWidget {
