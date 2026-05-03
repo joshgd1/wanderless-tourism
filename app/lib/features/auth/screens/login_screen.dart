@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/auth_provider.dart';
 import '../../../../design_system.dart';
+import '../../../discover/screens/discover_screen.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -32,6 +33,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           password: _passwordController.text,
         );
     if (success && mounted) {
+      // Invalidate ML provider caches so they refetch with auth token
+      ref.invalidate(mlMatchesProvider);
+      ref.invalidate(matchesProvider);
       context.go('/discover');
     }
   }
