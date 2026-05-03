@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:dio/dio.dart';
 import 'api_client.dart';
 
 class AuthState {
@@ -137,7 +138,28 @@ class AuthNotifier extends StateNotifier<AuthState> {
       await _saveToStorage();
       return true;
     } catch (e) {
-      state = state.copyWith(isLoading: false, error: e.toString());
+      String msg = 'Login failed';
+      if (e is DioException) {
+        if (e.type == DioExceptionType.connectionTimeout) {
+          msg = 'Connection timed out - check your internet';
+        } else if (e.type == DioExceptionType.connectionError) {
+          msg = 'Cannot connect to server';
+        } else if (e.response != null) {
+          final status = e.response!.statusCode;
+          if (status == 401) {
+            msg = 'Invalid email or password';
+          } else if (status == 403) {
+            msg = 'Access denied';
+          } else {
+            msg = 'Server error ($status)';
+          }
+        } else {
+          msg = e.message ?? 'Connection error';
+        }
+      } else {
+        msg = e.toString();
+      }
+      state = state.copyWith(isLoading: false, error: msg);
       return false;
     }
   }
