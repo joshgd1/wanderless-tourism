@@ -6,13 +6,14 @@ import csv
 import math
 import os
 import random
+import uuid
 from pathlib import Path
 from typing import Optional
 
 from sqlalchemy import create_engine, delete, text
 from sqlalchemy.orm import sessionmaker, Session
 
-from models import Base, Tourist, Guide, Rating, TripPlan
+from models import Base, Tourist, Guide, Rating, TripPlan, BusinessOwner, Wallet, WalletTransaction
 
 DATA_DIR = Path(__file__).parent.parent / "data"
 
