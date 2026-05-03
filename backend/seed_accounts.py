@@ -18,7 +18,7 @@ from datetime import datetime, timedelta
 sys.path.insert(0, '.')
 
 from database import SessionLocal, init_db
-from models import Tourist, Guide, BusinessOwner, Booking, LocationTracking, Wallet, WalletTransaction
+from models import Tourist, Guide, BusinessOwner, Booking, LocationTracking, Wallet, WalletTransaction, TripPlan
 
 TEST_PASSWORD_HASH = "$2b$12$eCcT/GO4Hj.fAqgihcxO/epKof8E9rxObeKjW9llKS7sViNyi7SX2"
 
@@ -256,6 +256,72 @@ def seed_synthetic_bookings(db: SessionLocal, guide: Guide, tourist: Tourist):
     print(f"  Created {len(destinations)} synthetic bookings for guide {guide.id}")
 
 
+def seed_open_trip_plans(db: SessionLocal, tourist: Tourist):
+    """Seed OPEN trip plans so guide sees multiple pending requests."""
+    existing = db.query(TripPlan).filter_by(tourist_id=tourist.id, status="OPEN").first()
+    if existing:
+        print(f"  OPEN trip plans already exist for tourist {tourist.id}")
+        return
+
+    trip_plans = [
+        {
+            "destination": "Singapore",
+            "interests": "food|culture|adventure",
+            "proposed_stops": [
+                {"name": "Chinatown", "duration_hours": 2.0, "notes": "Heritage walk"},
+                {"name": "Gardens by the Bay", "duration_hours": 3.0, "notes": "Evening light show"},
+            ],
+            "tour_date": (datetime.utcnow() + timedelta(days=14)).strftime("%Y-%m-%d"),
+            "duration_hours": 6.0,
+            "group_size": 2,
+            "safety_weight": 1.0,
+            "dietary_requirement": "Any",
+            "avoid_late_night": True,
+        },
+        {
+            "destination": "Malaysia - Kuala Lumpur",
+            "interests": "culture|shopping",
+            "proposed_stops": [
+                {"name": "Petronas Towers", "duration_hours": 2.5, "notes": "Sky bridge visit"},
+                {"name": "Batu Caves", "duration_hours": 3.0, "notes": "Half day trip"},
+            ],
+            "tour_date": (datetime.utcnow() + timedelta(days=21)).strftime("%Y-%m-%d"),
+            "duration_hours": 8.0,
+            "group_size": 4,
+            "safety_weight": 0.5,
+            "dietary_requirement": "Halal",
+            "avoid_late_night": False,
+        },
+        {
+            "destination": "Thailand - Chiang Mai",
+            "interests": "culture|adventure|nature",
+            "proposed_stops": [
+                {"name": "Doi Suthep Temple", "duration_hours": 2.0, "notes": "Sunrise visit recommended"},
+                {"name": "Mae Sa Valley", "duration_hours": 4.0, "notes": "Waterfalls trek"},
+                {"name": "Night Bazaar", "duration_hours": 2.0, "notes": "Street food experience"},
+            ],
+            "tour_date": (datetime.utcnow() + timedelta(days=7)).strftime("%Y-%m-%d"),
+            "duration_hours": 8.0,
+            "group_size": 3,
+            "safety_weight": 1.5,
+            "dietary_requirement": "Vegetarian",
+            "avoid_late_night": True,
+        },
+    ]
+
+    for plan in trip_plans:
+        trip_plan = TripPlan(
+            tourist_id=tourist.id,
+            status="OPEN",
+            guide_id=None,
+            **plan,
+        )
+        db.add(trip_plan)
+
+    db.commit()
+    print(f"  Created {len(trip_plans)} OPEN trip plans for tourist {tourist.id}")
+
+
 def main():
     db = SessionLocal()
     init_db(db)
@@ -276,6 +342,10 @@ def main():
     # Seed synthetic bookings for the guide
     if guide and tourist:
         seed_synthetic_bookings(db, guide, tourist)
+
+    # Seed OPEN trip plans for the guide admin demo
+    if tourist:
+        seed_open_trip_plans(db, tourist)
 
     # Seed fake GPS locations for map tracking demo
     if guide and tourist:
