@@ -36,7 +36,7 @@ class _GuideDashboardScreenState extends ConsumerState<GuideDashboardScreen>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
+    _tabController = TabController(length: 3, vsync: this);
   }
 
   @override
@@ -128,6 +128,7 @@ class _GuideDashboardScreenState extends ConsumerState<GuideDashboardScreen>
                 indicatorWeight: 2.5,
                 dividerColor: Colors.transparent,
                 tabs: const [
+                  Tab(text: 'Pending'),
                   Tab(text: 'Current Jobs'),
                   Tab(text: 'History'),
                 ],
@@ -138,6 +139,7 @@ class _GuideDashboardScreenState extends ConsumerState<GuideDashboardScreen>
         body: TabBarView(
           controller: _tabController,
           children: [
+            _PendingTab(bookingsAsync: bookingsAsync),
             _CurrentJobsTab(bookingsAsync: bookingsAsync),
             _HistoryTab(bookingsAsync: bookingsAsync),
           ],
@@ -308,6 +310,175 @@ class _LogoutButtonState extends State<_LogoutButton> {
   }
 }
 
+class _PendingTab extends ConsumerWidget {
+  final AsyncValue<List<Map<String, dynamic>>> bookingsAsync;
+
+  const _PendingTab({required this.bookingsAsync});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return bookingsAsync.when(
+      loading: () => const AppLoading(message: 'Loading requests...'),
+      error: (e, _) => EmptyState(
+        icon: Icons.error_outline,
+        title: 'Failed to load requests',
+        subtitle: e.toString(),
+        action: PrimaryButton(
+          label: 'Retry',
+          onPressed: () => ref.refresh(guideBookingsProvider),
+        ),
+      ),
+      data: (bookings) {
+        final requestedBookings =
+            bookings.where((b) => b['status'] == 'REQUESTED').toList();
+
+        if (requestedBookings.isEmpty) {
+          return const EmptyState(
+            icon: Icons.check_circle_outline,
+            title: 'No pending requests',
+            subtitle: 'When a tourist sends you a plan request, it will appear here',
+          );
+        }
+
+        return Column(
+          children: [
+            // Attention banner
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.md,
+                vertical: AppSpacing.sm,
+              ),
+              color: AppColors.warningBg,
+              child: Row(
+                children: [
+                  const Icon(Icons.pending_actions,
+                      size: 18, color: AppColors.warning),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      '${requestedBookings.length} request${requestedBookings.length > 1 ? 's' : ''} waiting for your response',
+                      style: AppText.labelBold
+                          .copyWith(color: AppColors.warning),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Expanded(
+              child: RefreshIndicator(
+                onRefresh: () async => ref.refresh(guideBookingsProvider),
+                child: ListView.builder(
+                  padding: const EdgeInsets.all(AppSpacing.md),
+                  itemCount: requestedBookings.length,
+                  itemBuilder: (context, index) {
+                    final booking = requestedBookings[index];
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: AppSpacing.md),
+                      child: _JobCard(
+                        booking: booking,
+                        onAccept: () => _confirmAndUpdate(
+                          context,
+                          ref,
+                          booking['id'],
+                          'CONFIRMED',
+                          'Accept this booking?',
+                          'Once accepted, the tourist will be notified and can proceed with payment.',
+                        ),
+                        onDecline: () => _confirmAndUpdate(
+                          context,
+                          ref,
+                          booking['id'],
+                          'CANCELLED',
+                          'Decline this booking?',
+                          'The tourist will be notified and can find another guide.',
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _confirmAndUpdate(
+    BuildContext context,
+    WidgetRef ref,
+    int bookingId,
+    String status,
+    String title,
+    String body,
+  ) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(title, style: AppText.h3),
+        content: Text(body, style: AppText.body),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text('Cancel',
+                style: AppText.label.copyWith(color: AppColors.textSecondary)),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: Text(
+              status == 'CONFIRMED' ? 'Accept' : 'Decline',
+              style: AppText.label.copyWith(
+                color: status == 'CONFIRMED' ? AppColors.success : AppColors.error,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+    await _updateStatus(context, ref, bookingId, status);
+  }
+
+  Future<void> _updateStatus(
+    BuildContext context,
+    WidgetRef ref,
+    int bookingId,
+    String status,
+  ) async {
+    try {
+      final api = ApiClient();
+      await api.updateBookingStatus(bookingId, status);
+      ref.refresh(guideBookingsProvider);
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content:
+                Text(status == 'CONFIRMED' ? 'Booking accepted!' : 'Booking declined'),
+            backgroundColor:
+                status == 'CONFIRMED' ? AppColors.success : AppColors.error,
+            behavior: SnackBarBehavior.floating,
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.sm)),
+          ),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to update: $e'),
+            backgroundColor: AppColors.error,
+            behavior: SnackBarBehavior.floating,
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.sm)),
+          ),
+        );
+      }
+    }
+  }
+}
+
 class _CurrentJobsTab extends ConsumerWidget {
   final AsyncValue<List<Map<String, dynamic>>> bookingsAsync;
 
@@ -327,15 +498,15 @@ class _CurrentJobsTab extends ConsumerWidget {
         ),
       ),
       data: (bookings) {
-        final activeStatuses = ['REQUESTED', 'CONFIRMED', 'PAID', 'IN_PROGRESS'];
+        final activeStatuses = ['CONFIRMED', 'PAID', 'IN_PROGRESS'];
         final activeBookings =
             bookings.where((b) => activeStatuses.contains(b['status'])).toList();
 
         if (activeBookings.isEmpty) {
-          return EmptyState(
+          return const EmptyState(
             icon: Icons.work_outline,
-            title: 'No current jobs',
-            subtitle: 'New booking requests will appear here',
+            title: 'No active jobs',
+            subtitle: 'Your accepted and in-progress tours will appear here',
           );
         }
 
@@ -350,14 +521,6 @@ class _CurrentJobsTab extends ConsumerWidget {
                 padding: const EdgeInsets.only(bottom: AppSpacing.md),
                 child: _JobCard(
                   booking: booking,
-                  onAccept: booking['status'] == 'REQUESTED'
-                      ? () => _confirmAndUpdate(context, ref, booking['id'], 'CONFIRMED',
-                            'Accept this booking?', 'Once accepted, the tourist will be notified.')
-                      : null,
-                  onDecline: booking['status'] == 'REQUESTED'
-                      ? () => _confirmAndUpdate(context, ref, booking['id'], 'CANCELLED',
-                            'Decline this booking?', 'The tourist will be notified and can find another guide.')
-                      : null,
                 ),
               );
             },
