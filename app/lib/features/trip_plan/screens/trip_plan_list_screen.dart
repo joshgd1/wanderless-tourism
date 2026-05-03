@@ -1,11 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../../../../core/api_client.dart';
 import '../../../../core/auth_provider.dart';
 import '../../../../shared/models/trip_plan.dart';
+import '../../../../shared/models/guide.dart';
 import '../../../../design_system.dart';
 import '../../bookings/screens/bookings_screen.dart';
+
+// Provider to fetch top matched guides for a destination
+final _matchedGuidesForPlanProvider = FutureProvider.family<List<MatchedGuide>, String>((ref, destination) async {
+  final authState = ref.watch(authProvider);
+  final touristId = authState.touristId;
+  if (touristId == null) return [];
+  final api = ApiClient();
+  final data = await api.getMlGuideRecommendations(touristId, topN: 3, destination: destination);
+  return data.map((e) => MatchedGuide.fromJson(e as Map<String, dynamic>)).toList();
+});
 
 final myTripPlansProvider = FutureProvider<List<TripPlan>>((ref) async {
   final authState = ref.watch(authProvider);
@@ -457,71 +469,76 @@ class _PlanDetailSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListView(
-      controller: scrollController,
-      padding: const EdgeInsets.all(AppSpacing.lg),
-      children: [
-        Center(
-          child: Container(
-            width: 40,
-            height: 4,
-            decoration: BoxDecoration(
-              color: AppColors.border,
-              borderRadius: BorderRadius.circular(2),
-            ),
-          ),
-        ),
-        const SizedBox(height: AppSpacing.lg),
-        Row(
+    return Consumer(
+      builder: (context, ref, _) {
+        final guidesAsync = isGuideView || plan.status != 'OPEN'
+            ? null
+            : ref.watch(_matchedGuidesForPlanProvider(plan.destination));
+        return ListView(
+          controller: scrollController,
+          padding: const EdgeInsets.all(AppSpacing.lg),
           children: [
-            Expanded(
-              child: Text(plan.destination, style: AppText.h1),
-            ),
-            StatusBadge(
-              label: plan.status,
-              color: statusColor,
-            ),
-          ],
-        ),
-        const SizedBox(height: AppSpacing.lg),
-        if (!isGuideView && plan.status == 'OPEN')
-          Container(
-            padding: const EdgeInsets.all(AppSpacing.md),
-            decoration: BoxDecoration(
-              color: AppColors.success.withOpacity(0.08),
-              borderRadius: BorderRadius.circular(AppRadius.md),
-              border: Border.all(color: AppColors.success.withOpacity(0.2)),
-            ),
-            child: Row(
-              children: [
-                SizedBox(
-                  width: 18,
-                  height: 18,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    color: AppColors.success,
-                  ),
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: AppColors.border,
+                  borderRadius: BorderRadius.circular(2),
                 ),
-                const SizedBox(width: 10),
+              ),
+            ),
+            const SizedBox(height: AppSpacing.lg),
+            Row(
+              children: [
                 Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Waiting for a guide to accept',
-                        style: AppText.labelBold.copyWith(color: AppColors.success),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        'You\'ll be notified when a guide picks up your request. No payment required yet.',
-                        style: AppText.caption,
-                      ),
-                    ],
-                  ),
+                  child: Text(plan.destination, style: AppText.h1),
+                ),
+                StatusBadge(
+                  label: plan.status,
+                  color: statusColor,
                 ),
               ],
             ),
-          ),
+            const SizedBox(height: AppSpacing.lg),
+            if (!isGuideView && plan.status == 'OPEN')
+              Container(
+                padding: const EdgeInsets.all(AppSpacing.md),
+                decoration: BoxDecoration(
+                  color: AppColors.success.withOpacity(0.08),
+                  borderRadius: BorderRadius.circular(AppRadius.md),
+                  border: Border.all(color: AppColors.success.withOpacity(0.2)),
+                ),
+                child: Row(
+                  children: [
+                    SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: AppColors.success,
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Waiting for a guide to accept',
+                            style: AppText.labelBold.copyWith(color: AppColors.success),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            'You\'ll be notified when a guide picks up your request. No payment required yet.',
+                            style: AppText.caption,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
         if (!isGuideView && plan.status == 'ACCEPTED' && plan.guideId != null) ...[
           Container(
             padding: const EdgeInsets.all(AppSpacing.md),
@@ -575,6 +592,58 @@ class _PlanDetailSheet extends StatelessWidget {
                 ),
               ],
             ),
+          ),
+        ],
+        // Top 3 matched guides for OPEN plans (tourist view)
+        if (!isGuideView && plan.status == 'OPEN' && guidesAsync != null) ...[
+          const SizedBox(height: AppSpacing.lg),
+          Text('AI-Powered Guide Matches', style: AppText.labelBold),
+          const SizedBox(height: 2),
+          Text(
+            'Based on your trip preferences and destination',
+            style: AppText.caption,
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          guidesAsync.when(
+            loading: () => const Padding(
+              padding: EdgeInsets.all(AppSpacing.md),
+              child: AppLoading(message: 'Finding best guides...'),
+            ),
+            error: (_, __) => Container(
+              padding: const EdgeInsets.all(AppSpacing.sm),
+              decoration: BoxDecoration(
+                color: AppColors.error.withOpacity(0.05),
+                borderRadius: BorderRadius.circular(AppRadius.sm),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.cloud_off, color: AppColors.error, size: 16),
+                  const SizedBox(width: 8),
+                  Text('Could not load matches', style: AppText.caption),
+                ],
+              ),
+            ),
+            data: (guides) {
+              if (guides.isEmpty) {
+                return Container(
+                  padding: const EdgeInsets.all(AppSpacing.sm),
+                  decoration: BoxDecoration(
+                    color: AppColors.surfaceSecondary,
+                    borderRadius: BorderRadius.circular(AppRadius.sm),
+                  ),
+                  child: Text('No matches found for your destination', style: AppText.caption),
+                );
+              }
+              return Column(
+                children: guides.take(3).map((guide) => Padding(
+                  padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+                  child: _MatchedGuideCard(
+                    guide: guide,
+                    onTap: () => context.push('/guide/${guide.guideId}'),
+                  ),
+                )).toList(),
+              );
+            },
           ),
         ],
         const SizedBox(height: AppSpacing.lg),
@@ -708,6 +777,90 @@ class _DetailRow extends StatelessWidget {
           Text('$label:', style: AppText.caption),
           const SizedBox(width: 6),
           Text(value, style: AppText.label),
+        ],
+      ),
+    );
+  }
+}
+
+class _MatchedGuideCard extends StatelessWidget {
+  final MatchedGuide guide;
+  final VoidCallback onTap;
+
+  const _MatchedGuideCard({required this.guide, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final score = (guide.score * 100).round();
+    return AppCard(
+      onTap: onTap,
+      padding: const EdgeInsets.all(AppSpacing.sm),
+      child: Row(
+        children: [
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: AppColors.surfaceSecondary,
+              borderRadius: BorderRadius.circular(AppRadius.sm),
+            ),
+            child: guide.photoUrl.isNotEmpty
+                ? ClipRRect(
+                    borderRadius: BorderRadius.circular(AppRadius.sm),
+                    child: CachedNetworkImage(
+                      imageUrl: guide.photoUrl,
+                      fit: BoxFit.cover,
+                      errorWidget: (_, __, ___) => const Icon(Icons.person, color: AppColors.textTertiary, size: 22),
+                    ),
+                  )
+                : const Icon(Icons.person, color: AppColors.textTertiary, size: 22),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Text(guide.name, style: AppText.labelBold),
+                    if (guide.licenseVerified) ...[
+                      const SizedBox(width: 4),
+                      const Icon(Icons.verified, color: AppColors.success, size: 14),
+                    ],
+                  ],
+                ),
+                const SizedBox(height: 2),
+                Row(
+                  children: [
+                    const Icon(Icons.star, color: Color(0xFFFBBF24), size: 12),
+                    const SizedBox(width: 4),
+                    Text(
+                      '${guide.ratingHistory.toStringAsFixed(1)} (${guide.ratingCount})',
+                      style: AppText.caption,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      guide.budgetTier.toUpperCase(),
+                      style: AppText.caption.copyWith(color: AppColors.textTertiary),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            decoration: BoxDecoration(
+              color: AppColors.brand.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(AppRadius.full),
+            ),
+            child: Text(
+              '$score% match',
+              style: AppText.captionBold.copyWith(color: AppColors.brand),
+            ),
+          ),
+          const SizedBox(width: 4),
+          Icon(Icons.arrow_forward_ios, size: 12, color: AppColors.textTertiary),
         ],
       ),
     );

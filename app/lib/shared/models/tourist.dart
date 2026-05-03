@@ -35,7 +35,7 @@ class Tourist {
       adventureInterest: (json['adventure_interest'] as num).toDouble(),
       pacePreference: (json['pace_preference'] as num).toDouble(),
       budgetLevel: (json['budget_level'] as num).toDouble(),
-      language: json['language'] as String,
+      language: json['language'] as String? ?? 'en',
       ageGroup: json['age_group'] as String? ?? 'Adult',
       travelStyle: json['travel_style'] as String? ?? 'Independent',
     );
