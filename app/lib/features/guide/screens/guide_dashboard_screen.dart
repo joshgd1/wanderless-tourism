@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:country_flags/country_flags.dart';
 import '../../../../core/api_client.dart';
 import '../../../../core/guide_auth_provider.dart';
 import '../../../../design_system.dart';
@@ -450,8 +451,75 @@ class _PendingTab extends ConsumerWidget {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(title, style: AppText.h3),
-        content: Text(body, style: AppText.body),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.lg)),
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: status == 'CONFIRMED'
+                    ? AppColors.success.withOpacity(0.1)
+                    : AppColors.error.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(AppRadius.sm),
+              ),
+              child: Icon(
+                status == 'CONFIRMED' ? Icons.check_circle : Icons.cancel,
+                color: status == 'CONFIRMED' ? AppColors.success : AppColors.error,
+                size: 20,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(child: Text(title, style: AppText.h3)),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(body, style: AppText.body.copyWith(color: AppColors.textSecondary)),
+            if (status == 'CONFIRMED') ...[
+              const SizedBox(height: AppSpacing.md),
+              Container(
+                padding: const EdgeInsets.all(AppSpacing.md),
+                decoration: BoxDecoration(
+                  color: AppColors.surface,
+                  borderRadius: BorderRadius.circular(AppRadius.sm),
+                  border: Border.all(color: AppColors.border),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.location_on, size: 18, color: AppColors.brand),
+                    const SizedBox(width: 8),
+                    const Expanded(
+                      child: Text(
+                        'Singapore City Tour',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: AppColors.brand.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(AppRadius.full),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(CountryFlags.fromName('Singapore'), style: const TextStyle(fontSize: 14)),
+                          const SizedBox(width: 4),
+                          const Text('Singapore', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500)),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ],
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
@@ -461,7 +529,7 @@ class _PendingTab extends ConsumerWidget {
           TextButton(
             onPressed: () => Navigator.pop(context, true),
             child: Text(
-              status == 'CONFIRMED' ? 'Accept' : 'Decline',
+              status == 'CONFIRMED' ? 'Accept Booking' : 'Decline',
               style: AppText.label.copyWith(
                 color: status == 'CONFIRMED' ? AppColors.success : AppColors.error,
               ),
@@ -484,11 +552,19 @@ class _PendingTab extends ConsumerWidget {
       final api = ApiClient();
       await api.updateBookingStatus(bookingId, status);
       ref.refresh(guideBookingsProvider);
-      if (context.mounted) {
+      if (status == 'CONFIRMED' && context.mounted) {
+        // Show beautiful success dialog
+        await showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (ctx) => _AcceptSuccessDialog(
+            onDone: () => Navigator.pop(ctx),
+          ),
+        );
+      } else if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content:
-                Text(status == 'CONFIRMED' ? 'Booking accepted!' : 'Booking declined'),
+            content: Text(status == 'CONFIRMED' ? 'Booking accepted!' : 'Booking declined'),
             backgroundColor:
                 status == 'CONFIRMED' ? AppColors.success : AppColors.error,
             behavior: SnackBarBehavior.floating,
@@ -510,6 +586,165 @@ class _PendingTab extends ConsumerWidget {
         );
       }
     }
+  }
+}
+
+class _AcceptSuccessDialog extends StatefulWidget {
+  final VoidCallback onDone;
+
+  const _AcceptSuccessDialog({required this.onDone});
+
+  @override
+  State<_AcceptSuccessDialog> createState() => _AcceptSuccessDialogState();
+}
+
+class _AcceptSuccessDialogState extends State<_AcceptSuccessDialog>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _scaleAnimation;
+  late Animation<double> _fadeAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 600),
+      vsync: this,
+    );
+    _scaleAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.elasticOut),
+    );
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeIn),
+    );
+    _controller.forward();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ScaleTransition(
+      scale: _scaleAnimation,
+      child: FadeTransition(
+        opacity: _fadeAnimation,
+        child: AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppRadius.lg),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const SizedBox(height: AppSpacing.md),
+              Container(
+                width: 80,
+                height: 80,
+                decoration: BoxDecoration(
+                  color: AppColors.success.withOpacity(0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.check_circle,
+                  color: AppColors.success,
+                  size: 56,
+                ),
+              ),
+              const SizedBox(height: AppSpacing.lg),
+              Text(
+                'Booking Accepted!',
+                style: AppText.h3.copyWith(color: AppColors.success),
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              Text(
+                'You have accepted the Singapore tour request.',
+                style: AppText.body.copyWith(color: AppColors.textSecondary),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: AppSpacing.lg),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(AppSpacing.md),
+                decoration: BoxDecoration(
+                  color: AppColors.surface,
+                  borderRadius: BorderRadius.circular(AppRadius.sm),
+                  border: Border.all(color: AppColors.border),
+                ),
+                child: Column(
+                  children: [
+                    Row(
+                      children: [
+                        const Icon(Icons.location_on,
+                            size: 16, color: AppColors.brand),
+                        const SizedBox(width: 6),
+                        const Expanded(
+                          child: Text('Marina Bay, Singapore',
+                              style: TextStyle(
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 13,
+                                  color: AppColors.textPrimary)),
+                        ),
+                        Text(
+                            CountryFlags.fromName('Singapore'),
+                            style: const TextStyle(fontSize: 14)),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        const Icon(Icons.calendar_today,
+                            size: 16, color: AppColors.textTertiary),
+                        const SizedBox(width: 6),
+                        const Text('May 10, 2026',
+                            style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+                        const SizedBox(width: 16),
+                        const Icon(Icons.schedule,
+                            size: 16, color: AppColors.textTertiary),
+                        const SizedBox(width: 6),
+                        const Text('4 hours',
+                            style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        const Icon(Icons.group,
+                            size: 16, color: AppColors.textTertiary),
+                        const SizedBox(width: 6),
+                        const Text('2 tourists',
+                            style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: AppSpacing.lg),
+              SizedBox(
+                width: double.infinity,
+                child: PrimaryButton(
+                  label: 'View Current Jobs',
+                  onPressed: () {
+                    widget.onDone();
+                  },
+                ),
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              SizedBox(
+                width: double.infinity,
+                child: GhostButton(
+                  label: 'Stay Here',
+                  onPressed: () => Navigator.pop(context),
+                ),
+              ),
+              const SizedBox(height: AppSpacing.md),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }
 

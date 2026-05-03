@@ -18,7 +18,7 @@ from datetime import datetime, timedelta
 sys.path.insert(0, '.')
 
 from database import SessionLocal, init_db
-from models import Tourist, Guide, BusinessOwner, Booking, LocationTracking
+from models import Tourist, Guide, BusinessOwner, Booking, LocationTracking, Wallet, WalletTransaction
 
 TEST_PASSWORD_HASH = "$2b$12$eCcT/GO4Hj.fAqgihcxO/epKof8E9rxObeKjW9llKS7sViNyi7SX2"
 
@@ -52,6 +52,12 @@ def seed_test_tourist(db: SessionLocal):
         print(f"  Tourist already exists: {existing.id} — updating fields")
         existing.name = "Alex Traveler"
         db.commit()
+        # Ensure wallet has balance
+        wallet = db.query(Wallet).filter_by(owner_id=existing.id, owner_type="tourist").first()
+        if wallet:
+            if wallet.balance < 1000:
+                wallet.balance = 5000.0
+                db.commit()
         return
     tourist = Tourist(
         id=f"T{uuid.uuid4().hex[:8].upper()}",
@@ -72,6 +78,23 @@ def seed_test_tourist(db: SessionLocal):
     db.add(tourist)
     db.commit()
     print(f"  Tourist: test@wanderless.com / wanderless123  (id={tourist.id})")
+    # Create wallet with initial balance
+    wallet = Wallet(
+        id=f"W{uuid.uuid4().hex[:8].upper()}",
+        owner_id=tourist.id,
+        owner_type="tourist",
+        balance=5000.0,
+        currency="SGD",
+    )
+    db.add(wallet)
+    txn = WalletTransaction(
+        wallet_id=wallet.id,
+        txn_type="deposit",
+        amount=5000.0,
+        description="Initial demo deposit",
+    )
+    db.add(txn)
+    db.commit()
 
 
 def seed_test_guide(db: SessionLocal):
