@@ -5,6 +5,7 @@ import '../../../../core/api_client.dart';
 import '../../../../core/auth_provider.dart';
 import '../../../../design_system.dart';
 import '../../../../shared/models/guide.dart';
+import '../../../profile/widgets/profile_menu_sheet.dart';
 import '../widgets/match_card.dart';
 
 final _filterDestinationMap = {
@@ -181,9 +182,18 @@ class DiscoverScreen extends ConsumerWidget {
                                   onPressed: () => context.push('/notifications'),
                                 ),
                                 const SizedBox(width: 4),
-                                IconBtn(
-                                  icon: Icons.settings_outlined,
-                                  onPressed: () => context.push('/settings'),
+                                GestureDetector(
+                                  onTap: () => ProfileMenuSheet.show(context),
+                                  child: Container(
+                                    width: 34,
+                                    height: 34,
+                                    decoration: BoxDecoration(
+                                      color: AppColors.brand.withOpacity(0.2),
+                                      shape: BoxShape.circle,
+                                      border: Border.all(color: Colors.white.withOpacity(0.3)),
+                                    ),
+                                    child: const Icon(Icons.person, color: Colors.white, size: 18),
+                                  ),
                                 ),
                               ],
                             ),

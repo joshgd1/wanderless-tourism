@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../design_system.dart';
+import '../../features/profile/widgets/profile_menu_sheet.dart';
 
 class MainShell extends StatelessWidget {
   final Widget child;
@@ -54,7 +55,7 @@ class MainShell extends StatelessWidget {
                   activeIcon: Icons.person,
                   label: 'Profile',
                   isSelected: _isSelected(context, '/profile'),
-                  onTap: () => context.go('/profile'),
+                  onTap: () => ProfileMenuSheet.show(context),
                 ),
               ],
             ),
