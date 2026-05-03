@@ -70,6 +70,99 @@ def _seed_test_guide(db: Session) -> None:
     db.commit()
 
 
+def _seed_test_tourist(db: Session) -> None:
+    """Ensure test@wanderless.com exists with the test password hash.
+
+    Uses a fixed ID so the touristId is stable across container restarts.
+    """
+    existing = db.query(Tourist).filter_by(email="test@wanderless.com").first()
+    if existing:
+        existing.name = "Alex Traveler"
+        existing.password_hash = _TEST_PASSWORD_HASH
+        existing.food_interest = 0.5
+        existing.culture_interest = 0.5
+        existing.adventure_interest = 0.5
+        existing.pace_preference = 0.5
+        existing.budget_level = 0.5
+        existing.language = "en"
+        existing.age_group = "26-35"
+        existing.travel_style = "solo"
+        existing.experience_type = "authentic_local"
+        existing.energy_curve = "|".join(["0.5"] * 24)
+        db.commit()
+        _ensure_test_wallet(db, existing.id, "tourist")
+        return
+
+    tourist = Tourist(
+        id="TTEST001",
+        email="test@wanderless.com",
+        password_hash=_TEST_PASSWORD_HASH,
+        name="Alex Traveler",
+        food_interest=0.5,
+        culture_interest=0.5,
+        adventure_interest=0.5,
+        pace_preference=0.5,
+        budget_level=0.5,
+        language="en",
+        age_group="26-35",
+        travel_style="solo",
+        experience_type="authentic_local",
+        energy_curve="|".join(["0.5"] * 24),
+    )
+    db.add(tourist)
+    db.commit()
+    _ensure_test_wallet(db, tourist.id, "tourist")
+
+
+def _seed_test_business(db: Session) -> None:
+    """Ensure business@wanderless.com exists with the test password hash."""
+    existing = db.query(BusinessOwner).filter_by(email="business@wanderless.com").first()
+    if existing:
+        existing.business_name = "Chiang Mai Adventures"
+        existing.commission_rate = 0.15
+        existing.phone = "+66 81 234 5678"
+        db.commit()
+        return
+
+    owner = BusinessOwner(
+        id="BTEST001",
+        email="business@wanderless.com",
+        password_hash=_TEST_PASSWORD_HASH,
+        name="Business Owner",
+        business_name="Chiang Mai Adventures",
+        commission_rate=0.15,
+        phone="+66 81 234 5678",
+    )
+    db.add(owner)
+    db.commit()
+
+
+def _ensure_test_wallet(db: Session, owner_id: str, owner_type: str) -> None:
+    """Ensure a wallet exists with initial balance for the test tourist."""
+    wallet = db.query(Wallet).filter_by(owner_id=owner_id, owner_type=owner_type).first()
+    if wallet:
+        if wallet.balance < 1000:
+            wallet.balance = 5000.0
+            db.commit()
+        return
+    wallet = Wallet(
+        id=f"W{uuid.uuid4().hex[:8].upper()}",
+        owner_id=owner_id,
+        owner_type=owner_type,
+        balance=5000.0,
+        currency="SGD",
+    )
+    db.add(wallet)
+    txn = WalletTransaction(
+        wallet_id=wallet.id,
+        txn_type="deposit",
+        amount=5000.0,
+        description="Initial demo deposit",
+    )
+    db.add(txn)
+    db.commit()
+
+
 def init_db(db: Session) -> None:
     """Create tables if missing; seed CSV data only if tables are empty."""
     Base.metadata.create_all(bind=engine)
@@ -82,9 +175,11 @@ def init_db(db: Session) -> None:
         _seed_guides(db)
     if db.query(Rating).count() == 0:
         _seed_ratings(db)
-    # Always ensure test guide exists with correct credentials
+    # Always ensure test accounts exist with correct credentials
     # (handles Render free-tier container restarts where DB is wiped)
+    _seed_test_tourist(db)
     _seed_test_guide(db)
+    _seed_test_business(db)
     db.commit()
 
 
