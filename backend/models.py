@@ -142,7 +142,8 @@ class TripPlan(Base):
     proposed_stops = Column(JSON)  # [{"name": "...", "duration_hours": 1.5, "notes": "..."}]
     status = Column(String)  # OPEN | GUIDE_PROPOSED | TOURIST_REVIEWING | ACCEPTED | REJECTED | COMPLETED | CANCELLED
     guide_id = Column(String, ForeignKey("guides.id"), nullable=True)
-    tour_date = Column(String, nullable=True)
+    tour_date_start = Column(String, nullable=True)
+    tour_date_end = Column(String, nullable=True)
     duration_hours = Column(Float, nullable=True)
     group_size = Column(Integer, nullable=True)
     booking_id = Column(Integer, ForeignKey("bookings.id"), nullable=True)

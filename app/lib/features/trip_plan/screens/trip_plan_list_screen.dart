@@ -296,11 +296,10 @@ class TripPlanListScreen extends ConsumerWidget {
       });
       ref.invalidate(myTripPlansProvider);
       ref.invalidate(bookingsListProvider);
-      if (context.mounted) {
-        Navigator.pop(sheetCtx);
-        // Show fake payment success dialog
+      if (sheetCtx.mounted) {
+        // Show fake payment success dialog first
         await showDialog(
-          context: context,
+          context: sheetCtx,
           barrierDismissible: false,
           builder: (ctx) => AlertDialog(
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.lg)),
@@ -355,6 +354,9 @@ class TripPlanListScreen extends ConsumerWidget {
             ),
           ),
         );
+        // Close the bottom sheet after dialog completes
+        Navigator.pop(sheetCtx);
+        // Show confirmation snackbar on the main scaffold
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(

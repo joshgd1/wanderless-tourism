@@ -288,9 +288,16 @@ class _BookingList extends StatelessWidget {
   }
 }
 
-class _BookingRow extends StatelessWidget {
+class _BookingRow extends ConsumerStatefulWidget {
   final Map<String, dynamic> booking;
   const _BookingRow({required this.booking});
+
+  @override
+  ConsumerState<_BookingRow> createState() => _BookingRowState();
+}
+
+class _BookingRowState extends ConsumerState<_BookingRow> {
+  bool _loading = false;
 
   Color _statusColor(String status) {
     switch (status) {
@@ -314,9 +321,31 @@ class _BookingRow extends StatelessWidget {
     }
   }
 
+  Future<void> _accept() async {
+    final id = widget.booking['id'];
+    setState(() => _loading = true);
+    try {
+      await ApiClient().updateBookingStatus(id, 'CONFIRMED');
+      ref.invalidate(guideBookingsProvider);
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  Future<void> _decline() async {
+    final id = widget.booking['id'];
+    setState(() => _loading = true);
+    try {
+      await ApiClient().updateBookingStatus(id, 'CANCELLED', cancelledBy: 'guide');
+      ref.invalidate(guideBookingsProvider);
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    final status = booking['status'] as String;
+    final status = widget.booking['status'] as String;
     final statusColor = _statusColor(status);
 
     return AppCard(
@@ -328,7 +357,7 @@ class _BookingRow extends StatelessWidget {
             children: [
               StatusBadge(label: _statusLabel(status), color: statusColor),
               const Spacer(),
-              Text('#${booking['id']}', style: AppText.caption),
+              Text('#${widget.booking['id']}', style: AppText.caption),
             ],
           ),
           const SizedBox(height: AppSpacing.md),
@@ -343,7 +372,7 @@ class _BookingRow extends StatelessWidget {
                 ),
                 child: Center(
                   child: Text(
-                    (booking['tourist_name'] as String? ?? 'T')[0].toUpperCase(),
+                    (widget.booking['tourist_name'] as String? ?? 'T')[0].toUpperCase(),
                     style: AppText.labelBold.copyWith(color: AppColors.brand),
                   ),
                 ),
@@ -354,13 +383,13 @@ class _BookingRow extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      booking['tourist_name'] ?? 'Tourist',
+                      widget.booking['tourist_name'] ?? 'Tourist',
                       style: AppText.labelBold,
                       overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      booking['tour_type'] as String? ?? '',
+                      widget.booking['tour_type'] as String? ?? '',
                       style: AppText.caption,
                     ),
                   ],
@@ -371,12 +400,12 @@ class _BookingRow extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   Text(
-                    booking['tour_date'] as String? ?? '',
+                    widget.booking['tour_date'] as String? ?? '',
                     style: AppText.labelBold,
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    '${booking['group_size'] ?? 0}p · \$${(booking['gross_value'] ?? 0).toStringAsFixed(0)}',
+                    '${widget.booking['group_size'] ?? 0}p · \$${(widget.booking['gross_value'] ?? 0).toStringAsFixed(0)}',
                     style: AppText.caption,
                   ),
                 ],
@@ -390,7 +419,7 @@ class _BookingRow extends StatelessWidget {
               const SizedBox(width: 4),
               Expanded(
                 child: Text(
-                  booking['destination'] as String? ?? '',
+                  widget.booking['destination'] as String? ?? '',
                   style: AppText.bodySmall,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -405,7 +434,7 @@ class _BookingRow extends StatelessWidget {
               children: [
                 Expanded(
                   child: OutlinedButton(
-                    onPressed: () {},
+                    onPressed: _loading ? null : _decline,
                     style: OutlinedButton.styleFrom(
                       foregroundColor: AppColors.statusCancelled,
                       side: const BorderSide(color: AppColors.statusCancelled),
@@ -417,7 +446,7 @@ class _BookingRow extends StatelessWidget {
                 const SizedBox(width: AppSpacing.sm),
                 Expanded(
                   child: ElevatedButton(
-                    onPressed: () {},
+                    onPressed: _loading ? null : _accept,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.statusConfirmed,
                       foregroundColor: Colors.white,

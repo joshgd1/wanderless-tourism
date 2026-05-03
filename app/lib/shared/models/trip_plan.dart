@@ -70,7 +70,7 @@ class TripPlan {
           .toList(),
       status: json['status'] as String,
       guideId: json['guide_id'] as String?,
-      tourDate: json['tour_date'] as String?,
+      tourDate: json['tour_date_start'] as String?,
       durationHours: (json['duration_hours'] as num?)?.toDouble(),
       groupSize: json['group_size'] as int?,
       safetyWeight: (json['safety_weight'] as num?)?.toDouble(),

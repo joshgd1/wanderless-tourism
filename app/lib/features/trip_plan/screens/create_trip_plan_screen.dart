@@ -16,17 +16,16 @@ class CreateTripPlanScreen extends ConsumerStatefulWidget {
 
 class _CreateTripPlanScreenState extends ConsumerState<CreateTripPlanScreen> {
   final _destController = TextEditingController();
-  final _dateController = TextEditingController();
+  DateTime? _startDate;
+  DateTime? _endDate;
   double _durationHours = 4.0;
   int _groupSize = 2;
 
   final List<String> _selectedInterests = [];
   final List<ProposedStop> _stops = [];
 
-  // Safety & dietary constraints (from PPT Slide 6 demo)
-  double _safetyWeight = 1.0;
+  // Dietary constraints (from PPT Slide 6 demo)
   String _dietaryRequirement = 'Any';
-  bool _avoidLateNight = false;
 
   bool _isSubmitting = false;
   bool _isLoadingSuggestions = false;
@@ -75,6 +74,37 @@ class _CreateTripPlanScreenState extends ConsumerState<CreateTripPlanScreen> {
     } finally {
       if (mounted) setState(() => _isLoadingSuggestions = false);
     }
+  }
+
+  Future<void> _selectDateRange() async {
+    final initial = DateTimeRange(
+      start: _startDate ?? DateTime.now().add(const Duration(days: 1)),
+      end: _endDate ?? DateTime.now().add(const Duration(days: 3)),
+    );
+    final range = await showDateRangePicker(
+      context: context,
+      initialDateRange: initial,
+      firstDate: DateTime.now(),
+      lastDate: DateTime.now().add(const Duration(days: 365)),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: ColorScheme.light(
+              primary: AppColors.brand,
+              onPrimary: Colors.white,
+              surface: Colors.white,
+              onSurface: AppColors.textPrimary,
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+    if (range == null) return;
+    setState(() {
+      _startDate = range.start;
+      _endDate = range.end;
+    });
   }
 
   void _addStop() {
@@ -142,12 +172,11 @@ class _CreateTripPlanScreenState extends ConsumerState<CreateTripPlanScreen> {
         'destination': _destController.text.trim(),
         'interests': _selectedInterests.join('|'),
         'proposed_stops': _stops.map((s) => s.toJson()).toList(),
-        'tour_date': _dateController.text.trim().isEmpty ? null : _dateController.text.trim(),
+        'tour_date_start': _startDate == null ? null : DateFormat('yyyy-MM-dd').format(_startDate!),
+        'tour_date_end': _endDate == null ? null : DateFormat('yyyy-MM-dd').format(_endDate!),
         'duration_hours': _durationHours,
         'group_size': _groupSize,
-        'safety_weight': _safetyWeight,
         'dietary_requirement': _dietaryRequirement,
-        'avoid_late_night': _avoidLateNight,
       });
 
       if (mounted) {
@@ -180,7 +209,6 @@ class _CreateTripPlanScreenState extends ConsumerState<CreateTripPlanScreen> {
   @override
   void dispose() {
     _destController.dispose();
-    _dateController.dispose();
     super.dispose();
   }
 
@@ -251,13 +279,13 @@ class _CreateTripPlanScreenState extends ConsumerState<CreateTripPlanScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        _SectionTitle(label: 'Preferred Date', icon: Icons.calendar_today_outlined),
+                        _SectionTitle(label: 'Preferred Date Range', icon: Icons.calendar_today_outlined),
                         const SizedBox(height: AppSpacing.sm),
-                        AppTextField(
-                          controller: _dateController,
-                          hint: 'YYYY-MM-DD (optional)',
-                          prefix: const Icon(Icons.calendar_today_outlined, size: 18, color: AppColors.textTertiary),
-                          keyboardType: TextInputType.datetime,
+                        _DateRangePicker(
+                          startDate: _startDate,
+                          endDate: _endDate,
+                          onTap: () => _selectDateRange(),
+                          onClear: () => setState(() { _startDate = null; _endDate = null; }),
                         ),
                       ],
                     ),
@@ -342,23 +370,11 @@ class _CreateTripPlanScreenState extends ConsumerState<CreateTripPlanScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        _SectionTitle(label: 'Safety Priority', icon: Icons.shield_outlined),
-                        const SizedBox(height: AppSpacing.sm),
-                        _SafetySlider(
-                          value: _safetyWeight,
-                          onChanged: (v) => setState(() => _safetyWeight = v),
-                        ),
-                        const SizedBox(height: AppSpacing.md),
                         _SectionTitle(label: 'Dietary Requirement', icon: Icons.restaurant_outlined),
                         const SizedBox(height: AppSpacing.sm),
                         _DietaryChips(
                           value: _dietaryRequirement,
                           onChanged: (v) => setState(() => _dietaryRequirement = v),
-                        ),
-                        const SizedBox(height: AppSpacing.md),
-                        _LateNightToggle(
-                          value: _avoidLateNight,
-                          onChanged: (v) => setState(() => _avoidLateNight = v),
                         ),
                       ],
                     ),
@@ -689,60 +705,6 @@ class _InterestPillState extends State<_InterestPill> {
   }
 }
 
-class _SafetySlider extends StatelessWidget {
-  final double value;
-  final ValueChanged<double> onChanged;
-
-  const _SafetySlider({required this.value, required this.onChanged});
-
-  String get _label {
-    if (value <= 0.5) return 'Low';
-    if (value <= 1.0) return 'Normal';
-    if (value <= 1.5) return 'High';
-    return 'Max';
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        SliderTheme(
-          data: SliderTheme.of(context).copyWith(
-            activeTrackColor: AppColors.brand,
-            thumbColor: AppColors.brand,
-            overlayColor: AppColors.brand.withOpacity(0.2),
-            inactiveTrackColor: AppColors.surfaceSecondary,
-            trackHeight: 4,
-            thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 8),
-          ),
-          child: Slider(
-            value: value,
-            min: 0.0,
-            max: 2.0,
-            divisions: 8,
-            onChanged: onChanged,
-          ),
-        ),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text('Low', style: AppText.caption),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-              decoration: BoxDecoration(
-                color: AppColors.brand.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(AppRadius.full),
-              ),
-              child: Text(_label, style: AppText.labelBold.copyWith(color: AppColors.brand)),
-            ),
-            Text('Max', style: AppText.caption),
-          ],
-        ),
-      ],
-    );
-  }
-}
-
 class _DietaryChips extends StatelessWidget {
   final String value;
   final ValueChanged<String> onChanged;
@@ -817,44 +779,6 @@ class _DietaryChipState extends State<_DietaryChip> {
   }
 }
 
-class _LateNightToggle extends StatelessWidget {
-  final bool value;
-  final ValueChanged<bool> onChanged;
-
-  const _LateNightToggle({required this.value, required this.onChanged});
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Icon(
-          value ? Icons.nightlight_round : Icons.nightlight_outlined,
-          size: 18,
-          color: value ? AppColors.brand : AppColors.textTertiary,
-        ),
-        const SizedBox(width: 10),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('Avoid Late-night Walking', style: AppText.labelBold),
-              Text(
-                'Skip routes after 10 PM for your safety',
-                style: AppText.caption,
-              ),
-            ],
-          ),
-        ),
-        Switch(
-          value: value,
-          onChanged: onChanged,
-          activeColor: AppColors.brand,
-        ),
-      ],
-    );
-  }
-}
-
 class _StopTile extends StatelessWidget {
   final int index;
   final ProposedStop stop;
@@ -912,6 +836,68 @@ class _StopTile extends StatelessWidget {
           constraints: const BoxConstraints(minWidth: 24, minHeight: 24),
         ),
       ],
+    );
+  }
+}
+
+class _DateRangePicker extends StatelessWidget {
+  final DateTime? startDate;
+  final DateTime? endDate;
+  final VoidCallback onTap;
+  final VoidCallback onClear;
+
+  const _DateRangePicker({
+    required this.startDate,
+    required this.endDate,
+    required this.onTap,
+    required this.onClear,
+  });
+
+  String get _label {
+    if (startDate == null && endDate == null) return 'Select dates';
+    if (startDate != null && endDate != null) {
+      return '${DateFormat('MMM d').format(startDate!)} – ${DateFormat('MMM d, yyyy').format(endDate!)}';
+    }
+    if (startDate != null) return '${DateFormat('MMM d, yyyy').format(startDate!)} – Select end';
+    return '${DateFormat('MMM d').format(endDate!)} – Select start';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final hasRange = startDate != null || endDate != null;
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm + 4),
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(AppRadius.sm),
+          border: Border.all(color: AppColors.border),
+        ),
+        child: Row(
+          children: [
+            Icon(
+              Icons.date_range,
+              size: 18,
+              color: hasRange ? AppColors.brand : AppColors.textTertiary,
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                _label,
+                style: AppText.body.copyWith(
+                  color: hasRange ? AppColors.textPrimary : AppColors.textTertiary,
+                ),
+              ),
+            ),
+            if (hasRange)
+              GestureDetector(
+                onTap: onClear,
+                child: const Icon(Icons.close, size: 16, color: AppColors.textTertiary),
+              ),
+          ],
+        ),
+      ),
     );
   }
 }

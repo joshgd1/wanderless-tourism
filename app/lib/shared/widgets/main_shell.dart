@@ -39,14 +39,14 @@ class MainShell extends StatelessWidget {
                 _NavItem(
                   icon: Icons.card_travel_outlined,
                   activeIcon: Icons.card_travel,
-                  label: 'My Trip',
+                  label: 'My Trips',
                   isSelected: _isSelected(context, '/bookings'),
                   onTap: () => context.go('/bookings'),
                 ),
                 _NavItem(
                   icon: Icons.lightbulb_outline,
                   activeIcon: Icons.lightbulb,
-                  label: 'My Plans',
+                  label: 'Plan Trip',
                   isSelected: _isSelected(context, '/trip-plans'),
                   onTap: () => context.go('/trip-plans'),
                 ),

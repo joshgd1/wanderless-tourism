@@ -1693,7 +1693,8 @@ async def create_trip_plan(
         interests=data.get("interests", ""),
         proposed_stops=data.get("proposed_stops", []),
         status="OPEN",
-        tour_date=data.get("tour_date"),
+        tour_date_start=data.get("tour_date_start"),
+        tour_date_end=data.get("tour_date_end"),
         duration_hours=data.get("duration_hours"),
         group_size=data.get("group_size"),
         safety_weight=data.get("safety_weight"),
@@ -1737,7 +1738,8 @@ async def list_trip_plans(
                 "proposed_stops": p.proposed_stops,
                 "status": p.status,
                 "guide_id": p.guide_id,
-                "tour_date": p.tour_date,
+                "tour_date_start": p.tour_date_start,
+                "tour_date_end": p.tour_date_end,
                 "duration_hours": p.duration_hours,
                 "group_size": p.group_size,
                 "negotiation_rounds": p.negotiation_rounds or 0,
@@ -1777,7 +1779,8 @@ async def list_trip_plans(
             "proposed_stops": p.proposed_stops,
             "status": p.status,
             "guide_id": p.guide_id,
-            "tour_date": p.tour_date,
+            "tour_date_start": p.tour_date_start,
+            "tour_date_end": p.tour_date_end,
             "duration_hours": p.duration_hours,
             "group_size": p.group_size,
             "negotiation_rounds": p.negotiation_rounds or 0,
@@ -1805,7 +1808,8 @@ async def get_trip_plan(plan_id: int, db: Session = Depends(get_db)):
         "proposed_stops": p.proposed_stops,
         "status": p.status,
         "guide_id": p.guide_id,
-        "tour_date": p.tour_date,
+        "tour_date_start": p.tour_date_start,
+        "tour_date_end": p.tour_date_end,
         "duration_hours": p.duration_hours,
         "group_size": p.group_size,
         "negotiation_rounds": p.negotiation_rounds or 0,
@@ -1904,8 +1908,10 @@ async def counter_trip_plan(
         p.alternatives = data["alternatives"]
 
     # Guide can also update timing
-    if "tour_date" in data:
-        p.tour_date = data["tour_date"]
+    if "tour_date_start" in data:
+        p.tour_date_start = data["tour_date_start"]
+    if "tour_date_end" in data:
+        p.tour_date_end = data["tour_date_end"]
     if "duration_hours" in data:
         p.duration_hours = data["duration_hours"]
     if "group_size" in data:
@@ -2390,6 +2396,28 @@ async def reseed_database(
     admin_token = data.get("admin_token") if data else None
     if admin_token != ADMIN_TOKEN:
         raise HTTPException(status_code=403, detail="Invalid admin token")
+
+    # Migrate trip_plans: add tour_date_start / tour_date_end columns if needed
+    try:
+        existing_cols = [row[1] for row in db.execute(
+            __import__("sqlalchemy").text("PRAGMA table_info(trip_plans)")
+        ).fetchall()]
+        if "tour_date" in existing_cols and "tour_date_start" not in existing_cols:
+            db.execute(__import__("sqlalchemy").text(
+                "ALTER TABLE trip_plans ADD COLUMN tour_date_start TEXT"
+            ))
+            db.execute(__import__("sqlalchemy").text(
+                "ALTER TABLE trip_plans ADD COLUMN tour_date_end TEXT"
+            ))
+            # Migrate existing tour_date values to tour_date_start
+            db.execute(__import__("sqlalchemy").text(
+                "UPDATE trip_plans SET tour_date_start = tour_date WHERE tour_date_start IS NULL AND tour_date IS NOT NULL"
+            ))
+            db.commit()
+            logger.info("database.migration: added tour_date_start/tour_date_end columns")
+    except Exception as e:
+        logger.warning(f"database.migration.skip or error: {e}")
+
     init_db(db)
     db.commit()
     import seed_accounts as sa
