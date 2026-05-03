@@ -51,12 +51,12 @@ def _check_rate_limit(client_ip: str) -> None:
 
 # ─── JWT helpers ─────────────────────────────────────────────────────────────────
 
-def _create_token(tourist_id: str, expires_delta: timedelta | None = None) -> str:
+def _create_token(sub: str, expires_delta: timedelta | None = None, role: str = "tourist") -> str:
     from jose import jwt
     from datetime import timezone
     now = datetime.now(timezone.utc)
     expire = now + (expires_delta or timedelta(hours=ACCESS_TOKEN_EXPIRE_HOURS))
-    payload = {"sub": tourist_id, "exp": expire, "iat": now}
+    payload = {"sub": sub, "role": role, "exp": expire, "iat": now}
     return jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
 
 
@@ -65,6 +65,14 @@ def _verify_token(token: str) -> str | None:
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         return payload.get("sub")
+    except JWTError:
+        return None
+
+
+def _decode_token(token: str) -> dict | None:
+    from jose import jwt, JWTError
+    try:
+        return jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
     except JWTError:
         return None
 
@@ -92,35 +100,50 @@ def _get_tourist_id_optional(authorization: str | None = Header(None)) -> str | 
         parts = authorization.split()
         if len(parts) != 2 or parts[0].lower() != "bearer":
             return None
-        tourist_id = _verify_token(parts[1])
-        return tourist_id or None
+        payload = _decode_token(parts[1])
+        if not payload:
+            return None
+        role = payload.get("role")
+        # Accept tourist tokens (role="tourist") or old tokens without role (backwards compat)
+        if role is not None and role != "tourist":
+            return None
+        return payload.get("sub") or None
     except Exception:
         return None
 
 
 def _get_guide_id(authorization: str | None = Header(None)) -> str:
-    """Verify JWT and return guide_id. Raises 401 if invalid."""
+    """Verify JWT and return guide_id. Raises 401 if invalid or not a guide token."""
     if not authorization:
         raise HTTPException(status_code=401, detail="Authorization header required")
     parts = authorization.split()
     if len(parts) != 2 or parts[0].lower() != "bearer":
         raise HTTPException(status_code=401, detail="Invalid authorization header format")
-    guide_id = _verify_token(parts[1])
+    payload = _decode_token(parts[1])
+    if not payload:
+        raise HTTPException(status_code=401, detail="Invalid or expired token")
+    if payload.get("role") != "guide":
+        raise HTTPException(status_code=401, detail="Invalid token: not a guide")
+    guide_id = payload.get("sub")
     if not guide_id:
         raise HTTPException(status_code=401, detail="Invalid or expired token")
     return guide_id
 
 
 def _get_guide_id_optional(authorization: str | None = Header(None)) -> str | None:
-    """Verify JWT and return guide_id. Returns None if no valid auth header."""
+    """Verify JWT and return guide_id if valid guide token. Returns None otherwise."""
     if not authorization:
         return None
     try:
         parts = authorization.split()
         if len(parts) != 2 or parts[0].lower() != "bearer":
             return None
-        guide_id = _verify_token(parts[1])
-        return guide_id or None
+        payload = _decode_token(parts[1])
+        if not payload:
+            return None
+        if payload.get("role") != "guide":
+            return None
+        return payload.get("sub") or None
     except Exception:
         return None
 
@@ -619,7 +642,7 @@ async def register_guide(data: dict, db: Session = Depends(get_db)):
     db.commit()
     logger.info(f"guide.register guide_id={guide_id} email={email}")
 
-    token = _create_token(guide_id)
+    token = _create_token(guide_id, role="guide")
     return {
         "access_token": token,
         "token_type": "bearer",
@@ -647,7 +670,7 @@ async def guide_login(data: dict, db: Session = Depends(get_db)):
     if not _verify_password(password, guide.password_hash):
         raise HTTPException(status_code=401, detail="Invalid email or password")
 
-    token = _create_token(guide.id)
+    token = _create_token(guide.id, role="guide")
     logger.info(f"guide.login guide_id={guide.id} email={email}")
     return {
         "access_token": token,
@@ -795,7 +818,7 @@ async def register_business(data: dict, db: Session = Depends(get_db)):
     db.commit()
     logger.info(f"business.register owner_id={owner_id} email={email}")
 
-    token = _create_token(owner_id)
+    token = _create_token(owner_id, role="business")
     return {
         "access_token": token,
         "token_type": "bearer",
@@ -823,7 +846,7 @@ async def business_login(data: dict, db: Session = Depends(get_db)):
     if not _verify_password(password, owner.password_hash):
         raise HTTPException(status_code=401, detail="Invalid email or password")
 
-    token = _create_token(owner.id)
+    token = _create_token(owner.id, role="business")
     logger.info(f"business.login owner_id={owner.id} email={email}")
     return {
         "access_token": token,
