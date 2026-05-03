@@ -211,7 +211,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 // Tagline
                 Row(
                   children: [
-                    Text('🌿', style: TextStyle(fontSize: 14)),
+                    Text('🌿', style: TextStyle(fontSize: 16)),
                     const SizedBox(width: 6),
                     Text(
                       'Wander less. Worry less.',
@@ -222,7 +222,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: AppSpacing.sm),
                 Text(
                   'Welcome back.',
                   style: AppText.body.copyWith(color: AppColors.textSecondary),
@@ -386,7 +386,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           ),
           child: Text(
             f,
-            style: AppText.caption.copyWith(color: Colors.white.withOpacity(0.7)),
+            style: AppText.label.copyWith(color: Colors.white.withOpacity(0.85)),
           ),
         );
       }).toList(),
