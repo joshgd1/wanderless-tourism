@@ -249,6 +249,22 @@ async def health():
     return {"status": "ok"}
 
 
+@app.post("/api/admin/reseed-guide")
+async def admin_reseed_guide(
+    admin_token: str = Header(None, alias="Admin-Token"),
+    db: Session = Depends(get_db),
+):
+    """
+    Reseed the test guide (guide@wanderless.com) with the correct password.
+    Used to fix guide login after container restarts or password hash issues.
+    """
+    if admin_token != ADMIN_TOKEN:
+        raise HTTPException(status_code=401, detail="Invalid admin token")
+    from database import _seed_test_guide
+    _seed_test_guide(db)
+    return {"status": "ok", "message": "Test guide reseeded successfully"}
+
+
 # ─── Auth endpoints ─────────────────────────────────────────────────────────────
 
 @app.post("/api/auth/register")
