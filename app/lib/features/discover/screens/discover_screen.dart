@@ -5,7 +5,7 @@ import '../../../../core/api_client.dart';
 import '../../../../core/auth_provider.dart';
 import '../../../../design_system.dart';
 import '../../../../shared/models/guide.dart';
-import '../../../profile/widgets/profile_menu_sheet.dart';
+import '../../profile/widgets/profile_menu_sheet.dart';
 import '../widgets/match_card.dart';
 
 final _filterDestinationMap = {
