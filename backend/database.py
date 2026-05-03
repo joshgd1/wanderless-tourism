@@ -31,6 +31,45 @@ def get_db() -> Session:
         db.close()
 
 
+# Test account password hash — same value used by seed_accounts.py
+_TEST_PASSWORD_HASH = "$2b$12$eCcT/GO4Hj.fAqgihcxO/epKof8E9rxObeKjW9llKS7sViNyi7SX2"
+
+
+def _seed_test_guide(db: Session) -> None:
+    """Ensure guide@wanderless.com exists with the test password hash.
+
+    Called on every init_db to handle Render free-tier container restarts
+    (the database file is wiped on sleep, so seed data is lost).
+    """
+    existing = db.query(Guide).filter_by(email="guide@wanderless.com").first()
+    if existing:
+        existing.password_hash = _TEST_PASSWORD_HASH
+        existing.name = "Mei Ling"
+        existing.bio = (
+            "Passionate Singapore guide specializing in cultural heritage walks through "
+            "Chinatown, Little India, and Gardens by the Bay."
+        )
+        existing.photo_url = "https://picsum.photos/seed/mei_ling_guide/400/400"
+        existing.license_verified = True
+        db.commit()
+        return
+
+    # No guide@wanderless.com yet — bind to first available guide
+    guide = db.query(Guide).first()
+    if not guide:
+        return  # No guides seeded yet; seed_test_guide from reseed will handle
+    guide.email = "guide@wanderless.com"
+    guide.password_hash = _TEST_PASSWORD_HASH
+    guide.name = "Mei Ling"
+    guide.bio = (
+        "Passionate Singapore guide specializing in cultural heritage walks through "
+        "Chinatown, Little India, and Gardens by the Bay."
+    )
+    guide.photo_url = "https://picsum.photos/seed/mei_ling_guide/400/400"
+    guide.license_verified = True
+    db.commit()
+
+
 def init_db(db: Session) -> None:
     """Create tables if missing; seed CSV data only if tables are empty."""
     Base.metadata.create_all(bind=engine)
@@ -43,6 +82,9 @@ def init_db(db: Session) -> None:
         _seed_guides(db)
     if db.query(Rating).count() == 0:
         _seed_ratings(db)
+    # Always ensure test guide exists with correct credentials
+    # (handles Render free-tier container restarts where DB is wiped)
+    _seed_test_guide(db)
     db.commit()
 
 
