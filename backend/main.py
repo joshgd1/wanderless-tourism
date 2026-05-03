@@ -743,6 +743,70 @@ async def get_guide_me(guide_id: str = Depends(_get_guide_id), db: Session = Dep
     }
 
 
+@app.get("/api/guides/open-requests")
+async def get_guide_open_requests(
+    guide_id: str = Depends(_get_guide_id),
+    db: Session = Depends(get_db),
+):
+    """Get all OPEN trip plans (pending requests) that this guide can accept."""
+    trip_plans = db.query(models.TripPlan).filter(
+        models.TripPlan.status == "OPEN"
+    ).all()
+    return [
+        {
+            "id": tp.id,
+            "tourist_id": tp.tourist_id,
+            "destination": tp.destination,
+            "interests": tp.interests.split("|") if tp.interests else [],
+            "proposed_stops": tp.proposed_stops,
+            "tour_date_start": tp.tour_date_start,
+            "tour_date_end": tp.tour_date_end,
+            "duration_hours": tp.duration_hours,
+            "group_size": tp.group_size,
+            "dietary_requirement": tp.dietary_requirement,
+            "safety_weight": tp.safety_weight,
+            "avoid_late_night": tp.avoid_late_night,
+            "created_at": tp.created_at.isoformat() if tp.created_at else None,
+        }
+        for tp in trip_plans
+    ]
+
+
+@app.post("/api/guides/open-requests/{plan_id}/accept")
+async def accept_trip_request(
+    plan_id: int,
+    guide_id: str = Depends(_get_guide_id),
+    db: Session = Depends(get_db),
+):
+    """Accept an OPEN trip plan and create a booking."""
+    tp = db.query(models.TripPlan).filter_by(id=plan_id, status="OPEN").first()
+    if not tp:
+        raise HTTPException(status_code=404, detail="Trip plan not found or already accepted")
+
+    # Create a booking from the trip plan
+    booking = models.Booking(
+        tourist_id=tp.tourist_id,
+        guide_id=guide_id,
+        destination=tp.destination,
+        tour_date=tp.tour_date_start,
+        duration_hours=tp.duration_hours,
+        group_size=tp.group_size,
+        gross_value=0.0,  # Price to be negotiated
+        platform_commission_pct=0.15,
+        status="CONFIRMED",
+        payment_status="pending",
+    )
+    db.add(booking)
+
+    # Mark trip plan as accepted
+    tp.status = "ACCEPTED"
+    tp.guide_id = guide_id
+
+    db.commit()
+    logger.info(f"guide.accept_request guide_id={guide_id} plan_id={plan_id}")
+    return {"status": "ok", "booking_id": booking.id}
+
+
 # ─── Guide wallet endpoints ────────────────────────────────────────────────────────
 
 @app.get("/api/guides/auth/wallet")

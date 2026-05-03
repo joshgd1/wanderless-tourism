@@ -30,6 +30,18 @@ final guideBookingsProvider = FutureProvider<List<Map<String, dynamic>>>((ref) a
   }
 });
 
+final guideOpenRequestsProvider = FutureProvider<List<Map<String, dynamic>>>((ref) async {
+  final authState = ref.watch(guideAuthProvider);
+  if (authState.guideId == null) return [];
+  try {
+    final api = ApiClient();
+    final data = await api.getGuideOpenRequests();
+    return data.cast<Map<String, dynamic>>();
+  } catch (_) {
+    return [];
+  }
+});
+
 class GuideJobsScreen extends ConsumerStatefulWidget {
   const GuideJobsScreen({super.key});
 
@@ -46,7 +58,7 @@ class _GuideJobsScreenState extends ConsumerState<GuideJobsScreen>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
+    _tabController = TabController(length: 4, vsync: this);
   }
 
   @override
@@ -75,6 +87,7 @@ class _GuideJobsScreenState extends ConsumerState<GuideJobsScreen>
   Widget build(BuildContext context) {
     final authState = ref.watch(guideAuthProvider);
     final bookingsAsync = ref.watch(guideBookingsProvider);
+    final openRequestsAsync = ref.watch(guideOpenRequestsProvider);
     final isWide = MediaQuery.of(context).size.width > 600;
 
     final allBookings = bookingsAsync.when(
@@ -145,6 +158,7 @@ class _GuideJobsScreenState extends ConsumerState<GuideJobsScreen>
                 indicatorWeight: 2.5,
                 dividerColor: Colors.transparent,
                 tabs: const [
+                  Tab(text: 'Requests'),
                   Tab(text: 'All Jobs'),
                   Tab(text: 'Upcoming'),
                   Tab(text: 'History'),
@@ -177,6 +191,7 @@ class _GuideJobsScreenState extends ConsumerState<GuideJobsScreen>
                 data: (_) => TabBarView(
                   controller: _tabController,
                   children: [
+                    _OpenRequestsList(requestsAsync: openRequestsAsync),
                     _BookingList(bookings: _filterAndSort(allBookings)),
                     _BookingList(bookings: _filterAndSort(allBookings.where((b) {
                       final s = b['status'] as String;
@@ -284,6 +299,162 @@ class _BookingList extends StatelessWidget {
           child: _BookingRow(booking: b),
         );
       },
+    );
+  }
+}
+
+class _OpenRequestsList extends ConsumerWidget {
+  final AsyncValue<List<Map<String, dynamic>>> requestsAsync;
+  const _OpenRequestsList({required this.requestsAsync});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return requestsAsync.when(
+      loading: () => const AppLoading(message: 'Loading requests...'),
+      error: (e, _) => EmptyState(
+        icon: Icons.error_outline,
+        title: 'Failed to load requests',
+        subtitle: e.toString(),
+      ),
+      data: (requests) {
+        if (requests.isEmpty) {
+          return const EmptyState(
+            icon: Icons.inbox_outlined,
+            title: 'No open requests',
+            subtitle: 'Trip requests will appear here',
+          );
+        }
+        return ListView.builder(
+          padding: const EdgeInsets.all(AppSpacing.md),
+          itemCount: requests.length,
+          itemBuilder: (context, index) {
+            final r = requests[index];
+            return Padding(
+              padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+              child: _OpenRequestRow(request: r),
+            );
+          },
+        );
+      },
+    );
+  }
+}
+
+class _OpenRequestRow extends ConsumerStatefulWidget {
+  final Map<String, dynamic> request;
+  const _OpenRequestRow({required this.request});
+
+  @override
+  ConsumerState<_OpenRequestRow> createState() => _OpenRequestRowState();
+}
+
+class _OpenRequestRowState extends ConsumerState<_OpenRequestRow> {
+  bool _loading = false;
+
+  Future<void> _accept() async {
+    final id = widget.request['id'] as int;
+    setState(() => _loading = true);
+    try {
+      await ApiClient().acceptGuideRequest(id);
+      ref.invalidate(guideOpenRequestsProvider);
+      ref.invalidate(guideBookingsProvider);
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final interests = (widget.request['interests'] as List?)?.cast<String>() ?? [];
+    final destination = widget.request['destination'] as String? ?? '';
+    final tourDate = widget.request['tour_date_start'] as String? ?? '';
+    final groupSize = widget.request['group_size'] as int? ?? 0;
+    final duration = widget.request['duration_hours'] as double? ?? 0.0;
+
+    return AppCard(
+      padding: const EdgeInsets.all(AppSpacing.md),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              StatusBadge(label: 'New', color: AppColors.statusRequested),
+              const Spacer(),
+              Text('#${widget.request['id']}', style: AppText.caption),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.md),
+          Row(
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: AppColors.surfaceSecondary,
+                  borderRadius: BorderRadius.circular(AppRadius.sm),
+                ),
+                child: const Center(
+                  child: Icon(Icons.place_outlined, color: AppColors.brand, size: 20),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      destination,
+                      style: AppText.labelBold,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 2),
+                    if (interests.isNotEmpty)
+                      Text(
+                        interests.join(' · '),
+                        style: AppText.caption,
+                      ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.md),
+          Row(
+            children: [
+              const Icon(Icons.calendar_today_outlined, size: 14, color: AppColors.textTertiary),
+              const SizedBox(width: 4),
+              Text(tourDate, style: AppText.bodySmall),
+              const SizedBox(width: AppSpacing.md),
+              const Icon(Icons.group_outlined, size: 14, color: AppColors.textTertiary),
+              const SizedBox(width: 4),
+              Text('$groupSize p', style: AppText.bodySmall),
+              const SizedBox(width: AppSpacing.md),
+              const Icon(Icons.schedule_outlined, size: 14, color: AppColors.textTertiary),
+              const SizedBox(width: 4),
+              Text('${duration.toStringAsFixed(0)}h', style: AppText.bodySmall),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.md),
+          const Divider(height: 1),
+          const SizedBox(height: AppSpacing.sm),
+          Row(
+            children: [
+              const Spacer(),
+              ElevatedButton(
+                onPressed: _loading ? null : _accept,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.statusConfirmed,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                ),
+                child: _loading
+                    ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                    : const Text('Accept'),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 }
