@@ -444,25 +444,35 @@ class HybridRecommender:
 
         # 3. Normalize collaborative scores to 0–1 (based on rating range 1–5)
         collab_values = list(collab_scores.values())
-        collab_min, collab_max = min(collab_values), max(collab_values)
-        if collab_max > collab_min:
-            collab_norm = {
-                gid: (v - collab_min) / (collab_max - collab_min)
-                for gid, v in collab_scores.items()
-            }
-        else:
+        if not collab_values:
+            collab_norm = {}
+        elif len(collab_values) == 1:
             collab_norm = {gid: 0.5 for gid in collab_scores}
+        else:
+            collab_min, collab_max = min(collab_values), max(collab_values)
+            if collab_max > collab_min:
+                collab_norm = {
+                    gid: (v - collab_min) / (collab_max - collab_min)
+                    for gid, v in collab_scores.items()
+                }
+            else:
+                collab_norm = {gid: 0.5 for gid in collab_scores}
 
         # Normalize content scores to 0–1
         content_values = list(content_scores.values())
-        content_min, content_max = min(content_values), max(content_values)
-        if content_max > content_min:
-            content_norm = {
-                gid: (v - content_min) / (content_max - content_min)
-                for gid, v in content_scores.items()
-            }
-        else:
+        if not content_values:
+            content_norm = {}
+        elif len(content_values) == 1:
             content_norm = {gid: 0.5 for gid in content_scores}
+        else:
+            content_min, content_max = min(content_values), max(content_values)
+            if content_max > content_min:
+                content_norm = {
+                    gid: (v - content_min) / (content_max - content_min)
+                    for gid, v in content_scores.items()
+                }
+            else:
+                content_norm = {gid: 0.5 for gid in content_scores}
 
         # 4. Destination affinity (if destination specified, boost matching guides)
         dest_boost: dict[str, float] = {}

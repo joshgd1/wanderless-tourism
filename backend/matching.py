@@ -98,7 +98,11 @@ def _bio_authenticity(guide: Guide) -> float:
         return 0.0
 
     bio_lower = guide.bio.lower()
-    covered = set(loc.strip().lower() for loc in guide.location_coverage.split("|"))
+    # Strip "XX:" country/region prefix before comparing against neighborhood lists
+    covered = set(
+        loc.split(":", 1)[-1].strip().lower()
+        for loc in (guide.location_coverage or "").split("|")
+    )
 
     # Strong: neighborhood in bio + guide covers that neighborhood
     bio_neighborhoods_found = covered & CHIANG_MAI_NEIGHBORHOODS & set(bio_lower.split())
@@ -128,7 +132,11 @@ def _location_match(guide: Guide, destination: str | None) -> float:
     if not destination or not guide.location_coverage:
         return 0.0
     dest_lower = destination.lower()
-    covered = [loc.strip().lower() for loc in guide.location_coverage.split("|")]
+    # Strip "XX:" country/region prefix before comparing against neighborhood lists
+    covered = [
+        loc.split(":", 1)[-1].strip().lower()
+        for loc in guide.location_coverage.split("|")
+    ]
     if dest_lower in covered:
         return LOCALITY_BONUS
     # Chiang Mai: check if guide covers any Chiang Mai neighborhood

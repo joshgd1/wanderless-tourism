@@ -511,8 +511,11 @@ async def list_guides(db: Session = Depends(get_db)):
             "group_size_preferred": g.group_size_preferred,
             "budget_tier": g.budget_tier,
             "location_coverage": (g.location_coverage or "").split("|"),
-            "rating_history": g.rating_history,
-            "rating_count": g.rating_count,
+            "rating": g.rating_history,
+            "review_count": g.rating_count,
+            "price_range": None,
+            "response_rate": None,
+            "response_time": None,
             "specialties": (g.specialties or "").split("|"),
             "license_verified": g.license_verified,
         }
@@ -538,8 +541,11 @@ async def get_guide(guide_id: str, db: Session = Depends(get_db)):
         "budget_tier": g.budget_tier,
         "location_coverage": (g.location_coverage or "").split("|"),
         "availability": g.availability,
-        "rating_history": g.rating_history,
-        "rating_count": g.rating_count,
+        "rating": g.rating_history,
+        "review_count": g.rating_count,
+        "price_range": None,
+        "response_rate": None,
+        "response_time": None,
         "specialties": (g.specialties or "").split("|"),
         "license_verified": g.license_verified,
     }
@@ -653,8 +659,11 @@ async def get_guide_me(guide_id: str = Depends(_get_guide_id), db: Session = Dep
         "group_size_preferred": g.group_size_preferred,
         "budget_tier": g.budget_tier,
         "location_coverage": g.location_coverage.split("|") if g.location_coverage else [],
-        "rating_history": g.rating_history,
-        "rating_count": g.rating_count,
+        "rating": g.rating_history,
+        "review_count": g.rating_count,
+        "price_range": None,
+        "response_rate": None,
+        "response_time": None,
         "specialties": g.specialties.split("|") if g.specialties else [],
         "license_verified": g.license_verified,
         "owner_id": g.owner_id,
@@ -975,8 +984,11 @@ async def get_business_guides(
             "name": g.name,
             "email": g.email,
             "photo_url": g.photo_url,
-            "rating_history": g.rating_history,
-            "rating_count": g.rating_count,
+            "rating": g.rating_history,
+            "review_count": g.rating_count,
+            "price_range": None,
+            "response_rate": None,
+            "response_time": None,
             "license_verified": g.license_verified,
         }
         for g in guides
@@ -1025,8 +1037,11 @@ async def get_matches(
             "expertise_tags": (g.expertise_tags or "").split("|"),
             "language_pairs": (g.language_pairs or "").split("|"),
             "location_coverage": (g.location_coverage or "").split("|"),
-            "rating_history": g.rating_history,
-            "rating_count": g.rating_count,
+            "rating": g.rating_history,
+            "review_count": g.rating_count,
+            "price_range": None,
+            "response_rate": None,
+            "response_time": None,
             "budget_tier": g.budget_tier,
             "license_verified": g.license_verified,
             "score": item["score"],
@@ -1084,8 +1099,11 @@ async def get_ml_guide_recommendations(
             "bio": g.bio,
             "expertise_tags": (g.expertise_tags or "").split("|"),
             "location_coverage": (g.location_coverage or "").split("|"),
-            "rating_history": g.rating_history,
-            "rating_count": g.rating_count,
+            "rating": g.rating_history,
+            "review_count": g.rating_count,
+            "price_range": None,
+            "response_rate": None,
+            "response_time": None,
             "budget_tier": g.budget_tier,
             "license_verified": g.license_verified,
             "score": item["score"],
@@ -1708,8 +1726,7 @@ async def list_trip_plans(
     if auth_guide_id and not auth_tourist_id:
         # Guides see OPEN plans by default for job discovery
         query = query.filter_by(status=status if status else "OPEN")
-        if guide_id:
-            query = query.filter_by(guide_id=guide_id)
+        # Guides can only see their OWN assigned plans via auth context — NOT via query param override
         plans = query.order_by(models.TripPlan.created_at.desc()).all()
         return [
             {
