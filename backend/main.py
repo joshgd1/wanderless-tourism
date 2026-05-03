@@ -288,6 +288,40 @@ async def admin_reseed_guide(
     return {"status": "ok", "message": "Test guide reseeded successfully"}
 
 
+@app.post("/api/admin/reseed-tourist")
+async def admin_reseed_tourist(
+    admin_token: str = Header(None, alias="Admin-Token"),
+    db: Session = Depends(get_db),
+):
+    """
+    Reseed the test tourist (test@wanderless.com) with the correct password.
+    Used to fix tourist login after container restarts or password hash issues.
+    """
+    if admin_token != ADMIN_TOKEN:
+        raise HTTPException(status_code=401, detail="Invalid admin token")
+    from database import _seed_test_tourist
+    _seed_test_tourist(db)
+    return {"status": "ok", "message": "Test tourist reseeded successfully"}
+
+
+@app.post("/api/admin/reseed-all")
+async def admin_reseed_all(
+    admin_token: str = Header(None, alias="Admin-Token"),
+    db: Session = Depends(get_db),
+):
+    """
+    Reseed all test accounts (guide, tourist, business) with correct passwords.
+    Use this after container restarts on Render free tier.
+    """
+    if admin_token != ADMIN_TOKEN:
+        raise HTTPException(status_code=401, detail="Invalid admin token")
+    from database import _seed_test_guide, _seed_test_tourist, _seed_test_business
+    _seed_test_guide(db)
+    _seed_test_tourist(db)
+    _seed_test_business(db)
+    return {"status": "ok", "message": "All test accounts reseeded successfully"}
+
+
 # ─── Auth endpoints ─────────────────────────────────────────────────────────────
 
 @app.post("/api/auth/register")
