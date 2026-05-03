@@ -339,7 +339,7 @@ class TripPlanListScreen extends ConsumerWidget {
                   ),
                   child: Text(
                     'Booking ID: ${result['id']}',
-                    style: AppText.labelMono.copyWith(color: AppColors.textSecondary),
+                    style: AppText.caption.copyWith(color: AppColors.textSecondary),
                   ),
                 ),
                 const SizedBox(height: AppSpacing.lg),
