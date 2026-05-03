@@ -396,7 +396,6 @@ def suggest_grouping(
             return suggestions[:top_n]
 
     return []
-    return []
 
 
 def _shared_interests(t1: dict, t2: dict) -> list[str]:
