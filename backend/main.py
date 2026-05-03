@@ -2392,6 +2392,8 @@ async def reseed_database(
         raise HTTPException(status_code=403, detail="Invalid admin token")
     init_db(db)
     db.commit()
+    import seed_accounts as sa
+    sa.seed_test_guide(db)
     logger.info("database.reseed complete")
     return {"status": "reseeded"}
 
