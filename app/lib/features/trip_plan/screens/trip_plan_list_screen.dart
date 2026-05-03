@@ -757,6 +757,7 @@ class _PlanDetailSheet extends StatelessWidget {
       ],
     );
   });
+  }
 }
 
 class _DetailRow extends StatelessWidget {
