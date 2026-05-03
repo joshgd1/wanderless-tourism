@@ -33,7 +33,7 @@ def get_db() -> Session:
 
 
 # Test account password hash — same value used by seed_accounts.py
-_TEST_PASSWORD_HASH = "$2b$12$haHmgsmoI9i3TIMC8w2N2ObPZr838B6/BxbsIDPR3Osi8asEC3Yu2"
+_TEST_PASSWORD_HASH = "$2b$12$eCcT/GO4Hj.fAqgihcxO/epKof8E9rxObeKjW9llKS7sViNyi7SX2"
 
 
 def _seed_test_guide(db: Session) -> None:
