@@ -267,8 +267,5 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (_, __) => const NotificationsScreen(),
       ),
     ],
-  ),
-
-  // Public routes (guide detail, booking — still require auth for actions)
-  GoRoute(
-    path: '/guide/:guideId',
+  );
+});
