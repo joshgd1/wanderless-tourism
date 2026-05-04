@@ -15,6 +15,7 @@ from ml.pricing import (
     compute_booking_quote,
 )
 from ml.group_formation import form_groups, suggest_grouping
+from ml.safety_score import compute_safety_score
 
 __all__ = [
     "HybridRecommender",
@@ -29,4 +30,5 @@ __all__ = [
     "compute_booking_quote",
     "form_groups",
     "suggest_grouping",
+    "compute_safety_score",
 ]

@@ -17,7 +17,7 @@ from sqlalchemy.orm import Session
 
 from database import init_db, get_db, compute_dot_range
 from matching import compatibility_score, top_matches
-from ml import fit_recommender, get_review_intelligence, compute_booking_quote, form_groups, suggest_grouping
+from ml import fit_recommender, get_review_intelligence, compute_booking_quote, form_groups, suggest_grouping, compute_safety_score
 import models  # noqa: F401 — models registered with Base.metadata
 
 load_dotenv()
@@ -2229,6 +2229,95 @@ async def tourist_review_trip_plan(
 
     else:
         raise HTTPException(status_code=400, detail="action must be 'accept' or 'request_changes'")
+
+
+# ─── Safety Score endpoint ─────────────────────────────────────────────────
+
+@app.post("/api/safety/score")
+async def api_safety_score(
+    data: dict,
+    authorization: str | None = Header(None),
+    db: Session = Depends(get_db),
+):
+    """
+    Compute safety score for a trip plan using the ML safety engine.
+
+    Accepts either a `plan_id` (fetch plan from DB) or a full `plan_data` dict.
+    Returns score (0-100), level (safe/caution/risky), color, and breakdown.
+    """
+    tourist_id = _get_tourist_id(authorization) if authorization else None
+    if not tourist_id:
+        raise HTTPException(status_code=401, detail="Authorization required")
+
+    plan_id = data.get("plan_id")
+    plan_data = data.get("plan_data")
+
+    if plan_id and plan_data:
+        raise HTTPException(status_code=400, detail="Provide either plan_id or plan_data, not both")
+
+    if plan_id:
+        # Fetch plan from DB
+        row = db.execute(
+            __import__("sqlalchemy").text("""
+                SELECT tp.*, t.age_group, t.pace_preference, t.adventure_interest
+                FROM trip_plans tp
+                JOIN tourists t ON t.id = tp.tourist_id
+                WHERE tp.id = :pid
+            """),
+            {"pid": plan_id},
+        ).fetchone()
+
+        if not row:
+            raise HTTPException(status_code=404, detail="Trip plan not found")
+
+        cols = ["trip_plan_id", "tourist_id", "destination", "interests", "proposed_stops",
+                "status", "guide_id", "tour_date_start", "tour_date_end", "duration_hours",
+                "group_size", "booking_id", "negotiation_rounds", "alternatives",
+                "guide_proposed_stops", "safety_weight", "dietary_requirement",
+                "avoid_late_night", "created_at", "age_group", "pace_preference", "adventure_interest"]
+        row_dict = dict(zip(cols, row))
+
+        # Parse proposed_stops (stored as JSON string)
+        import json
+        stops_str = row_dict.get("proposed_stops", "[]")
+        try:
+            stops = json.loads(stops_str) if isinstance(stops_str, str) else stops_str
+        except Exception:
+            stops = []
+
+        tourist_profile = {
+            "age_group": row_dict.get("age_group", "26-35"),
+            "pace_preference": float(row_dict.get("pace_preference", 0.5)),
+            "adventure_interest": float(row_dict.get("adventure_interest", 0.5)),
+        }
+
+        plan_data = {
+            "destination": row_dict.get("destination"),
+            "tourist": tourist_profile,
+            "proposed_stops": stops,
+            "tour_date_start": row_dict.get("tour_date_start"),
+            "tour_date_end": row_dict.get("tour_date_end"),
+            "duration_hours": float(row_dict.get("duration_hours") or 0),
+        }
+
+    elif plan_data:
+        plan_data = dict(plan_data)
+    else:
+        raise HTTPException(status_code=400, detail="Either plan_id or plan_data is required")
+
+    logger.info("safety_score.start", tourist_id=tourist_id, destination=plan_data.get("destination"))
+
+    result = compute_safety_score(plan_data)
+
+    logger.info(
+        "safety_score.ok",
+        tourist_id=tourist_id,
+        destination=plan_data.get("destination"),
+        total_score=result["total_score"],
+        level=result["level"],
+    )
+
+    return result
 
 
 # ─── Travel Group endpoints ─────────────────────────────────────────────────

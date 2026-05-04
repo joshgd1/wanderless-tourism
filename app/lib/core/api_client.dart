@@ -217,7 +217,7 @@ class ApiClient {
   Future<Map<String, dynamic>> requestGuideFromPlan(int planId, String guideId) async {
     final resp = await _dioInstance.post(
       '/trip-plans/$planId/request-guide',
-      data: {'guide_id': guideId},
+      queryParameters: {'guide_id': guideId},
       options: Options(headers: _authHeaders),
     );
     return resp.data as Map<String, dynamic>;
@@ -455,6 +455,15 @@ class ApiClient {
     final resp = await _dioInstance.post(
       '/groups',
       data: data,
+      options: Options(headers: _authHeaders),
+    );
+    return resp.data as Map<String, dynamic>;
+  }
+
+  Future<Map<String, dynamic>> getSafetyScore({int? planId, Map<String, dynamic>? planData}) async {
+    final resp = await _dioInstance.post(
+      '/safety/score',
+      data: planId != null ? {'plan_id': planId} : {'plan_data': planData},
       options: Options(headers: _authHeaders),
     );
     return resp.data as Map<String, dynamic>;

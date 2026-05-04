@@ -5,6 +5,8 @@ import 'package:intl/intl.dart';
 import '../../../../core/api_client.dart';
 import '../../../../core/auth_provider.dart';
 import '../../../../shared/models/trip_plan.dart';
+import '../../../../shared/models/safety_result.dart';
+import '../../../../shared/widgets/safety_score_card.dart';
 import '../../../../design_system.dart';
 
 class CreateTripPlanScreen extends ConsumerStatefulWidget {
@@ -180,9 +182,32 @@ class _CreateTripPlanScreenState extends ConsumerState<CreateTripPlanScreen> {
         'dietary_requirement': _dietaryRequirement,
       });
 
+      // Fetch and show safety score
+      final planId = planResult['id'] as int? ?? planResult['plan_id'] as int?;
+      if (planId != null) {
+        try {
+          final safetyData = await api.getSafetyScore(planId: planId);
+          if (mounted && safetyData['total_score'] != null) {
+            final safetyResult = SafetyResult.fromJson(safetyData);
+            await showDialog(
+              context: context,
+              barrierDismissible: false,
+              builder: (context) => Dialog(
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.lg)),
+                child: Padding(
+                  padding: const EdgeInsets.all(AppSpacing.md),
+                  child: SafetyScoreCard(safetyResult: safetyResult),
+                ),
+              ),
+            );
+          }
+        } catch (_) {
+          // Safety score is best-effort — don't block the flow
+        }
+      }
+
       // If shared group mode is on, create a group from this plan
       if (_createAsGroup) {
-        final planId = planResult['id'] as int? ?? planResult['plan_id'] as int?;
         if (planId != null) {
           try {
             await api.createGroup({'plan_id': planId});
