@@ -687,7 +687,7 @@ class _PlanDetailSheetState extends ConsumerState<_PlanDetailSheet> {
                   },
                 ),
               ],
-              if (!widget.isGuideView && widget.plan.status == 'OPEN')
+              if (!widget.isGuideView && widget.plan.status == 'OPEN') ...[
                 Container(
                   padding: const EdgeInsets.all(AppSpacing.md),
                   decoration: BoxDecoration(
@@ -907,7 +907,6 @@ class _PlanDetailSheetState extends ConsumerState<_PlanDetailSheet> {
             );
           }),
         ]),
-        ),
         const SizedBox(height: AppSpacing.xl),
         // ── Sticky Bottom CTAs ─────────────────────────────────────────────
         Container(
