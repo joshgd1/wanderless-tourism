@@ -1,25 +1,29 @@
-# Session Notes — 2026-05-04 (evening)
+# Session Notes — 2026-05-04
 
 ## Where we are
 
-Group tours feature fully deployed. Render deploy failure root-caused and fixed: Flutter compilation errors (4 files) blocked the CI pipeline before the Render deploy step. Flutter Web + APK builds now passing. `/codify` complete — flutter-api-patterns skill created.
+Building the AI Safety Score feature (trip plan → ML-computed safety score → color badge display). Backend ML engine and API endpoint are done. Flutter model, API client method, card widget, and integration into create_trip_plan_screen are all done. Last fix was a Dio error on "Send Request" — guide_id was sent as JSON body but backend expects query parameter.
 
 ## Read first
 
-1. `.claude/accounts/term-536/plans/velvety-stirring-neumann.md` — Group Tours plan (what was built vs. what remains)
-2. `.claude/skills/19-flutter-patterns/flutter-api-patterns.md` — Flutter API/auth patterns skill (192 lines, created this session)
-3. `journal/0009-DISCOVERY-render-deploy-pipeline-blocking.md` — why Flutter errors blocked Render deploy
-4. `journal/0009-DECISION-flutter-api-patterns-skill.md` — what was codified
-5. `.claude/.proposals/latest.yaml` — proposal for upstream flutter-api-patterns skill
+1. `backend/ml/safety_score.py` — ML scoring engine (Area×0.30 + Route×0.20 + Time×0.15 + Transport×0.10 + Weather×0.10 + Venue×0.10 + TravellerFit×0.05)
+2. `backend/main.py` line 2236 — `POST /api/safety/score` endpoint
+3. `app/lib/features/trip_plan/screens/create_trip_plan_screen.dart` — SafetyScoreCard dialog after plan creation (lines ~185-207)
+4. `app/lib/shared/widgets/safety_score_card.dart` — display card widget
+5. `app/lib/shared/models/safety_result.dart` — Flutter data model
+6. `app/lib/core/api_client.dart` line 217 — `requestGuideFromPlan` fix: `queryParameters` instead of `data` for guide_id
 
 ## In-flight state
 
-- Render pipeline: healthy (flutter-web.yml + flutter-apk.yml both passing as of 12:24 UTC)
-- `/codify` step 4 (SKILL.md index) and step 7 (proposal) done — steps 5-6 (README, red team) skipped for a 1-skill addition
-- 4 Flutter compilation errors fixed this session: guide_jobs_screen, guide_detail_screen, confirm_request_screen, trip_plan_list_screen
-- Proposal at `.claude/.proposals/latest.yaml` — pending upstream review
+- Safety Score feature fully built but uncommitted
+- Dio error on guide request fixed (was data→queryParameters)
 
 ## Traps
 
-- **Coherence label index (UNVERIFIED)**: `form_groups` uses `grp[0].get("_group_tags", [""])[-1]` — depends on internal mutation sort order in `_compute_group_coherence()`. Not verified against ML engine source.
-- **Flutter SDK missing on WSL2**: `flutter analyze` never run locally — Dart correctness only verified via GitHub Actions CI.
+- Flutter analyze unavailable (WSL dart tool path broken); verify with `flutter build web`
+- Backend `uv run python` must be run from `backend/` directory
+- Render backend free tier is suspended — check `dashboard.render.com` for manual redeploy
+
+## Open questions for the human
+
+Was the Safety Score dialog appearing after creating a plan? Any other Dio errors to fix?

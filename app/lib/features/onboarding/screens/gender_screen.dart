@@ -4,8 +4,8 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/onboarding_provider.dart';
 import '../../../../design_system.dart';
 
-class InterestsScreen extends ConsumerWidget {
-  const InterestsScreen({super.key});
+class GenderScreen extends ConsumerWidget {
+  const GenderScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -44,7 +44,7 @@ class InterestsScreen extends ConsumerWidget {
                       _buildBrandMark(),
                       const SizedBox(height: AppSpacing.xl),
                       Text(
-                        'Tell us what\nyou love.',
+                        'Who are\nyou?',
                         style: AppText.display.copyWith(
                           color: Colors.white,
                           fontSize: 40,
@@ -53,7 +53,7 @@ class InterestsScreen extends ConsumerWidget {
                       ),
                       const SizedBox(height: AppSpacing.lg),
                       Text(
-                        'Your interests help us find\nthe perfect local guide\nfor your adventure.',
+                        "Help us match you with\ncompatible travel companions\nand guides.",
                         style: AppText.body.copyWith(
                           color: Colors.white.withOpacity(0.6),
                           height: 1.6,
@@ -77,45 +77,46 @@ class InterestsScreen extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const SizedBox(height: AppSpacing.xl),
-                    Text('What do you love?', style: AppText.h1),
+                    Text('Your gender', style: AppText.h1),
                     const SizedBox(height: 6),
                     Text(
-                      'Slide to adjust — tell us what matters most.',
+                      'This helps us find compatible guides and travel companions for shared trips.',
                       style: AppText.bodySmall,
                     ),
                     const SizedBox(height: AppSpacing.xl),
-                    _InterestSlider(
-                      label: 'Food & Cuisine',
-                      description: 'Local restaurants, street food, cooking classes',
-                      icon: Icons.restaurant_outlined,
-                      value: state.foodInterest,
-                      onChanged: notifier.setFoodInterest,
-                      color: Colors.orange,
+                    _GenderOption(
+                      label: 'Male',
+                      icon: Icons.male,
+                      isSelected: state.gender == 'male',
+                      onTap: () => notifier.setGender('male'),
                     ),
                     const SizedBox(height: AppSpacing.md),
-                    _InterestSlider(
-                      label: 'Culture & History',
-                      description: 'Museums, temples, ancient traditions',
-                      icon: Icons.museum_outlined,
-                      value: state.cultureInterest,
-                      onChanged: notifier.setCultureInterest,
-                      color: Colors.purple,
+                    _GenderOption(
+                      label: 'Female',
+                      icon: Icons.female,
+                      isSelected: state.gender == 'female',
+                      onTap: () => notifier.setGender('female'),
                     ),
                     const SizedBox(height: AppSpacing.md),
-                    _InterestSlider(
-                      label: 'Adventure & Nature',
-                      description: 'Hiking, wildlife, outdoor exploration',
-                      icon: Icons.terrain_outlined,
-                      value: state.adventureInterest,
-                      onChanged: notifier.setAdventureInterest,
-                      color: AppColors.success,
+                    _GenderOption(
+                      label: 'Non-binary',
+                      icon: Icons.people_outline,
+                      isSelected: state.gender == 'non_binary',
+                      onTap: () => notifier.setGender('non_binary'),
+                    ),
+                    const SizedBox(height: AppSpacing.md),
+                    _GenderOption(
+                      label: 'Prefer not to say',
+                      icon: Icons.person_outline,
+                      isSelected: state.gender == 'prefer_not_to_say',
+                      onTap: () => notifier.setGender('prefer_not_to_say'),
                     ),
                     const SizedBox(height: AppSpacing.xl),
                     SizedBox(
                       width: double.infinity,
                       child: PrimaryButton(
                         label: 'Continue',
-                        onPressed: () => context.go('/onboarding/experience-type'),
+                        onPressed: () => context.go('/onboarding/language'),
                       ),
                     ),
                   ],
@@ -138,7 +139,7 @@ class InterestsScreen extends ConsumerWidget {
               children: [
                 _buildBackButton(context),
                 const Spacer(),
-                _OnboardingStepper(currentStep: 0, totalSteps: 5),
+                _OnboardingStepper(currentStep: 2, totalSteps: 5),
               ],
             ),
           ),
@@ -150,10 +151,10 @@ class InterestsScreen extends ConsumerWidget {
               children: [
                 _buildBrandMark(),
                 const SizedBox(height: AppSpacing.lg),
-                Text('What do you love?', style: AppText.display),
+                Text('Your gender', style: AppText.display),
                 const SizedBox(height: 6),
                 Text(
-                  'Slide to adjust — tell us what matters most.',
+                  'This helps us find compatible guides and companions.',
                   style: AppText.body.copyWith(color: AppColors.textSecondary),
                 ),
               ],
@@ -164,31 +165,32 @@ class InterestsScreen extends ConsumerWidget {
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Column(
               children: [
-                _InterestSlider(
-                  label: 'Food & Cuisine',
-                  description: 'Local restaurants, street food, cooking classes',
-                  icon: Icons.restaurant_outlined,
-                  value: state.foodInterest,
-                  onChanged: notifier.setFoodInterest,
-                  color: Colors.orange,
+                _GenderOption(
+                  label: 'Male',
+                  icon: Icons.male,
+                  isSelected: state.gender == 'male',
+                  onTap: () => notifier.setGender('male'),
                 ),
                 const SizedBox(height: AppSpacing.md),
-                _InterestSlider(
-                  label: 'Culture & History',
-                  description: 'Museums, temples, ancient traditions',
-                  icon: Icons.museum_outlined,
-                  value: state.cultureInterest,
-                  onChanged: notifier.setCultureInterest,
-                  color: Colors.purple,
+                _GenderOption(
+                  label: 'Female',
+                  icon: Icons.female,
+                  isSelected: state.gender == 'female',
+                  onTap: () => notifier.setGender('female'),
                 ),
                 const SizedBox(height: AppSpacing.md),
-                _InterestSlider(
-                  label: 'Adventure & Nature',
-                  description: 'Hiking, wildlife, outdoor exploration',
-                  icon: Icons.terrain_outlined,
-                  value: state.adventureInterest,
-                  onChanged: notifier.setAdventureInterest,
-                  color: AppColors.success,
+                _GenderOption(
+                  label: 'Non-binary',
+                  icon: Icons.people_outline,
+                  isSelected: state.gender == 'non_binary',
+                  onTap: () => notifier.setGender('non_binary'),
+                ),
+                const SizedBox(height: AppSpacing.md),
+                _GenderOption(
+                  label: 'Prefer not to say',
+                  icon: Icons.person_outline,
+                  isSelected: state.gender == 'prefer_not_to_say',
+                  onTap: () => notifier.setGender('prefer_not_to_say'),
                 ),
               ],
             ),
@@ -202,7 +204,7 @@ class InterestsScreen extends ConsumerWidget {
                   width: double.infinity,
                   child: PrimaryButton(
                     label: 'Continue',
-                    onPressed: () => context.go('/onboarding/experience-type'),
+                    onPressed: () => context.go('/onboarding/language'),
                   ),
                 ),
               ],
@@ -222,7 +224,7 @@ class InterestsScreen extends ConsumerWidget {
         border: Border.all(color: AppColors.border),
       ),
       child: IconButton(
-        onPressed: () => context.go('/login'),
+        onPressed: () => context.go('/onboarding/experience-type'),
         icon: const Icon(Icons.arrow_back, size: 18),
         color: AppColors.textSecondary,
       ),
@@ -237,87 +239,53 @@ class InterestsScreen extends ConsumerWidget {
         color: AppColors.brand,
         borderRadius: BorderRadius.circular(AppRadius.md),
       ),
-      child: const Icon(Icons.favorite_outline, color: Colors.white, size: 26),
+      child: const Icon(Icons.person_outline, color: Colors.white, size: 26),
     );
   }
 }
 
-class _InterestSlider extends StatelessWidget {
+class _GenderOption extends StatelessWidget {
   final String label;
-  final String description;
   final IconData icon;
-  final double value;
-  final ValueChanged<double> onChanged;
-  final Color color;
+  final bool isSelected;
+  final VoidCallback onTap;
 
-  const _InterestSlider({
+  const _GenderOption({
     required this.label,
-    required this.description,
     required this.icon,
-    required this.value,
-    required this.onChanged,
-    required this.color,
+    required this.isSelected,
+    required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    final pct = (value * 100).round();
-    final isActive = value > 0;
-
     return AppCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      onTap: onTap,
+      child: Row(
         children: [
-          Row(
-            children: [
-              Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: color.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(AppRadius.sm),
-                ),
-                child: Icon(icon, size: 20, color: color),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(label, style: AppText.labelBold),
-                    Text(description, style: AppText.caption),
-                  ],
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                decoration: BoxDecoration(
-                  color: isActive ? color.withOpacity(0.1) : AppColors.surfaceSecondary,
-                  borderRadius: BorderRadius.circular(AppRadius.full),
-                ),
-                child: Text(
-                  '$pct%',
-                  style: AppText.labelBold.copyWith(color: isActive ? color : AppColors.textTertiary),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          SliderTheme(
-            data: SliderTheme.of(context).copyWith(
-              activeTrackColor: color,
-              thumbColor: color,
-              overlayColor: color.withOpacity(0.2),
-              inactiveTrackColor: AppColors.surfaceSecondary,
-              trackHeight: 4,
-              thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 8),
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: isSelected ? AppColors.brand.withOpacity(0.1) : AppColors.surfaceSecondary,
+              shape: BoxShape.circle,
             ),
-            child: Slider(
-              value: value,
-              onChanged: onChanged,
-              divisions: 20,
-            ),
+            child: Icon(icon, color: isSelected ? AppColors.brand : AppColors.textTertiary, size: 22),
           ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Text(label, style: AppText.labelBold),
+          ),
+          if (isSelected)
+            Container(
+              width: 24,
+              height: 24,
+              decoration: const BoxDecoration(
+                color: AppColors.brand,
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.check, size: 14, color: Colors.white),
+            ),
         ],
       ),
     );

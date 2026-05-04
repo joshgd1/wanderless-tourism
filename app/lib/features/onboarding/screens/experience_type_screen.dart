@@ -106,7 +106,7 @@ class ExperienceTypeScreen extends ConsumerWidget {
                       width: double.infinity,
                       child: PrimaryButton(
                         label: 'Continue',
-                        onPressed: () => context.go('/onboarding/language'),
+                        onPressed: () => context.go('/onboarding/gender'),
                       ),
                     ),
                   ],
@@ -129,7 +129,7 @@ class ExperienceTypeScreen extends ConsumerWidget {
               children: [
                 _buildBackButton(context),
                 const Spacer(),
-                _OnboardingStepper(currentStep: 1, totalSteps: 4),
+                _OnboardingStepper(currentStep: 1, totalSteps: 5),
               ],
             ),
           ),
@@ -184,7 +184,7 @@ class ExperienceTypeScreen extends ConsumerWidget {
                   width: double.infinity,
                   child: PrimaryButton(
                     label: 'Continue',
-                    onPressed: () => context.go('/onboarding/language'),
+                    onPressed: () => context.go('/onboarding/gender'),
                   ),
                 ),
               ],

@@ -14,6 +14,7 @@ import '../features/profile/screens/profile_screen.dart';
 import '../features/bookings/screens/bookings_screen.dart';
 import '../features/onboarding/screens/interests_screen.dart';
 import '../features/onboarding/screens/experience_type_screen.dart';
+import '../features/onboarding/screens/gender_screen.dart';
 import '../features/onboarding/screens/language_screen.dart';
 import '../features/onboarding/screens/travel_style_screen.dart';
 import '../features/trip_plan/screens/create_trip_plan_screen.dart';
@@ -170,6 +171,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/onboarding/experience-type',
         builder: (_, __) => const ExperienceTypeScreen(),
+      ),
+      GoRoute(
+        path: '/onboarding/gender',
+        builder: (_, __) => const GenderScreen(),
       ),
       GoRoute(
         path: '/onboarding/language',

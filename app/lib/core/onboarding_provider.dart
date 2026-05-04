@@ -15,6 +15,8 @@ class OnboardingState {
   final String travelStyle;
   /// Experience type: 'authentic_local' or 'tourist_friendly'
   final String experienceType;
+  /// Gender: 'male', 'female', 'non_binary', or 'prefer_not_to_say'
+  final String gender;
 
   OnboardingState({
     this.foodInterest = 0.5,
@@ -26,6 +28,7 @@ class OnboardingState {
     this.ageGroup = '26-35',
     this.travelStyle = 'solo',
     this.experienceType = 'authentic_local',
+    this.gender = 'prefer_not_to_say',
   });
 
   OnboardingState copyWith({
@@ -38,6 +41,7 @@ class OnboardingState {
     String? ageGroup,
     String? travelStyle,
     String? experienceType,
+    String? gender,
   }) {
     return OnboardingState(
       foodInterest: foodInterest ?? this.foodInterest,
@@ -49,6 +53,7 @@ class OnboardingState {
       ageGroup: ageGroup ?? this.ageGroup,
       travelStyle: travelStyle ?? this.travelStyle,
       experienceType: experienceType ?? this.experienceType,
+      gender: gender ?? this.gender,
     );
   }
 
@@ -63,6 +68,7 @@ class OnboardingState {
       'age_group': ageGroup,
       'travel_style': travelStyle,
       'experience_type': experienceType,
+      'gender': gender,
     };
   }
 }
@@ -79,6 +85,7 @@ class OnboardingNotifier extends StateNotifier<OnboardingState> {
   void setAgeGroup(String v) => state = state.copyWith(ageGroup: v);
   void setTravelStyle(String v) => state = state.copyWith(travelStyle: v);
   void setExperienceType(String v) => state = state.copyWith(experienceType: v);
+  void setGender(String v) => state = state.copyWith(gender: v);
 
   /// Save preferences — uses updatePreferences if touristId exists (post-registration),
   /// otherwise creates a new anonymous tourist profile.

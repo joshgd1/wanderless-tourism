@@ -6,6 +6,8 @@ import '../../../../core/api_client.dart';
 import '../../../../core/auth_provider.dart';
 import '../../../../shared/models/trip_plan.dart';
 import '../../../../shared/models/guide.dart';
+import '../../../../shared/models/safety_result.dart';
+import '../../../../shared/widgets/safety_score_card.dart';
 import '../../../../design_system.dart';
 import '../../bookings/screens/bookings_screen.dart';
 
@@ -49,6 +51,17 @@ final openTripPlansProvider = FutureProvider<List<TripPlan>>((ref) async {
   final api = ApiClient();
   final data = await api.getTripPlans(status: 'OPEN');
   return data.map((e) => TripPlan.fromJson(e as Map<String, dynamic>)).toList();
+});
+
+final _safetyScoreProvider = FutureProvider.family<SafetyResult?, int>((ref, planId) async {
+  try {
+    final api = ApiClient();
+    final data = await api.getSafetyScore(planId: planId);
+    if (data['total_score'] != null) {
+      return SafetyResult.fromJson(data);
+    }
+  } catch (_) {}
+  return null;
 });
 
 class TripPlanListScreen extends ConsumerWidget {
@@ -227,7 +240,7 @@ class TripPlanListScreen extends ConsumerWidget {
 
     try {
       final api = ApiClient();
-      await api.acceptTripPlan(plan.id);
+      await api.acceptTripPlan(widget.plan.id);
       ref.invalidate(openTripPlansProvider);
       if (context.mounted) {
         Navigator.pop(sheetCtx);
@@ -257,7 +270,7 @@ class TripPlanListScreen extends ConsumerWidget {
   Future<void> _cancelPlan(BuildContext context, WidgetRef ref, BuildContext sheetCtx, TripPlan plan) async {
     try {
       final api = ApiClient();
-      await api.updateTripPlan(plan.id, {'status': 'CANCELLED'});
+      await api.updateTripPlan(widget.plan.id, {'status': 'CANCELLED'});
       ref.invalidate(myTripPlansProvider);
       if (context.mounted) {
         Navigator.pop(sheetCtx);
@@ -433,7 +446,7 @@ class _BackBtnState extends State<_BackBtn> {
   }
 }
 
-class _TripPlanCard extends StatelessWidget {
+class _TripPlanCard extends ConsumerStatefulWidget {
   final TripPlan plan;
   final bool isGuideView;
   final Color statusColor;
@@ -447,21 +460,91 @@ class _TripPlanCard extends StatelessWidget {
   });
 
   @override
+  ConsumerState<_TripPlanCard> createState() => _TripPlanCardState();
+}
+
+class _TripPlanCardState extends ConsumerState<_TripPlanCard> {
+  SafetyResult? _safetyResult;
+  bool _safetyLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchSafetyScore();
+  }
+
+  Future<void> _fetchSafetyScore() async {
+    if (widget.widget.plan.id == null) return;
+    setState(() => _safetyLoading = true);
+    try {
+      final api = ApiClient();
+      final data = await api.getSafetyScore(planId: widget.widget.plan.id!);
+      if (mounted && data['total_score'] != null) {
+        setState(() {
+          _safetyResult = SafetyResult.fromJson(data);
+          _safetyLoading = false;
+        });
+      }
+    } catch (_) {
+      if (mounted) setState(() => _safetyLoading = false);
+    }
+  }
+
+  Color _scoreColor() {
+    switch (_safetyResult?.color) {
+      case 'green': return AppColors.success;
+      case 'amber': return AppColors.warning;
+      case 'red': return AppColors.error;
+      default: return AppColors.textTertiary;
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     return AppCard(
-      onTap: onTap,
+      onTap: widget.onTap,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
               StatusBadge(
-                label: plan.status,
-                color: statusColor,
+                label: widget.plan.status,
+                color: widget.statusColor,
               ),
               const Spacer(),
-              if (plan.tourDate != null)
-                Text(plan.tourDate!, style: AppText.caption),
+              if (_safetyResult != null) ...[
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: _scoreColor().withOpacity(0.12),
+                    borderRadius: BorderRadius.circular(AppRadius.full),
+                    border: Border.all(color: _scoreColor().withOpacity(0.3)),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        _safetyResult!.level == 'safe'
+                            ? Icons.check_circle
+                            : _safetyResult!.level == 'caution'
+                                ? Icons.warning_amber
+                                : Icons.error,
+                        size: 12,
+                        color: _scoreColor(),
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        '${_safetyResult!.totalScore.round()}',
+                        style: AppText.labelBold.copyWith(color: _scoreColor(), fontSize: 12),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 8),
+              ],
+              if (widget.plan.tourDate != null)
+                Text(widget.plan.tourDate!, style: AppText.caption),
             ],
           ),
           const SizedBox(height: AppSpacing.md),
@@ -481,10 +564,10 @@ class _TripPlanCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(plan.destination, style: AppText.labelBold),
+                    Text(widget.plan.destination, style: AppText.labelBold),
                     const SizedBox(height: 2),
                     Text(
-                      '${plan.durationHours?.toStringAsFixed(1) ?? '?'}h  •  Group ${plan.groupSize ?? '?'}',
+                      '${widget.plan.durationHours?.toStringAsFixed(1) ?? '?'}h  •  Group ${widget.plan.groupSize ?? '?'}',
                       style: AppText.caption,
                     ),
                   ],
@@ -493,12 +576,12 @@ class _TripPlanCard extends StatelessWidget {
               Icon(Icons.arrow_forward_ios, size: 14, color: AppColors.textTertiary),
             ],
           ),
-          if (plan.interests.isNotEmpty) ...[
+          if (widget.plan.interests.isNotEmpty) ...[
             const SizedBox(height: AppSpacing.md),
             Wrap(
               spacing: 6,
               runSpacing: 4,
-              children: plan.interests.take(4).map((i) {
+              children: widget.plan.interests.take(4).map((i) {
                 return Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                   decoration: BoxDecoration(
@@ -513,10 +596,10 @@ class _TripPlanCard extends StatelessWidget {
               }).toList(),
             ),
           ],
-          if (plan.proposedStops.isNotEmpty) ...[
+          if (widget.plan.proposedStops.isNotEmpty) ...[
             const SizedBox(height: AppSpacing.sm),
             Text(
-              '${plan.proposedStops.length} proposed stop${plan.proposedStops.length > 1 ? 's' : ''}',
+              '${widget.plan.proposedStops.length} proposed stop${widget.plan.proposedStops.length > 1 ? 's' : ''}',
               style: AppText.caption,
             ),
           ],
@@ -526,7 +609,7 @@ class _TripPlanCard extends StatelessWidget {
   }
 }
 
-class _PlanDetailSheet extends StatelessWidget {
+class _PlanDetailSheet extends ConsumerStatefulWidget {
   final TripPlan plan;
   final bool isGuideView;
   final Color statusColor;
@@ -546,13 +629,21 @@ class _PlanDetailSheet extends StatelessWidget {
   });
 
   @override
+  ConsumerState<_PlanDetailSheet> createState() => _PlanDetailSheetState();
+}
+
+class _PlanDetailSheetState extends ConsumerState<_PlanDetailSheet> {
+  @override
   Widget build(BuildContext context) {
-    return Consumer(
-      builder: (context, ref, _) {
-        final guidesAsync = isGuideView || plan.status != 'OPEN'
-            ? null
-            : ref.watch(_matchedGuidesForPlanProvider(plan.destination));
-        return ListView(
+    final guidesAsync = widget.isGuideView || widget.plan.status != 'OPEN'
+        ? null
+        : ref.watch(_matchedGuidesForPlanProvider(widget.plan.destination));
+
+    final safetyAsync = widget.widget.plan.id != null
+        ? ref.watch(_safetyScoreProvider(widget.widget.plan.id!))
+        : null;
+
+    return ListView(
           controller: scrollController,
           padding: const EdgeInsets.all(AppSpacing.lg),
           children: [
@@ -570,16 +661,29 @@ class _PlanDetailSheet extends StatelessWidget {
             Row(
               children: [
                 Expanded(
-                  child: Text(plan.destination, style: AppText.h1),
+                  child: Text(widget.plan.destination, style: AppText.h1),
                 ),
                 StatusBadge(
-                  label: plan.status,
-                  color: statusColor,
+                  label: widget.plan.status,
+                  color: widget.statusColor,
                 ),
               ],
             ),
             const SizedBox(height: AppSpacing.lg),
-            if (!isGuideView && plan.status == 'OPEN')
+            if (safetyAsync != null) ...[
+              safetyAsync.when(
+                loading: () => const SizedBox.shrink(),
+                error: (_, __) => const SizedBox.shrink(),
+                data: (safety) {
+                  if (safety == null) return const SizedBox.shrink();
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: AppSpacing.md),
+                    child: SafetyScoreCard(safetyResult: safety),
+                  );
+                },
+              ),
+            ],
+            if (!widget.isGuideView && widget.plan.status == 'OPEN')
               Container(
                 padding: const EdgeInsets.all(AppSpacing.md),
                 decoration: BoxDecoration(
@@ -617,7 +721,7 @@ class _PlanDetailSheet extends StatelessWidget {
                   ],
                 ),
               ),
-        if (!isGuideView && plan.status == 'ACCEPTED' && plan.guideId != null) ...[
+        if (!widget.isGuideView && widget.plan.status == 'ACCEPTED' && widget.plan.guideId != null) ...[
           Container(
             padding: const EdgeInsets.all(AppSpacing.md),
             decoration: BoxDecoration(
@@ -642,7 +746,7 @@ class _PlanDetailSheet extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text('Guide Assigned!', style: AppText.labelBold),
-                      Text('ID: ${plan.guideId}', style: AppText.caption),
+                      Text('ID: ${widget.plan.guideId}', style: AppText.caption),
                     ],
                   ),
                 ),
@@ -673,7 +777,7 @@ class _PlanDetailSheet extends StatelessWidget {
           ),
         ],
         // Top 3 matched guides for OPEN plans (tourist view)
-        if (!isGuideView && plan.status == 'OPEN' && guidesAsync != null) ...[
+        if (!widget.isGuideView && widget.plan.status == 'OPEN' && guidesAsync != null) ...[
           const SizedBox(height: AppSpacing.lg),
           Text('AI-Powered Guide Matches', style: AppText.labelBold),
           const SizedBox(height: 2),
@@ -717,7 +821,7 @@ class _PlanDetailSheet extends StatelessWidget {
                   padding: const EdgeInsets.only(bottom: AppSpacing.sm),
                   child: _MatchedGuideCard(
                     guide: guide,
-                    onTap: () => context.push('/confirm-request?planId=${plan.id}&guideId=${guide.guideId}'),
+                    onTap: () => context.push('/confirm-request?planId=${widget.plan.id}&guideId=${guide.guideId}'),
                   ),
                 )).toList(),
               );
@@ -725,17 +829,17 @@ class _PlanDetailSheet extends StatelessWidget {
           ),
         ],
         const SizedBox(height: AppSpacing.lg),
-        _DetailRow(Icons.calendar_today_outlined, 'Date', plan.tourDate ?? 'Not specified'),
-        _DetailRow(Icons.schedule_outlined, 'Duration', plan.durationHours != null ? '${plan.durationHours!.toStringAsFixed(1)} hours' : 'Not specified'),
-        _DetailRow(Icons.group_outlined, 'Group size', plan.groupSize != null ? '${plan.groupSize} people' : 'Not specified'),
-        if (plan.interests.isNotEmpty) ...[
+        _DetailRow(Icons.calendar_today_outlined, 'Date', widget.plan.tourDate ?? 'Not specified'),
+        _DetailRow(Icons.schedule_outlined, 'Duration', widget.plan.durationHours != null ? '${widget.plan.durationHours!.toStringAsFixed(1)} hours' : 'Not specified'),
+        _DetailRow(Icons.group_outlined, 'Group size', widget.plan.groupSize != null ? '${widget.plan.groupSize} people' : 'Not specified'),
+        if (widget.plan.interests.isNotEmpty) ...[
           const SizedBox(height: AppSpacing.lg),
           Text('Interests', style: AppText.labelBold),
           const SizedBox(height: AppSpacing.sm),
           Wrap(
             spacing: 8,
             runSpacing: 8,
-            children: plan.interests.map((i) {
+            children: widget.plan.interests.map((i) {
               return Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                 decoration: BoxDecoration(
@@ -750,11 +854,11 @@ class _PlanDetailSheet extends StatelessWidget {
             }).toList(),
           ),
         ],
-        if (plan.proposedStops.isNotEmpty) ...[
+        if (widget.plan.proposedStops.isNotEmpty) ...[
           const SizedBox(height: AppSpacing.lg),
           Text('Proposed Itinerary', style: AppText.labelBold),
           const SizedBox(height: AppSpacing.md),
-          ...plan.proposedStops.asMap().entries.map((entry) {
+          ...widget.plan.proposedStops.asMap().entries.map((entry) {
             final stop = entry.value;
             return Padding(
               padding: const EdgeInsets.only(bottom: AppSpacing.md),
@@ -800,7 +904,7 @@ class _PlanDetailSheet extends StatelessWidget {
           }),
         ],
         const SizedBox(height: AppSpacing.xl),
-        if (isGuideView && plan.status == 'OPEN' && onAccept != null)
+        if (widget.isGuideView && widget.plan.status == 'OPEN' && widget.onAccept != null)
           SizedBox(
             width: double.infinity,
             child: PrimaryButton(
@@ -809,7 +913,7 @@ class _PlanDetailSheet extends StatelessWidget {
               onPressed: onAccept,
             ),
           ),
-        if (!isGuideView && plan.status == 'OPEN' && onCancel != null) ...[
+        if (!widget.isGuideView && widget.plan.status == 'OPEN' && widget.onCancel != null) ...[
           SizedBox(
             width: double.infinity,
             child: SecondaryButton(
@@ -820,7 +924,7 @@ class _PlanDetailSheet extends StatelessWidget {
             ),
           ),
         ],
-        if (!isGuideView && plan.status == 'ACCEPTED' && onConfirmPay != null) ...[
+        if (!widget.isGuideView && widget.plan.status == 'ACCEPTED' && widget.onConfirmPay != null) ...[
           const SizedBox(height: AppSpacing.md),
           SizedBox(
             width: double.infinity,

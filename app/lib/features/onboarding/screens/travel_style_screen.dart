@@ -167,7 +167,7 @@ class TravelStyleScreen extends ConsumerWidget {
               children: [
                 _buildBackButton(context),
                 const Spacer(),
-                _OnboardingStepper(currentStep: 3, totalSteps: 4),
+                _OnboardingStepper(currentStep: 3, totalSteps: 5),
               ],
             ),
           ),

@@ -102,7 +102,7 @@ class LanguageScreen extends ConsumerWidget {
                         Expanded(
                           child: SecondaryButton(
                             label: 'Back',
-                            onPressed: () => context.go('/onboarding/experience-type'),
+                            onPressed: () => context.go('/onboarding/gender'),
                           ),
                         ),
                         const SizedBox(width: AppSpacing.md),
@@ -178,7 +178,7 @@ class LanguageScreen extends ConsumerWidget {
                   width: double.infinity,
                   child: GhostButton(
                     label: 'Back',
-                    onPressed: () => context.go('/onboarding/experience-type'),
+                    onPressed: () => context.go('/onboarding/gender'),
                   ),
                 ),
               ],
@@ -222,7 +222,7 @@ class LanguageScreen extends ConsumerWidget {
         border: Border.all(color: AppColors.border),
       ),
       child: IconButton(
-        onPressed: () => context.go('/onboarding/experience-type'),
+        onPressed: () => context.go('/onboarding/gender'),
         icon: const Icon(Icons.arrow_back, size: 18),
         color: AppColors.textSecondary,
       ),
