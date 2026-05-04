@@ -240,7 +240,7 @@ class TripPlanListScreen extends ConsumerWidget {
 
     try {
       final api = ApiClient();
-      await api.acceptTripPlan(widget.plan.id);
+      await api.acceptTripPlan(plan.id);
       ref.invalidate(openTripPlansProvider);
       if (context.mounted) {
         Navigator.pop(sheetCtx);
@@ -270,7 +270,7 @@ class TripPlanListScreen extends ConsumerWidget {
   Future<void> _cancelPlan(BuildContext context, WidgetRef ref, BuildContext sheetCtx, TripPlan plan) async {
     try {
       final api = ApiClient();
-      await api.updateTripPlan(widget.plan.id, {'status': 'CANCELLED'});
+      await api.updateTripPlan(plan.id, {'status': 'CANCELLED'});
       ref.invalidate(myTripPlansProvider);
       if (context.mounted) {
         Navigator.pop(sheetCtx);
@@ -474,11 +474,11 @@ class _TripPlanCardState extends ConsumerState<_TripPlanCard> {
   }
 
   Future<void> _fetchSafetyScore() async {
-    if (widget.widget.plan.id == null) return;
+    if (widget.plan.id == null) return;
     setState(() => _safetyLoading = true);
     try {
       final api = ApiClient();
-      final data = await api.getSafetyScore(planId: widget.widget.plan.id!);
+      final data = await api.getSafetyScore(planId: widget.plan.id!);
       if (mounted && data['total_score'] != null) {
         setState(() {
           _safetyResult = SafetyResult.fromJson(data);
@@ -908,8 +908,6 @@ class _PlanDetailSheetState extends ConsumerState<_PlanDetailSheet> {
           }),
         ],
         const SizedBox(height: AppSpacing.xl),
-      ],
-        ),
         // ── Sticky Bottom CTAs ─────────────────────────────────────────────
         Container(
           decoration: BoxDecoration(
