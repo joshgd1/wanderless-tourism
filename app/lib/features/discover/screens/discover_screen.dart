@@ -236,6 +236,141 @@ class DiscoverScreen extends ConsumerWidget {
             ),
           ),
 
+          // ── Hero Section ───────────────────────────────────────────────
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, AppSpacing.md, 16, 0),
+              child: ref.watch(destinationsProvider).when(
+                loading: () => const SizedBox(height: 180, child: Center(child: AppLoading())),
+                error: (_, __) => const SizedBox.shrink(),
+                data: (dests) {
+                  if (dests.isEmpty) return const SizedBox.shrink();
+                  final hero = dests.first;
+                  return GestureDetector(
+                    onTap: () => ref.read(_selectedFilterProvider.notifier).state = 'All',
+                    child: Container(
+                      height: 180,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(AppRadius.lg),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.15),
+                            blurRadius: 16,
+                            offset: const Offset(0, 6),
+                          ),
+                        ],
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(AppRadius.lg),
+                        child: Stack(
+                          fit: StackFit.expand,
+                          children: [
+                            CachedNetworkImage(
+                              imageUrl: hero.imageUrl,
+                              fit: BoxFit.cover,
+                              errorWidget: (_, __, ___) => Container(
+                                color: AppColors.textSecondary,
+                              ),
+                            ),
+                            Container(
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                  colors: [
+                                    Colors.black.withOpacity(0.5),
+                                    Colors.black.withOpacity(0.2),
+                                  ],
+                                ),
+                              ),
+                            ),
+                            Positioned(
+                              left: 16,
+                              top: 16,
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: AppColors.brand,
+                                  borderRadius: BorderRadius.circular(AppRadius.full),
+                                ),
+                                child: const Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(Icons.star, color: Colors.white, size: 12),
+                                    SizedBox(width: 4),
+                                    Text(
+                                      'Featured',
+                                      style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                            Positioned(
+                              left: 16,
+                              bottom: 16,
+                              right: 16,
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.end,
+                                children: [
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Text(
+                                          hero.name,
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 22,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 2),
+                                        Row(
+                                          children: [
+                                            const Icon(Icons.location_on, color: Colors.white70, size: 13),
+                                            const SizedBox(width: 2),
+                                            Text(
+                                              hero.country,
+                                              style: const TextStyle(color: Colors.white70, fontSize: 13),
+                                            ),
+                                            const SizedBox(width: 8),
+                                            const Icon(Icons.person, color: Colors.white70, size: 13),
+                                            const SizedBox(width: 2),
+                                            Text(
+                                              '${hero.guideCount} guides',
+                                              style: const TextStyle(color: Colors.white70, fontSize: 13),
+                                            ),
+                                          ],
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      borderRadius: BorderRadius.circular(AppRadius.full),
+                                    ),
+                                    child: Text(
+                                      'Explore',
+                                      style: AppText.labelBold.copyWith(color: AppColors.brand),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ),
+
           // ── Featured Destinations Carousel ──────────────────────────────
           SliverToBoxAdapter(
             child: Column(
@@ -508,6 +643,7 @@ class DiscoverScreen extends ConsumerWidget {
                         child: MatchCard(
                           guide: guide,
                           onTap: () => context.push('/guide/${guide.guideId}'),
+                          onRequest: () => context.push('/confirm-request?guideId=${guide.guideId}'),
                         ),
                       );
                     },

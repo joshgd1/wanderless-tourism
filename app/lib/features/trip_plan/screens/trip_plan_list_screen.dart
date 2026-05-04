@@ -639,104 +639,108 @@ class _PlanDetailSheetState extends ConsumerState<_PlanDetailSheet> {
         ? null
         : ref.watch(_matchedGuidesForPlanProvider(widget.plan.destination));
 
-    final safetyAsync = widget.widget.plan.id != null
-        ? ref.watch(_safetyScoreProvider(widget.widget.plan.id!))
+    final safetyAsync = widget.plan.id != null
+        ? ref.watch(_safetyScoreProvider(widget.plan.id!))
         : null;
 
-    return ListView(
-          controller: scrollController,
-          padding: const EdgeInsets.all(AppSpacing.lg),
-          children: [
-            Center(
-              child: Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: AppColors.border,
-                  borderRadius: BorderRadius.circular(2),
+    return Column(
+      children: [
+        // Sticky header + scrollable content
+        Expanded(
+          child: ListView(
+            controller: scrollController,
+            padding: const EdgeInsets.all(AppSpacing.lg),
+            children: [
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: AppColors.border,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
                 ),
               ),
-            ),
-            const SizedBox(height: AppSpacing.lg),
-            Row(
-              children: [
-                Expanded(
-                  child: Text(widget.plan.destination, style: AppText.h1),
-                ),
-                StatusBadge(
-                  label: widget.plan.status,
-                  color: widget.statusColor,
+              const SizedBox(height: AppSpacing.lg),
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(widget.plan.destination, style: AppText.h1),
+                  ),
+                  StatusBadge(
+                    label: widget.plan.status,
+                    color: widget.statusColor,
+                  ),
+                ],
+              ),
+              const SizedBox(height: AppSpacing.lg),
+              if (safetyAsync != null) ...[
+                safetyAsync.when(
+                  loading: () => const SizedBox.shrink(),
+                  error: (_, __) => const SizedBox.shrink(),
+                  data: (safety) {
+                    if (safety == null) return const SizedBox.shrink();
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: AppSpacing.md),
+                      child: SafetyScoreCard(safetyResult: safety),
+                    );
+                  },
                 ),
               ],
-            ),
-            const SizedBox(height: AppSpacing.lg),
-            if (safetyAsync != null) ...[
-              safetyAsync.when(
-                loading: () => const SizedBox.shrink(),
-                error: (_, __) => const SizedBox.shrink(),
-                data: (safety) {
-                  if (safety == null) return const SizedBox.shrink();
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: AppSpacing.md),
-                    child: SafetyScoreCard(safetyResult: safety),
-                  );
-                },
-              ),
-            ],
-            if (!widget.isGuideView && widget.plan.status == 'OPEN')
-              Container(
-                padding: const EdgeInsets.all(AppSpacing.md),
-                decoration: BoxDecoration(
-                  color: AppColors.success.withOpacity(0.08),
-                  borderRadius: BorderRadius.circular(AppRadius.md),
-                  border: Border.all(color: AppColors.success.withOpacity(0.2)),
-                ),
-                child: Row(
-                  children: [
-                    SizedBox(
-                      width: 18,
-                      height: 18,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: AppColors.success,
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Waiting for a guide to accept',
-                            style: AppText.labelBold.copyWith(color: AppColors.success),
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            'You\'ll be notified when a guide picks up your request. No payment required yet.',
-                            style: AppText.caption,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-        if (!widget.isGuideView && widget.plan.status == 'ACCEPTED' && widget.plan.guideId != null) ...[
-          Container(
-            padding: const EdgeInsets.all(AppSpacing.md),
-            decoration: BoxDecoration(
-              color: AppColors.success.withOpacity(0.08),
-              borderRadius: BorderRadius.circular(AppRadius.md),
-              border: Border.all(color: AppColors.success.withOpacity(0.3)),
-            ),
-            child: Row(
-              children: [
+              if (!widget.isGuideView && widget.plan.status == 'OPEN')
                 Container(
-                  width: 44,
-                  height: 44,
+                  padding: const EdgeInsets.all(AppSpacing.md),
                   decoration: BoxDecoration(
-                    color: AppColors.success.withOpacity(0.15),
-                    shape: BoxShape.circle,
+                    color: AppColors.success.withOpacity(0.08),
+                    borderRadius: BorderRadius.circular(AppRadius.md),
+                    border: Border.all(color: AppColors.success.withOpacity(0.2)),
+                  ),
+                  child: Row(
+                    children: [
+                      SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: AppColors.success,
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Waiting for a guide to accept',
+                              style: AppText.labelBold.copyWith(color: AppColors.success),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              'You\'ll be notified when a guide picks up your request. No payment required yet.',
+                              style: AppText.caption,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+          if (!widget.isGuideView && widget.plan.status == 'ACCEPTED' && widget.plan.guideId != null) ...[
+            Container(
+              padding: const EdgeInsets.all(AppSpacing.md),
+              decoration: BoxDecoration(
+                color: AppColors.success.withOpacity(0.08),
+                borderRadius: BorderRadius.circular(AppRadius.md),
+                border: Border.all(color: AppColors.success.withOpacity(0.3)),
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    width: 44,
+                    height: 44,
+                    decoration: BoxDecoration(
+                      color: AppColors.success.withOpacity(0.15),
+                      shape: BoxShape.circle,
                   ),
                   child: const Icon(Icons.person, color: AppColors.success, size: 22),
                 ),
@@ -904,41 +908,56 @@ class _PlanDetailSheetState extends ConsumerState<_PlanDetailSheet> {
           }),
         ],
         const SizedBox(height: AppSpacing.xl),
-        if (widget.isGuideView && widget.plan.status == 'OPEN' && widget.onAccept != null)
-          SizedBox(
-            width: double.infinity,
-            child: PrimaryButton(
-              label: 'Accept This Trip',
-              icon: Icons.check,
-              onPressed: onAccept,
+      ],
+        ),
+        // ── Sticky Bottom CTAs ─────────────────────────────────────────────
+        Container(
+          decoration: BoxDecoration(
+            color: AppColors.surface,
+            border: Border(
+              top: BorderSide(color: AppColors.border),
             ),
           ),
-        if (!widget.isGuideView && widget.plan.status == 'OPEN' && widget.onCancel != null) ...[
-          SizedBox(
-            width: double.infinity,
-            child: SecondaryButton(
-              label: 'Cancel Plan',
-              icon: Icons.close,
-              color: AppColors.error,
-              onPressed: onCancel,
+          padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.md, AppSpacing.lg, AppSpacing.lg),
+          child: SafeArea(
+            top: false,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (widget.isGuideView && widget.plan.status == 'OPEN' && widget.onAccept != null)
+                  SizedBox(
+                    width: double.infinity,
+                    child: PrimaryButton(
+                      label: 'Accept This Trip',
+                      icon: Icons.check,
+                      onPressed: widget.onAccept,
+                    ),
+                  ),
+                if (!widget.isGuideView && widget.plan.status == 'OPEN' && widget.onCancel != null)
+                  SizedBox(
+                    width: double.infinity,
+                    child: SecondaryButton(
+                      label: 'Cancel Plan',
+                      icon: Icons.close,
+                      color: AppColors.error,
+                      onPressed: widget.onCancel,
+                    ),
+                  ),
+                if (!widget.isGuideView && widget.plan.status == 'ACCEPTED' && widget.onConfirmPay != null)
+                  SizedBox(
+                    width: double.infinity,
+                    child: PrimaryButton(
+                      label: 'Confirm & Pay Now',
+                      icon: Icons.payment,
+                      onPressed: widget.onConfirmPay,
+                    ),
+                  ),
+              ],
             ),
           ),
-        ],
-        if (!widget.isGuideView && widget.plan.status == 'ACCEPTED' && widget.onConfirmPay != null) ...[
-          const SizedBox(height: AppSpacing.md),
-          SizedBox(
-            width: double.infinity,
-            child: PrimaryButton(
-              label: 'Confirm & Pay Now',
-              icon: Icons.payment,
-              onPressed: onConfirmPay,
-            ),
-          ),
-        ],
-        const SizedBox(height: AppSpacing.lg),
+        ),
       ],
     );
-  });
   }
 }
 

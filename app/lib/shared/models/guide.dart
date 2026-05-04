@@ -70,6 +70,7 @@ class MatchedGuide {
   final bool licenseVerified;
   final double score;
   final bool langMatch;
+  final double? pricePerPerson;
 
   // ML-specific fields (present when using /api/recommendations/{tid}/guides)
   final double? scoreContent;
@@ -91,6 +92,7 @@ class MatchedGuide {
     required this.licenseVerified,
     required this.score,
     required this.langMatch,
+    this.pricePerPerson,
     this.scoreContent,
     this.scoreCollab,
     this.scoreDest,
@@ -112,6 +114,9 @@ class MatchedGuide {
       licenseVerified: json['license_verified'] as bool? ?? false,
       score: (json['score'] as num).toDouble(),
       langMatch: json['lang_match'] as bool? ?? false,
+      pricePerPerson: json['price_per_person'] != null
+          ? (json['price_per_person'] as num).toDouble()
+          : null,
       scoreContent: json['score_content'] != null
           ? (json['score_content'] as num).toDouble()
           : null,

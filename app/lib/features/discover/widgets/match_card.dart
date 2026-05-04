@@ -6,8 +6,9 @@ import '../../../../design_system.dart';
 class MatchCard extends StatelessWidget {
   final MatchedGuide guide;
   final VoidCallback onTap;
+  final VoidCallback? onRequest;
 
-  const MatchCard({super.key, required this.guide, required this.onTap});
+  const MatchCard({super.key, required this.guide, required this.onTap, this.onRequest});
 
   Color _avatarColor(String name) {
     final colors = [
@@ -214,12 +215,21 @@ class MatchCard extends StatelessWidget {
                   mlExplanation: guide.mlExplanation,
                 ),
                 const SizedBox(width: 8),
-                _BudgetBadge(tier: guide.budgetTier),
+                _PriceBadge(
+                  pricePerPerson: guide.pricePerPerson,
+                  budgetTier: guide.budgetTier,
+                ),
                 const Spacer(),
+                if (onRequest != null)
+                  SecondaryButton(
+                    label: 'View Profile',
+                    onPressed: onTap,
+                  ),
+                const SizedBox(width: 8),
                 PrimaryButton(
-                  label: 'View Profile',
-                  icon: Icons.arrow_forward,
-                  onPressed: onTap,
+                  label: 'Request',
+                  icon: Icons.send,
+                  onPressed: onRequest,
                 ),
               ],
             ),
@@ -371,12 +381,14 @@ class _ScoreRow extends StatelessWidget {
   }
 }
 
-class _BudgetBadge extends StatelessWidget {
-  final String tier;
-  const _BudgetBadge({required this.tier});
+class _PriceBadge extends StatelessWidget {
+  final double? pricePerPerson;
+  final String budgetTier;
 
-  String get label {
-    switch (tier) {
+  const _PriceBadge({this.pricePerPerson, required this.budgetTier});
+
+  String get _tierLabel {
+    switch (budgetTier) {
       case 'budget':
         return 'Budget';
       case 'mid':
@@ -384,19 +396,41 @@ class _BudgetBadge extends StatelessWidget {
       case 'premium':
         return 'Premium';
       default:
-        return tier;
+        return budgetTier;
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    if (pricePerPerson != null) {
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+        decoration: BoxDecoration(
+          color: AppColors.success.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(AppRadius.full),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              '\$${pricePerPerson!.toStringAsFixed(0)}',
+              style: AppText.labelBold.copyWith(color: AppColors.success),
+            ),
+            Text(
+              ' / person',
+              style: AppText.caption.copyWith(color: AppColors.success),
+            ),
+          ],
+        ),
+      );
+    }
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
         color: AppColors.surfaceSecondary,
         borderRadius: BorderRadius.circular(AppRadius.full),
       ),
-      child: Text(label, style: AppText.caption),
+      child: Text(_tierLabel, style: AppText.caption),
     );
   }
 }
