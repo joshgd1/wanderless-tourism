@@ -155,6 +155,12 @@ class DiscoverScreen extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: AppColors.background,
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => _handlePlanTrip(context, ref),
+        backgroundColor: AppColors.brand,
+        icon: const Icon(Icons.add, color: Colors.white),
+        label: Text('New Trip', style: AppText.labelBold.copyWith(color: Colors.white)),
+      ),
       body: CustomScrollView(
         slivers: [
           // ── App Bar ──────────────────────────────────────────────────────
@@ -983,7 +989,7 @@ class _FilterChip extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
           color: isSelected ? AppColors.brand : AppColors.surface,
-          borderRadius: BorderRadius.circular(AppRadius.full),
+          borderRadius: BorderRadius.circular(24),
           border: Border.all(
             color: isSelected ? AppColors.brand : AppColors.border,
           ),

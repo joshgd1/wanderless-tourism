@@ -71,6 +71,8 @@ class MatchedGuide {
   final double score;
   final bool langMatch;
   final double? pricePerPerson;
+  final double? durationHours;
+  final int? groupSize;
 
   // ML-specific fields (present when using /api/recommendations/{tid}/guides)
   final double? scoreContent;
@@ -93,6 +95,8 @@ class MatchedGuide {
     required this.score,
     required this.langMatch,
     this.pricePerPerson,
+    this.durationHours,
+    this.groupSize,
     this.scoreContent,
     this.scoreCollab,
     this.scoreDest,
@@ -117,6 +121,10 @@ class MatchedGuide {
       pricePerPerson: json['price_per_person'] != null
           ? (json['price_per_person'] as num).toDouble()
           : null,
+      durationHours: json['duration_hours'] != null
+          ? (json['duration_hours'] as num).toDouble()
+          : null,
+      groupSize: json['group_size'] as int?,
       scoreContent: json['score_content'] != null
           ? (json['score_content'] as num).toDouble()
           : null,

@@ -219,6 +219,14 @@ class MatchCard extends StatelessWidget {
                   pricePerPerson: guide.pricePerPerson,
                   budgetTier: guide.budgetTier,
                 ),
+                if (guide.durationHours != null) ...[
+                  const SizedBox(width: 6),
+                  _MetaBadge(icon: Icons.schedule, label: '${guide.durationHours!.toStringAsFixed(0)}h'),
+                ],
+                if (guide.groupSize != null) ...[
+                  const SizedBox(width: 6),
+                  _MetaBadge(icon: Icons.group, label: '${guide.groupSize}'),
+                ],
                 const Spacer(),
                 if (onRequest != null)
                   SecondaryButton(
@@ -431,6 +439,32 @@ class _PriceBadge extends StatelessWidget {
         borderRadius: BorderRadius.circular(AppRadius.full),
       ),
       child: Text(_tierLabel, style: AppText.caption),
+    );
+  }
+}
+
+class _MetaBadge extends StatelessWidget {
+  final IconData icon;
+  final String label;
+
+  const _MetaBadge({required this.icon, required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceSecondary,
+        borderRadius: BorderRadius.circular(AppRadius.full),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 12, color: AppColors.textTertiary),
+          const SizedBox(width: 3),
+          Text(label, style: AppText.caption),
+        ],
+      ),
     );
   }
 }
