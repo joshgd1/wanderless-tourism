@@ -28,6 +28,8 @@ import '../features/business/screens/business_register_screen.dart';
 import '../features/business/screens/business_jobs_screen.dart';
 import '../features/tracking/screens/tour_tracking_screen.dart';
 import '../features/notifications/screens/notifications_screen.dart';
+import '../features/groups/screens/groups_screen.dart';
+import '../features/groups/screens/group_detail_screen.dart';
 import '../shared/widgets/main_shell.dart';
 import 'auth_provider.dart';
 import 'guide_auth_provider.dart';
@@ -203,6 +205,13 @@ final routerProvider = Provider<GoRouter>((ref) {
             },
           ),
           GoRoute(path: '/profile', builder: (_, __) => const ProfileScreen()),
+          GoRoute(path: '/groups', builder: (_, __) => const GroupsScreen()),
+          GoRoute(
+            path: '/group/:groupId',
+            builder: (context, state) => GroupDetailScreen(
+              groupId: int.parse(state.pathParameters['groupId']!),
+            ),
+          ),
         ],
       ),
 
@@ -258,5 +267,8 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (_, __) => const NotificationsScreen(),
       ),
     ],
-  );
-});
+  ),
+
+  // Public routes (guide detail, booking — still require auth for actions)
+  GoRoute(
+    path: '/guide/:guideId',

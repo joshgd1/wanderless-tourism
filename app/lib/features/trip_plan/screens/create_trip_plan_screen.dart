@@ -29,6 +29,7 @@ class _CreateTripPlanScreenState extends ConsumerState<CreateTripPlanScreen> {
 
   bool _isSubmitting = false;
   bool _isLoadingSuggestions = false;
+  bool _createAsGroup = true;
 
   final _allInterests = ['Food', 'Culture', 'Adventure', 'Nature', 'Wellness', 'History'];
 
@@ -167,7 +168,7 @@ class _CreateTripPlanScreenState extends ConsumerState<CreateTripPlanScreen> {
       }
 
       final api = ApiClient();
-      await api.createTripPlan({
+      final planResult = await api.createTripPlan({
         'tourist_id': touristId,
         'destination': _destController.text.trim(),
         'interests': _selectedInterests.join('|'),
@@ -179,16 +180,67 @@ class _CreateTripPlanScreenState extends ConsumerState<CreateTripPlanScreen> {
         'dietary_requirement': _dietaryRequirement,
       });
 
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Text('Trip plan posted! Guides can now accept it.'),
-            backgroundColor: AppColors.success,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.sm)),
-          ),
-        );
-        context.pop();
+      // If shared group mode is on, create a group from this plan
+      if (_createAsGroup) {
+        final planId = planResult['id'] as int? ?? planResult['plan_id'] as int?;
+        if (planId != null) {
+          try {
+            await api.createGroup({'plan_id': planId});
+          } catch (e) {
+            // Rollback: delete the plan that was just created
+            try {
+              await api.deleteTripPlan(planId);
+            } catch (_) {
+              // best effort cleanup
+            }
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Trip plan was created but group sharing failed: $e'),
+                  backgroundColor: AppColors.error,
+                  behavior: SnackBarBehavior.floating,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.sm)),
+                ),
+              );
+            }
+            return;
+          }
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: const Text('Trip plan posted and shared! Other travelers can now join your group.'),
+                backgroundColor: AppColors.success,
+                behavior: SnackBarBehavior.floating,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.sm)),
+              ),
+            );
+            context.go('/groups');
+          }
+        } else {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: const Text('Trip plan posted! (Group creation requires a saved plan.)'),
+                backgroundColor: AppColors.success,
+                behavior: SnackBarBehavior.floating,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.sm)),
+              ),
+            );
+            context.pop();
+          }
+        }
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: const Text('Trip plan posted! Guides can now accept it.'),
+              backgroundColor: AppColors.success,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.sm)),
+            ),
+          );
+          context.pop();
+        }
       }
     } catch (e) {
       if (mounted) {
@@ -394,6 +446,11 @@ class _CreateTripPlanScreenState extends ConsumerState<CreateTripPlanScreen> {
                               onPressed: _addStop,
                             ),
                           ],
+                        ),
+                        const SizedBox(height: AppSpacing.md),
+                        _GroupToggle(
+                          value: _createAsGroup,
+                          onChanged: (v) => setState(() => _createAsGroup = v),
                         ),
                         if (_stops.isEmpty) ...[
                           const SizedBox(height: AppSpacing.md),
@@ -1028,6 +1085,66 @@ class _AddStopSheetState extends State<_AddStopSheet> {
           ),
           SizedBox(height: MediaQuery.of(context).padding.bottom),
         ],
+      ),
+    );
+  }
+}
+
+class _GroupToggle extends StatelessWidget {
+  final bool value;
+  final ValueChanged<bool> onChanged;
+
+  const _GroupToggle({required this.value, required this.onChanged});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () => onChanged(!value),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.md),
+        decoration: BoxDecoration(
+          color: value ? AppColors.brand.withOpacity(0.08) : AppColors.surfaceSecondary,
+          borderRadius: BorderRadius.circular(AppRadius.md),
+          border: Border.all(
+            color: value ? AppColors.brand : AppColors.border,
+          ),
+        ),
+        child: Row(
+          children: [
+            Icon(
+              value ? Icons.group : Icons.person,
+              size: 20,
+              color: value ? AppColors.brand : AppColors.textTertiary,
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Create as shared group trip',
+                    style: AppText.label.copyWith(
+                      color: value ? AppColors.brand : AppColors.textPrimary,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    'Let other tourists with similar plans join you',
+                    style: AppText.caption.copyWith(
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Switch(
+              value: value,
+              onChanged: onChanged,
+              activeColor: AppColors.brand,
+            ),
+          ],
+        ),
       ),
     );
   }

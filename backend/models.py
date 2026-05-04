@@ -250,3 +250,30 @@ class RejectionLog(Base):
     alternatives_offered = Column(JSON, nullable=True)  # list of alternative stops offered
     created_at = Column(DateTime, default=datetime.utcnow)
 
+
+class TravelGroup(Base):
+    """A formed tourist group that shares one guide."""
+    __tablename__ = "travel_groups"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    destination = Column(String)
+    guide_id = Column(String, ForeignKey("guides.id"), nullable=True)
+    min_size = Column(Integer, default=3)
+    max_size = Column(Integer, default=8)
+    status = Column(String)  # OPEN | MATCHED | CONFIRMED | CANCELLED
+    coherence = Column(String)  # high_coherence | moderate_coherence | low_coherence
+    proposed_date = Column(String, nullable=True)
+    proposed_duration = Column(Float, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+
+class TravelGroupMember(Base):
+    """A tourist in a travel group."""
+    __tablename__ = "travel_group_members"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    group_id = Column(Integer, ForeignKey("travel_groups.id"))
+    tourist_id = Column(String, ForeignKey("tourists.id"))
+    status = Column(String)  # PENDING | CONFIRMED | LEFT
+    created_at = Column(DateTime, default=datetime.utcnow)
+

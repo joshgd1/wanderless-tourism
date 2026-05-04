@@ -10,6 +10,7 @@ Production-ready patterns for Flutter application development including design s
 ## Overview
 
 Flutter patterns for:
+
 - Design system creation and management
 - Responsive layout strategies
 - Component library architecture
@@ -19,6 +20,7 @@ Flutter patterns for:
 ## Reference Documentation
 
 ### Design System Creation
+
 - **[creating-design-system](creating-design-system.md)** - Complete guide to creating Flutter design systems
   - Phase-based implementation approach
   - Token systems (colors, typography, spacing)
@@ -28,6 +30,7 @@ Flutter patterns for:
   - Documentation standards
 
 ### Design System Usage
+
 - **[flutter-design-system](flutter-design-system.md)** - Institutionalized design system usage directive
   - Design system location and structure
   - Single import pattern
@@ -35,15 +38,27 @@ Flutter patterns for:
   - Mandatory usage rules
 
 ### Testing Patterns
+
 - **[flutter-testing-patterns](flutter-testing-patterns.md)** - Flutter testing strategies
   - Widget testing patterns
   - Integration testing
   - Golden tests
   - Test organization
 
+### API & Auth Patterns
+
+- **[flutter-api-patterns](flutter-api-patterns.md)** - API client patterns, auth, and error handling
+  - ApiClient singleton with Dio and JWT
+  - Riverpod FutureProvider with auth state
+  - 401 → login redirect (CRITICAL)
+  - Confirmation dialogs for sensitive actions
+  - GoRouter auth shell
+  - Error detection table (401, 403, 409, 500)
+
 ## Quick Patterns
 
 ### Design Token System
+
 ```dart
 abstract class AppColors {
   // Primary palette
@@ -67,6 +82,7 @@ abstract class AppSpacing {
 ```
 
 ### Responsive Breakpoints
+
 ```dart
 class Breakpoints {
   static const mobile = 600.0;
@@ -79,6 +95,7 @@ class Breakpoints {
 ```
 
 ### Component Base Pattern
+
 ```dart
 class AppButton extends StatelessWidget {
   final String label;
@@ -104,16 +121,17 @@ class AppButton extends StatelessWidget {
 
 ## CRITICAL Gotchas
 
-| Rule | Why |
-|------|-----|
-| ❌ NEVER hardcode colors | Use design tokens |
-| ✅ ALWAYS use const constructors | Performance optimization |
-| ❌ NEVER use magic numbers | Use spacing tokens |
-| ✅ ALWAYS test on multiple screen sizes | Responsive verification |
+| Rule                                    | Why                      |
+| --------------------------------------- | ------------------------ |
+| ❌ NEVER hardcode colors                | Use design tokens        |
+| ✅ ALWAYS use const constructors        | Performance optimization |
+| ❌ NEVER use magic numbers              | Use spacing tokens       |
+| ✅ ALWAYS test on multiple screen sizes | Responsive verification  |
 
 ## When to Use This Skill
 
 Use this skill when:
+
 - Creating a new Flutter design system
 - Building reusable component libraries
 - Implementing responsive layouts
@@ -130,6 +148,7 @@ Use this skill when:
 ## Support
 
 For Flutter pattern questions, invoke:
+
 - `flutter-specialist` - Flutter-specific implementation
 - `uiux-designer` - Design system decisions
 - `pattern-expert` - Architecture patterns

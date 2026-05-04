@@ -1,77 +1,25 @@
-# Session Notes — 2026-05-02
+# Session Notes — 2026-05-04 (evening)
 
 ## Where we are
 
-Guide login and registration both fixed. Flutter web deployed via GitHub Actions.
+Group tours feature fully deployed. Render deploy failure root-caused and fixed: Flutter compilation errors (4 files) blocked the CI pipeline before the Render deploy step. Flutter Web + APK builds now passing. `/codify` complete — flutter-api-patterns skill created.
 
-## Today's Fixes
+## Read first
 
-### 1. Guide login 401 on deployed app
-Reseeded the Render backend database via `/api/admin/reseed`. The seed accounts (guide@wanderless.com / wanderless123) were missing from the deployed database.
+1. `.claude/accounts/term-536/plans/velvety-stirring-neumann.md` — Group Tours plan (what was built vs. what remains)
+2. `.claude/skills/19-flutter-patterns/flutter-api-patterns.md` — Flutter API/auth patterns skill (192 lines, created this session)
+3. `journal/0009-DISCOVERY-render-deploy-pipeline-blocking.md` — why Flutter errors blocked Render deploy
+4. `journal/0009-DECISION-flutter-api-patterns-skill.md` — what was codified
+5. `.claude/.proposals/latest.yaml` — proposal for upstream flutter-api-patterns skill
 
-### 2. Guide & business registration 404 (root cause)
-**Bug:** `ApiConfig.getBaseUrl()` returns `https://wanderless-tourism.onrender.com/api` (already includes `/api`). Both registration screens appended `/api/...` again, resulting in `https://wanderless-tourism.onrender.com/api/api/guides/register` → 404.
+## In-flight state
 
-**Fix:** Removed `/api` prefix from both:
-- `app/lib/features/guide/screens/guide_register_screen.dart` — `$baseUrl/guides/register`
-- `app/lib/features/business/screens/business_register_screen.dart` — `$baseUrl/business/register`
+- Render pipeline: healthy (flutter-web.yml + flutter-apk.yml both passing as of 12:24 UTC)
+- `/codify` step 4 (SKILL.md index) and step 7 (proposal) done — steps 5-6 (README, red team) skipped for a 1-skill addition
+- 4 Flutter compilation errors fixed this session: guide_jobs_screen, guide_detail_screen, confirm_request_screen, trip_plan_list_screen
+- Proposal at `.claude/.proposals/latest.yaml` — pending upstream review
 
-**Commit:** `ff97881` — fix(flutter): remove duplicate /api prefix in guide and business registration
+## Traps
 
-## Commits on main (today)
-
-- `ff97881` — fix(flutter): remove duplicate /api prefix in guide and business registration
-- `6e279b6` — fix(flutter): correct workflow YAML syntax and Kotlin Gradle file
-
-## Today's Fix
-
-### Flutter Android CI YAML syntax was broken
-
-The `app/.github/workflows/flutter-android.yml` had `working-directory: app` as a **standalone step** instead of as a **key within the run step**. This invalid YAML would cause GitHub Actions to skip those steps entirely.
-
-**Broken:**
-```yaml
-- working-directory: app
-- run: flutter pub get
-```
-
-**Fixed:**
-```yaml
-- name: Install dependencies
-  working-directory: app
-  run: flutter pub get
-```
-
-Also fixed `flutter-build.yml` uncommitted change: `settings.gradle` → `settings.gradle.kts` (Kotlin DSL for newer Flutter).
-
-## Backend Status
-
-- FastAPI backend running on port 8000
-- ML recommender fitted on startup
-- Database seeded on startup
-- Swagger docs at `/docs`
-- No health endpoint (root `/` returns 404 — expected)
-- Reseed endpoint requires admin token
-
-## API Routes Available
-
-Tourist auth: `/api/auth/register`, `/api/auth/login`, `/api/auth/me`
-Guide auth: `/api/guides/register`, `/api/guides/login`, `/api/guides/auth/me`
-Business auth: `/api/business/register`, `/api/business/login`, `/api/business/me`
-Business portal: `/api/business/dashboard`, `/api/business/guides`
-Matching: `/api/matches/{tid}`, `/api/recommendations/{tourist_id}/guides`, `/api/recommendations/{tourist_id}/destinations`
-Bookings: `/api/bookings`, `/api/bookings/{booking_id}`, `/api/guide/bookings`, `/api/bookings/{booking_id}/status`
-Itineraries: `/api/itineraries/{booking_id}`, `/api/itineraries/{itinerary_id}`
-Ratings: `/api/ratings`
-Trip plans: `/api/trip-plans`, `/api/trip-plans/{plan_id}`, `/api/trip-plans/{plan_id}/accept`
-
-## Still Pending
-
-1. Business portal smoke test
-2. End-to-end tourist flow smoke test
-3. Verify GitHub Actions flutter-android.yml build succeeds after fix
-
-## Git State
-
-- Main is clean (commit 6e279b6 pushed)
-- `app/.claude/learning/observations.jsonl` modified (not committed, learning data)
+- **Coherence label index (UNVERIFIED)**: `form_groups` uses `grp[0].get("_group_tags", [""])[-1]` — depends on internal mutation sort order in `_compute_group_coherence()`. Not verified against ML engine source.
+- **Flutter SDK missing on WSL2**: `flutter analyze` never run locally — Dart correctness only verified via GitHub Actions CI.

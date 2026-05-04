@@ -14,6 +14,7 @@ from ml.pricing import (
     compute_dynamic_price,
     compute_booking_quote,
 )
+from ml.group_formation import form_groups, suggest_grouping
 
 __all__ = [
     "HybridRecommender",
@@ -26,4 +27,6 @@ __all__ = [
     "get_review_intelligence",
     "compute_dynamic_price",
     "compute_booking_quote",
+    "form_groups",
+    "suggest_grouping",
 ]

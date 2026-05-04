@@ -1,0 +1,33 @@
+status: pending_review
+source_repo: wanderless-tourism
+created: 2026-05-04T20:30:00Z
+changes:
+  - artifact_type: skill
+    artifact_id: flutter-api-patterns
+    action: add
+    locations:
+      - .claude/skills/19-flutter-patterns/flutter-api-patterns.md
+    description: |
+      New skill capturing Flutter API client patterns with Dio, JWT authentication,
+      Riverpod state management, and GoRouter navigation with auth redirects.
+      Covers: ApiClient singleton, FutureProvider auth patterns, 401→login redirect,
+      confirmation dialogs, error detection table, API response parsing.
+    upstream_classification: variant
+    variant_axis: flutter
+    upstream_targets:
+      - .claude/skills/19-flutter-patterns/flutter-api-patterns.md
+    notes: |
+      Flutter-specific patterns extracted from group-tours implementation session.
+      Covers patterns discovered during Flutter Web compilation failures and
+      API integration work. Skill is Flutter-specific (Dart), so upstream
+      classification is variant/flutter.
+  - artifact_type: skill_index
+    artifact_id: 19-flutter-patterns-SKILL-md
+    action: update
+    locations:
+      - .claude/skills/19-flutter-patterns/SKILL.md
+    description: |
+      Added flutter-api-patterns to the SKILL.md Reference Documentation section,
+      under new "API & Auth Patterns" subsection.
+    upstream_classification: skip
+    notes: Local index update only, not upstreamed separately.
