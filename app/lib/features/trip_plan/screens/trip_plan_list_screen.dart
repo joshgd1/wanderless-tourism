@@ -18,7 +18,7 @@ final _matchedGuidesForPlanProvider = FutureProvider.family<List<MatchedGuide>, 
   final data = await api.getMlGuideRecommendations(touristId, topN: 3, destination: destination);
   final guides = data.map((e) => MatchedGuide.fromJson(e as Map<String, dynamic>)).toList();
   // Always show Mei Ling first as the demo guide
-  const meiLing = MatchedGuide(
+  final meiLing = MatchedGuide(
     guideId: 'GTH268',
     name: 'Mei Ling',
     photoUrl: 'https://picsum.photos/seed/mei_ling_guide/400/400',
