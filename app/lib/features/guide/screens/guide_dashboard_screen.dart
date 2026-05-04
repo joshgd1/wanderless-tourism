@@ -57,6 +57,14 @@ final guideMeProvider = FutureProvider<Map<String, dynamic>?>((ref) async {
   return data;
 });
 
+final guideOpenGroupsProvider = FutureProvider<List<Map<String, dynamic>>>((ref) async {
+  final authState = ref.watch(guideAuthProvider);
+  if (authState.guideId == null) return [];
+  final api = ApiClient();
+  final data = await api.getGroups(status: 'OPEN');
+  return data.where((g) => g['guide_id'] == null).toList().cast<Map<String, dynamic>>();
+});
+
 class GuideDashboardScreen extends ConsumerStatefulWidget {
   const GuideDashboardScreen({super.key});
 
@@ -71,7 +79,7 @@ class _GuideDashboardScreenState extends ConsumerState<GuideDashboardScreen>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
+    _tabController = TabController(length: 4, vsync: this);
   }
 
   @override
@@ -166,6 +174,7 @@ class _GuideDashboardScreenState extends ConsumerState<GuideDashboardScreen>
                   Tab(text: 'Pending'),
                   Tab(text: 'Current Jobs'),
                   Tab(text: 'History'),
+                  Tab(text: 'Open Groups'),
                 ],
               ),
             ),
@@ -177,6 +186,7 @@ class _GuideDashboardScreenState extends ConsumerState<GuideDashboardScreen>
             _PendingTab(bookingsAsync: bookingsAsync),
             _CurrentJobsTab(bookingsAsync: bookingsAsync),
             _HistoryTab(bookingsAsync: bookingsAsync),
+            _OpenGroupsTab(),
           ],
         ),
       ),
@@ -1085,3 +1095,295 @@ class _JobCard extends StatelessWidget {
   }
 }
 
+class _OpenGroupsTab extends ConsumerWidget {
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final groupsAsync = ref.watch(guideOpenGroupsProvider);
+
+    return groupsAsync.when(
+      loading: () => const AppLoading(message: 'Loading open groups...'),
+      error: (e, _) => EmptyState(
+        icon: Icons.error_outline,
+        title: 'Failed to load groups',
+        subtitle: e.toString(),
+        action: PrimaryButton(
+          label: 'Retry',
+          onPressed: () => ref.refresh(guideOpenGroupsProvider),
+        ),
+      ),
+      data: (groups) {
+        if (groups.isEmpty) {
+          return const EmptyState(
+            icon: Icons.group_outlined,
+            title: 'No open groups',
+            subtitle: 'Groups seeking a guide will appear here.\nBrowse destinations and claim a group to get started.',
+          );
+        }
+
+        return RefreshIndicator(
+          onRefresh: () async => ref.refresh(guideOpenGroupsProvider),
+          child: ListView.builder(
+            padding: const EdgeInsets.all(AppSpacing.md),
+            itemCount: groups.length,
+            itemBuilder: (context, index) {
+              final group = groups[index];
+              return Padding(
+                padding: const EdgeInsets.only(bottom: AppSpacing.md),
+                child: _OpenGroupCard(group: group),
+              );
+            },
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _OpenGroupCard extends ConsumerStatefulWidget {
+  final Map<String, dynamic> group;
+
+  const _OpenGroupCard({required this.group});
+
+  @override
+  ConsumerState<_OpenGroupCard> createState() => _OpenGroupCardState();
+}
+
+class _OpenGroupCardState extends ConsumerState<_OpenGroupCard> {
+  bool _isClaiming = false;
+
+  String _formatDate(String? date) {
+    if (date == null || date.isEmpty) return 'Date TBD';
+    try {
+      final parsed = DateTime.parse(date);
+      return '${parsed.day}/${parsed.month}/${parsed.year}';
+    } catch (_) {
+      return date ?? 'Date TBD';
+    }
+  }
+
+  Future<void> _claimGroup() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.lg)),
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: AppColors.brand.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(AppRadius.sm),
+              ),
+              child: const Icon(Icons.group_add, color: AppColors.brand, size: 20),
+            ),
+            const SizedBox(width: 12),
+            Expanded(child: Text('Claim This Group?', style: AppText.h3)),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'You will be assigned as the guide for this group trip.',
+              style: AppText.body.copyWith(color: AppColors.textSecondary),
+            ),
+            const SizedBox(height: AppSpacing.md),
+            Container(
+              padding: const EdgeInsets.all(AppSpacing.md),
+              decoration: BoxDecoration(
+                color: AppColors.surface,
+                borderRadius: BorderRadius.circular(AppRadius.sm),
+                border: Border.all(color: AppColors.border),
+              ),
+              child: Column(
+                children: [
+                  _InfoRow(icon: Icons.location_on_outlined, label: 'Destination', value: widget.group['destination'] ?? 'TBD'),
+                  const SizedBox(height: 8),
+                  _InfoRow(icon: Icons.calendar_today_outlined, label: 'Date', value: _formatDate(widget.group['proposed_date'])),
+                  const SizedBox(height: 8),
+                  _InfoRow(
+                    icon: Icons.group_outlined,
+                    label: 'Members',
+                    value: '${widget.group['member_count'] ?? 0}/${widget.group['max_size'] ?? 8} joined',
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text('Cancel', style: AppText.label.copyWith(color: AppColors.textSecondary)),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text('Claim Group', style: AppText.label.copyWith(color: AppColors.brand)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true) return;
+
+    setState(() => _isClaiming = true);
+    try {
+      final api = ApiClient();
+      await api.claimGroup(widget.group['id'] as int);
+      ref.refresh(guideOpenGroupsProvider);
+      ref.refresh(guideBookingsProvider);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('Group claimed! It is now confirmed.'),
+            backgroundColor: AppColors.success,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to claim: $e'),
+            backgroundColor: AppColors.error,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isClaiming = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AppCard(
+      padding: const EdgeInsets.all(AppSpacing.md),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: AppColors.brand.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(AppRadius.md),
+                ),
+                child: const Icon(Icons.group, color: AppColors.brand, size: 24),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      widget.group['destination'] ?? 'TBD',
+                      style: AppText.h2,
+                    ),
+                    const SizedBox(height: 2),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: AppColors.success.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(AppRadius.full),
+                      ),
+                      child: Text(
+                        'Open — seeking guide',
+                        style: AppText.caption.copyWith(
+                          color: AppColors.success,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.md),
+          const Divider(color: AppColors.border),
+          const SizedBox(height: AppSpacing.md),
+          Row(
+            children: [
+              _DetailChip(icon: Icons.calendar_today_outlined, label: _formatDate(widget.group['proposed_date'])),
+              const SizedBox(width: AppSpacing.sm),
+              _DetailChip(
+                icon: Icons.schedule_outlined,
+                label: '${(widget.group['proposed_duration'] as num?)?.toStringAsFixed(1) ?? '4.0'}h',
+              ),
+              const Spacer(),
+              _DetailChip(
+                icon: Icons.group_outlined,
+                label: '${widget.group['member_count'] ?? 0}/${widget.group['max_size'] ?? 8}',
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.md),
+          SizedBox(
+            width: double.infinity,
+            child: _isClaiming
+                ? const SizedBox(
+                    width: double.infinity,
+                    child: Center(child: SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))),
+                  )
+                : PrimaryButton(
+                    label: 'Claim This Group',
+                    icon: Icons.group_add_outlined,
+                    onPressed: _claimGroup,
+                  ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _DetailChip extends StatelessWidget {
+  final IconData icon;
+  final String label;
+
+  const _DetailChip({required this.icon, required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      constraints: const BoxConstraints(minHeight: 36),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceSecondary,
+        borderRadius: BorderRadius.circular(AppRadius.full),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 14, color: AppColors.textTertiary),
+          const SizedBox(width: 4),
+          Text(label, style: AppText.caption),
+        ],
+      ),
+    );
+  }
+}
+
+class _InfoRow extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String value;
+
+  const _InfoRow({required this.icon, required this.label, required this.value});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Icon(icon, size: 16, color: AppColors.textTertiary),
+        const SizedBox(width: 8),
+        Text('$label: ', style: AppText.caption),
+        Expanded(child: Text(value, style: AppText.label)),
+      ],
+    );
+  }
+}

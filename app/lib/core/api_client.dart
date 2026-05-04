@@ -394,4 +394,77 @@ class ApiClient {
     );
     return resp.data as List;
   }
+
+  // ─── Trip Plans ─────────────────────────────────────────────────────────────
+
+  Future<void> deleteTripPlan(int planId) async {
+    await _dioInstance.delete(
+      '/trip-plans/$planId',
+      options: Options(headers: _authHeaders),
+    );
+  }
+
+  // ─── Travel Groups ───────────────────────────────────────────────────────────
+
+  Future<Map<String, dynamic>> formGroups(Map<String, dynamic> data) async {
+    final resp = await _dioInstance.post(
+      '/groups/form',
+      data: data,
+      options: Options(headers: _authHeaders),
+    );
+    return resp.data as Map<String, dynamic>;
+  }
+
+  Future<List<dynamic>> getGroups({String? destination, String? status}) async {
+    final params = <String, dynamic>{};
+    if (destination != null) params['destination'] = destination;
+    if (status != null) params['status'] = status;
+    final resp = await _dioInstance.get(
+      '/groups',
+      queryParameters: params,
+      options: Options(headers: _authHeaders),
+    );
+    return resp.data as List;
+  }
+
+  Future<Map<String, dynamic>> getGroup(int groupId) async {
+    final resp = await _dioInstance.get(
+      '/groups/$groupId',
+      options: Options(headers: _authHeaders),
+    );
+    return resp.data as Map<String, dynamic>;
+  }
+
+  Future<Map<String, dynamic>> joinGroup(int groupId) async {
+    final resp = await _dioInstance.post(
+      '/groups/$groupId/join',
+      options: Options(headers: _authHeaders),
+    );
+    return resp.data as Map<String, dynamic>;
+  }
+
+  Future<Map<String, dynamic>> leaveGroup(int groupId) async {
+    final resp = await _dioInstance.post(
+      '/groups/$groupId/leave',
+      options: Options(headers: _authHeaders),
+    );
+    return resp.data as Map<String, dynamic>;
+  }
+
+  Future<Map<String, dynamic>> createGroup(Map<String, dynamic> data) async {
+    final resp = await _dioInstance.post(
+      '/groups',
+      data: data,
+      options: Options(headers: _authHeaders),
+    );
+    return resp.data as Map<String, dynamic>;
+  }
+
+  Future<Map<String, dynamic>> claimGroup(int groupId) async {
+    final resp = await _dioInstance.post(
+      '/groups/$groupId/claim',
+      options: Options(headers: _authHeaders),
+    );
+    return resp.data as Map<String, dynamic>;
+  }
 }

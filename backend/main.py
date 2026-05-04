@@ -17,7 +17,7 @@ from sqlalchemy.orm import Session
 
 from database import init_db, get_db, compute_dot_range
 from matching import compatibility_score, top_matches
-from ml import fit_recommender, get_review_intelligence, compute_booking_quote
+from ml import fit_recommender, get_review_intelligence, compute_booking_quote, form_groups, suggest_grouping
 import models  # noqa: F401 — models registered with Base.metadata
 
 load_dotenv()
@@ -1851,6 +1851,31 @@ async def create_trip_plan(
     return {"id": plan.id, "status": plan.status}
 
 
+@app.delete("/api/trip-plans/{plan_id}")
+async def delete_trip_plan(
+    plan_id: int,
+    authorization: str | None = Header(None),
+    db: Session = Depends(get_db),
+):
+    """Delete an OPEN trip plan. Only the owner can delete their own plan."""
+    tourist_id = _get_tourist_id(authorization) if authorization else None
+    if not tourist_id:
+        raise HTTPException(status_code=401, detail="Authorization required")
+
+    plan = db.get(models.TripPlan, plan_id)
+    if not plan:
+        raise HTTPException(status_code=404, detail="Trip plan not found")
+    if plan.tourist_id != tourist_id:
+        raise HTTPException(status_code=403, detail="Not your trip plan")
+    if plan.status != "OPEN":
+        raise HTTPException(status_code=400, detail="Can only delete OPEN plans")
+
+    db.delete(plan)
+    db.commit()
+    logger.info(f"trip_plan.deleted plan_id={plan_id} tourist_id={tourist_id}")
+    return {"status": "deleted", "plan_id": plan_id}
+
+
 @app.get("/api/trip-plans")
 async def list_trip_plans(
     tourist_id: str | None = None,
@@ -2206,7 +2231,412 @@ async def tourist_review_trip_plan(
         raise HTTPException(status_code=400, detail="action must be 'accept' or 'request_changes'")
 
 
-# ─── Checkpoint endpoints (GPS + photo at tour stops) ─────────────────────────
+# ─── Travel Group endpoints ─────────────────────────────────────────────────
+
+@app.post("/api/groups/form")
+async def api_form_groups(
+    data: dict,
+    authorization: str | None = Header(None),
+    db: Session = Depends(get_db),
+):
+    """
+    Run the group formation ML engine for a destination.
+    Fetches all OPEN trip plans for tourists at the given destination,
+    clusters them via form_groups(), persists groups + members, returns summaries.
+    """
+    tourist_id = _get_tourist_id(authorization) if authorization else None
+    if not tourist_id:
+        raise HTTPException(status_code=401, detail="Authorization required")
+
+    destination = data.get("destination")
+    min_size = data.get("min_group_size", 3)
+    max_size = data.get("max_group_size", 8)
+
+    if not destination:
+        raise HTTPException(status_code=400, detail="destination is required")
+    if min_size > max_size:
+        raise HTTPException(status_code=400, detail="min_group_size cannot exceed max_group_size")
+    if min_size < 1 or max_size < 1:
+        raise HTTPException(status_code=400, detail="group sizes must be positive")
+
+    logger.info("groups.form.start", tourist_id=tourist_id, destination=destination, min_size=min_size, max_size=max_size)
+
+    # Fetch tourists with OPEN trip plans at this destination
+    rows = db.execute(
+        __import__("sqlalchemy").text("""
+            SELECT tp.*, t.id as tid, t.name, t.food_interest, t.culture_interest,
+                   t.adventure_interest, t.pace_preference, t.budget_level,
+                   t.language, t.languages, t.age_group
+            FROM trip_plans tp
+            JOIN tourists t ON t.id = tp.tourist_id
+            WHERE tp.destination = :dest
+              AND tp.status = 'OPEN'
+              AND (tp.tour_date_start IS NOT NULL AND tp.tour_date_start != '')
+        """),
+        {"dest": destination},
+    ).fetchall()
+
+    if not rows:
+        return {"groups": [], "statistics": {"method": "no_open_trip_plans"}}
+
+    columns = ["trip_plan_id", "tourist_id", "destination", "interests", "proposed_stops",
+               "status", "guide_id", "tour_date_start", "tour_date_end", "duration_hours",
+               "group_size", "booking_id", "negotiation_rounds", "alternatives",
+               "guide_proposed_stops", "safety_weight", "dietary_requirement",
+               "avoid_late_night", "created_at", "tid", "name", "food_interest",
+               "culture_interest", "adventure_interest", "pace_preference",
+               "budget_level", "language", "languages", "age_group"]
+
+    tourists = []
+    for row in rows:
+        r = dict(zip(columns, row))
+        tourists.append({
+            "id": r["tid"],
+            "name": r["name"],
+            "food_interest": r["food_interest"] or 0.5,
+            "culture_interest": r["culture_interest"] or 0.5,
+            "adventure_interest": r["adventure_interest"] or 0.5,
+            "pace_preference": r["pace_preference"] or 0.5,
+            "budget_level": r["budget_level"] or 0.5,
+            "language": r["language"] or "English",
+            "languages": (r["languages"] or "").split("|") if r["languages"] else ["English"],
+            "age_group": r["age_group"] or "",
+            "destination": r["destination"],
+        })
+
+    result = form_groups(tourists, min_group_size=min_size, max_group_size=max_size, destination=destination)
+
+    # Persist groups + members
+    from models import TravelGroup, TravelGroupMember
+    group_summaries = []
+    for grp in result["groups"]:
+        # Use first member's trip plan date as proposed date
+        first_plan = next((r for r in rows if dict(zip(columns, r))["tid"] == grp[0].get("id")), None)
+        proposed_date = ""
+        if first_plan:
+            proposed_date = dict(zip(columns, first_plan)).get("tour_date_start", "") or ""
+
+        group = TravelGroup(
+            destination=destination,
+            min_size=min_size,
+            max_size=max_size,
+            status="OPEN",
+            coherence=grp[0].get("_group_tags", [""])[-1] if grp[0].get("_group_tags") else "moderate_coherence",
+            proposed_date=proposed_date,
+            proposed_duration=grp[0].get("duration_hours") if "duration_hours" in grp[0] else None,
+        )
+        db.add(group)
+        db.flush()
+
+        for member in grp:
+            member_tid = member.get("id")
+            if not member_tid:
+                continue
+            db.add(TravelGroupMember(
+                group_id=group.id,
+                tourist_id=member_tid,
+                status="CONFIRMED",
+            ))
+
+        group_summaries.append({
+            "id": group.id,
+            "destination": destination,
+            "member_count": len(grp),
+            "coherence": group.coherence,
+            "proposed_date": proposed_date,
+        })
+
+    db.commit()
+
+    logger.info("groups.form.complete", tourist_id=tourist_id, destination=destination,
+                n_groups=len(group_summaries))
+    return {
+        "groups": group_summaries,
+        "solo_travelers": result.get("solo_travelers", []),
+        "statistics": result.get("statistics", {}),
+    }
+
+
+@app.get("/api/groups")
+async def api_list_groups(
+    destination: str | None = None,
+    status: str | None = None,
+    authorization: str | None = Header(None),
+    db: Session = Depends(get_db),
+):
+    """
+    List travel groups available to join. Defaults to OPEN groups.
+    """
+    tourist_id = _get_tourist_id(authorization) if authorization else None
+    if not tourist_id:
+        raise HTTPException(status_code=401, detail="Authorization required")
+
+    query = __import__("sqlalchemy").select(models.TravelGroup)
+    if destination:
+        query = query.where(models.TravelGroup.destination == destination)
+    if status:
+        query = query.where(models.TravelGroup.status == status)
+    else:
+        query = query.where(models.TravelGroup.status == "OPEN")
+
+    groups = db.execute(query).scalars().all()
+    result = []
+    for g in groups:
+        member_count = db.execute(
+            __import__("sqlalchemy").select(__import__("sqlalchemy").func.count())
+            .select_from(models.TravelGroupMember)
+            .where(models.TravelGroupMember.group_id == g.id)
+        ).scalar() or 0
+        result.append({
+            "id": g.id,
+            "destination": g.destination,
+            "status": g.status,
+            "coherence": g.coherence,
+            "proposed_date": g.proposed_date,
+            "proposed_duration": g.proposed_duration,
+            "min_size": g.min_size,
+            "max_size": g.max_size,
+            "member_count": member_count,
+            "guide_id": g.guide_id,
+        })
+
+    logger.info("groups.list", tourist_id=tourist_id, destination=destination, n=len(result))
+    return result
+
+
+@app.get("/api/groups/{group_id}")
+async def api_get_group(
+    group_id: int,
+    authorization: str | None = Header(None),
+    db: Session = Depends(get_db),
+):
+    """Get group detail with anonymized members."""
+    tourist_id = _get_tourist_id(authorization) if authorization else None
+    if not tourist_id:
+        raise HTTPException(status_code=401, detail="Authorization required")
+
+    g = db.get(models.TravelGroup, group_id)
+    if not g:
+        raise HTTPException(status_code=404, detail="Group not found")
+
+    # Cancelled groups: only return public metadata, no member data
+    if g.status == "CANCELLED":
+        return {
+            "id": g.id,
+            "destination": g.destination,
+            "status": g.status,
+            "coherence": None,
+            "proposed_date": None,
+            "proposed_duration": None,
+            "min_size": g.min_size,
+            "max_size": g.max_size,
+            "member_count": 0,
+            "members": [],
+            "guide": None,
+            "guide_id": None,
+        }
+
+    members = db.execute(
+        __import__("sqlalchemy").select(models.TravelGroupMember)
+        .where(models.TravelGroupMember.group_id == group_id)
+        .where(models.TravelGroupMember.status != "LEFT")
+    ).scalars().all()
+
+    # Anonymize: only show initials + avatar color seed
+    member_list = []
+    for m in members:
+        t = db.get(models.Tourist, m.tourist_id)
+        if t and t.name:
+            parts = t.name.strip().split()
+            initials = "".join(p[0].upper() for p in parts[:2])
+            # deterministic color from tourist_id
+            color_seed = hash(t.id) % 0xFFFFFF
+            member_list.append({
+                "initials": initials,
+                "color_hex": f"#{color_seed:06X}",
+                "status": m.status,
+            })
+
+    guide_info = None
+    if g.guide_id:
+        guide = db.get(models.Guide, g.guide_id)
+        if guide:
+            guide_info = {"id": guide.id, "name": guide.name, "bio": guide.bio}
+
+    return {
+        "id": g.id,
+        "destination": g.destination,
+        "status": g.status,
+        "coherence": g.coherence,
+        "proposed_date": g.proposed_date,
+        "proposed_duration": g.proposed_duration,
+        "min_size": g.min_size,
+        "max_size": g.max_size,
+        "member_count": len(member_list),
+        "members": member_list,
+        "guide": guide_info,
+        "guide_id": g.guide_id,
+    }
+
+
+@app.post("/api/groups/{group_id}/join")
+async def api_join_group(
+    group_id: int,
+    authorization: str | None = Header(None),
+    db: Session = Depends(get_db),
+):
+    """Join a travel group as PENDING, pending guide confirmation."""
+    tourist_id = _get_tourist_id(authorization) if authorization else None
+    if not tourist_id:
+        raise HTTPException(status_code=401, detail="Authorization required")
+
+    g = db.get(models.TravelGroup, group_id)
+    if not g:
+        raise HTTPException(status_code=404, detail="Group not found")
+    if g.status != "OPEN":
+        raise HTTPException(status_code=400, detail="Group is not accepting new members")
+
+    # Check if already a member
+    existing = db.execute(
+        __import__("sqlalchemy").select(models.TravelGroupMember)
+        .where(models.TravelGroupMember.group_id == group_id)
+        .where(models.TravelGroupMember.tourist_id == tourist_id)
+    ).scalar_one_or_none()
+    if existing:
+        raise HTTPException(status_code=400, detail="Already a member of this group")
+
+    # Enforce max_size capacity
+    current_count = db.execute(
+        __import__("sqlalchemy").select(__import__("sqlalchemy").func.count())
+        .select_from(models.TravelGroupMember)
+        .where(models.TravelGroupMember.group_id == group_id)
+    ).scalar_one()
+    if current_count >= g.max_size:
+        raise HTTPException(status_code=400, detail="Group is full")
+
+    member = models.TravelGroupMember(group_id=group_id, tourist_id=tourist_id, status="PENDING")
+    db.add(member)
+    try:
+        db.commit()
+    except __import__("sqlalchemy").exc.IntegrityError:
+        db.rollback()
+        raise HTTPException(status_code=409, detail="Already a member of this group")
+
+    logger.info("groups.join", tourist_id=tourist_id, group_id=group_id)
+    return {"status": "joined", "group_id": group_id, "member_status": "PENDING"}
+
+
+@app.post("/api/groups/{group_id}/leave")
+async def api_leave_group(
+    group_id: int,
+    authorization: str | None = Header(None),
+    db: Session = Depends(get_db),
+):
+    """Leave a travel group. Only PENDING or CONFIRMED members can leave."""
+    tourist_id = _get_tourist_id(authorization) if authorization else None
+    if not tourist_id:
+        raise HTTPException(status_code=401, detail="Authorization required")
+
+    g = db.get(models.TravelGroup, group_id)
+    if not g:
+        raise HTTPException(status_code=404, detail="Group not found")
+
+    if g.status in ("CONFIRMED", "CANCELLED"):
+        raise HTTPException(status_code=400, detail="Cannot leave a confirmed or cancelled group")
+
+    # Find the membership
+    membership = db.execute(
+        __import__("sqlalchemy").select(models.TravelGroupMember)
+        .where(models.TravelGroupMember.group_id == group_id)
+        .where(models.TravelGroupMember.tourist_id == tourist_id)
+    ).scalar_one_or_none()
+
+    if not membership:
+        raise HTTPException(status_code=404, detail="You are not a member of this group")
+
+    if membership.status == "LEFT":
+        raise HTTPException(status_code=400, detail="You have already left this group")
+
+    membership.status = "LEFT"
+    db.commit()
+
+    logger.info("groups.leave", tourist_id=tourist_id, group_id=group_id)
+    return {"status": "left", "group_id": group_id}
+
+
+@app.post("/api/groups/{group_id}/claim")
+async def api_claim_group(
+    group_id: int,
+    authorization: str | None = Header(None),
+    db: Session = Depends(get_db),
+):
+    """Claim an open travel group as a guide. Transitions group to CONFIRMED."""
+    guide_id = _get_guide_id(authorization) if authorization else None
+    if not guide_id:
+        raise HTTPException(status_code=401, detail="Authorization required")
+
+    g = db.get(models.TravelGroup, group_id)
+    if not g:
+        raise HTTPException(status_code=404, detail="Group not found")
+
+    if g.status != "OPEN":
+        raise HTTPException(status_code=400, detail="Group is not open for claiming")
+
+    if g.guide_id is not None:
+        raise HTTPException(status_code=409, detail="Group already has a guide assigned")
+
+    g.guide_id = guide_id
+    g.status = "CONFIRMED"
+    db.commit()
+
+    logger.info("groups.claim", guide_id=guide_id, group_id=group_id)
+    return {"status": "confirmed", "group_id": group_id, "guide_id": guide_id}
+
+
+@app.post("/api/groups")
+async def api_create_group(
+    data: dict,
+    authorization: str | None = Header(None),
+    db: Session = Depends(get_db),
+):
+    """
+    Create a travel group from an existing trip plan.
+    The requesting tourist becomes the first CONFIRMED member.
+    """
+    tourist_id = _get_tourist_id(authorization) if authorization else None
+    if not tourist_id:
+        raise HTTPException(status_code=401, detail="Authorization required")
+
+    plan_id = data.get("plan_id")
+    if not plan_id:
+        raise HTTPException(status_code=400, detail="plan_id is required")
+
+    plan = db.get(models.TripPlan, plan_id)
+    if not plan:
+        raise HTTPException(status_code=404, detail="Trip plan not found")
+    if plan.tourist_id != tourist_id:
+        raise HTTPException(status_code=403, detail="Not your trip plan")
+
+    group = models.TravelGroup(
+        destination=plan.destination,
+        min_size=3,
+        max_size=8,
+        status="OPEN",
+        coherence="high_coherence",
+        proposed_date=plan.tour_date_start,
+        proposed_duration=plan.duration_hours,
+    )
+    db.add(group)
+    db.flush()
+
+    db.add(models.TravelGroupMember(group_id=group.id, tourist_id=tourist_id, status="CONFIRMED"))
+    db.commit()
+
+    logger.info("groups.create", tourist_id=tourist_id, plan_id=plan_id, group_id=group.id)
+    return {"id": group.id, "destination": group.destination, "status": group.status}
+
+
+# ─── Match Bid endpoints ────────────────────────────────────────────────────
 
 @app.post("/api/match-bids")
 async def create_match_bid(
