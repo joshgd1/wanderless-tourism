@@ -648,7 +648,7 @@ class _PlanDetailSheetState extends ConsumerState<_PlanDetailSheet> {
         // Sticky header + scrollable content
         Expanded(
           child: ListView(
-            controller: scrollController,
+            controller: widget.scrollController,
             padding: const EdgeInsets.all(AppSpacing.lg),
             children: [
               Center(
@@ -906,7 +906,8 @@ class _PlanDetailSheetState extends ConsumerState<_PlanDetailSheet> {
               ),
             );
           }),
-        ],
+        ]),
+        ),
         const SizedBox(height: AppSpacing.xl),
         // ── Sticky Bottom CTAs ─────────────────────────────────────────────
         Container(
@@ -953,7 +954,6 @@ class _PlanDetailSheetState extends ConsumerState<_PlanDetailSheet> {
               ],
             ),
           ),
-        ),
       ],
     );
   }
