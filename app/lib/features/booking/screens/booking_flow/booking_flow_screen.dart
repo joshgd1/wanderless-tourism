@@ -173,7 +173,7 @@ class _ConfirmStep extends ConsumerWidget {
   });
 
   String _formatPrice(double price) {
-    return '฿${price.toStringAsFixed(0).replaceAllMapped(
+    return '\$${price.toStringAsFixed(0).replaceAllMapped(
         RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
         (Match m) => '${m[1]},',
       )}';
@@ -341,7 +341,7 @@ class _PaymentStep extends ConsumerWidget {
   });
 
   String _formatPrice(double price) {
-    return '฿${price.toStringAsFixed(0).replaceAllMapped(
+    return '\$${price.toStringAsFixed(0).replaceAllMapped(
         RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
         (Match m) => '${m[1]},',
       )}';
@@ -458,7 +458,7 @@ class _PaymentStep extends ConsumerWidget {
                 Expanded(
                   flex: 2,
                   child: PrimaryButton(
-                    label: 'Pay ฿${totalPrice.toStringAsFixed(0).replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]},')} Now',
+                    label: 'Pay \$${totalPrice.toStringAsFixed(0).replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]},')} Now',
                     icon: Icons.lock,
                     onPressed: onPay,
                   ),
