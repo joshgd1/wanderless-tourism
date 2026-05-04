@@ -742,6 +742,7 @@ class _PlanDetailSheetState extends ConsumerState<_PlanDetailSheet> {
                     decoration: BoxDecoration(
                       color: AppColors.success.withOpacity(0.15),
                       shape: BoxShape.circle,
+                    ),
                   ),
                   child: const Icon(Icons.person, color: AppColors.success, size: 22),
                 ),
