@@ -18,6 +18,43 @@ final _syntheticGuideBookings = [
   {'id': 10, 'tourist_name': 'Ryan Martinez', 'tour_date': '2026-04-28', 'destination': 'ATV Jungle Ride', 'group_size': 4, 'duration_hours': 4.0, 'status': 'COMPLETED', 'gross_value': 220.0, 'tour_type': 'Adventure'},
 ];
 
+final _syntheticOpenRequests = [
+  {
+    'id': 101,
+    'status': 'PENDING_ACCEPTANCE',
+    'destination': 'Chinatown Heritage Walk',
+    'interests': ['culture', 'food'],
+    'tour_date_start': '2026-05-15',
+    'tour_date_end': '2026-05-15',
+    'group_size': 2,
+    'duration_hours': 4.0,
+    'dietary_requirement': 'Any',
+    'avoid_late_night': false,
+    'proposed_stops': [
+      {'name': 'Chinatown Street Food Market', 'duration_minutes': 60, 'notes': 'Try signature oyster omelette and Singapore Laksa'},
+      {'name': 'Sri Mariamman Temple', 'duration_minutes': 30, 'notes': 'Oldest Hindu temple in Singapore'},
+      {'name': 'National Gallery Singapore', 'duration_minutes': 90, 'notes': 'Free for students with valid ID'},
+    ],
+  },
+  {
+    'id': 102,
+    'status': 'OPEN',
+    'destination': 'Gardens by the Bay',
+    'interests': ['nature', 'culture'],
+    'tour_date_start': '2026-05-20',
+    'tour_date_end': '2026-05-21',
+    'group_size': 4,
+    'duration_hours': 8.0,
+    'dietary_requirement': 'Vegetarian',
+    'avoid_late_night': true,
+    'proposed_stops': [
+      {'name': 'Cloud Forest', 'duration_minutes': 90, 'notes': 'Don't miss the waterfall'},
+      {'name': 'Flower Dome', 'duration_minutes': 60, 'notes': 'Mediterranean plants'},
+      {'name': 'Supertree Grove', 'duration_minutes': 45, 'notes': 'Best at night when illuminated'},
+    ],
+  },
+];
+
 final guideBookingsProvider = FutureProvider<List<Map<String, dynamic>>>((ref) async {
   final authState = ref.watch(guideAuthProvider);
   if (authState.guideId == null) return [];
@@ -32,13 +69,15 @@ final guideBookingsProvider = FutureProvider<List<Map<String, dynamic>>>((ref) a
 
 final guideOpenRequestsProvider = FutureProvider<List<Map<String, dynamic>>>((ref) async {
   final authState = ref.watch(guideAuthProvider);
-  if (authState.guideId == null) return [];
+  if (authState.guideId == null) return _syntheticOpenRequests;
   try {
     final api = ApiClient();
     final data = await api.getGuideOpenRequests();
-    return data.cast<Map<String, dynamic>>();
+    final requests = data.cast<Map<String, dynamic>>();
+    // If real API returns data use it, otherwise fall back to demo requests
+    return requests.isEmpty ? _syntheticOpenRequests : requests;
   } catch (_) {
-    return [];
+    return _syntheticOpenRequests;
   }
 });
 

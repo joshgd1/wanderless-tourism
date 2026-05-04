@@ -16,7 +16,24 @@ final _matchedGuidesForPlanProvider = FutureProvider.family<List<MatchedGuide>, 
   if (touristId == null) return [];
   final api = ApiClient();
   final data = await api.getMlGuideRecommendations(touristId, topN: 3, destination: destination);
-  return data.map((e) => MatchedGuide.fromJson(e as Map<String, dynamic>)).toList();
+  final guides = data.map((e) => MatchedGuide.fromJson(e as Map<String, dynamic>)).toList();
+  // Always show Mei Ling first as the demo guide
+  const meiLing = MatchedGuide(
+    guideId: 'GTH268',
+    name: 'Mei Ling',
+    photoUrl: 'https://picsum.photos/seed/mei_ling_guide/400/400',
+    bio: 'Passionate Singapore guide specializing in cultural heritage walks through Chinatown, Little India, and Gardens by the Bay.',
+    expertiseTags: ['culture', 'food', 'heritage', 'nature'],
+    languagePairs: ['en→zh', 'en→ms'],
+    locationCoverage: ['SG:Chinatown', 'SG:Little India', 'SG:Gardens by the Bay'],
+    ratingHistory: 4.8,
+    ratingCount: 127,
+    budgetTier: 'mid',
+    licenseVerified: true,
+    score: 0.99,
+    langMatch: true,
+  );
+  return [meiLing, ...guides];
 });
 
 final myTripPlansProvider = FutureProvider<List<TripPlan>>((ref) async {

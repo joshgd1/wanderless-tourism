@@ -120,6 +120,29 @@ final destinationsProvider = FutureProvider<List<_Destination>>((ref) async {
   }
 });
 
+Future<void> _handlePlanTrip(BuildContext context, WidgetRef ref) async {
+  final authState = ref.read(authProvider);
+  final touristId = authState.touristId;
+  if (touristId == null) {
+    context.push('/trip-plan/create');
+    return;
+  }
+  // Check if tourist already has an OPEN plan — if so, go to it directly
+  try {
+    final api = ApiClient();
+    final plans = await api.getTripPlans(touristId: touristId, status: 'OPEN');
+    final openPlans = plans.where((p) => p['status'] == 'OPEN').toList();
+    if (openPlans.isNotEmpty) {
+      // Already has OPEN plan — go to Trip Plans list (bottom sheet shows matched guides)
+      context.go('/trip-plans');
+    } else {
+      context.push('/trip-plan/create');
+    }
+  } catch (_) {
+    context.push('/trip-plan/create');
+  }
+}
+
 class DiscoverScreen extends ConsumerWidget {
   const DiscoverScreen({super.key});
 
@@ -268,7 +291,7 @@ class DiscoverScreen extends ConsumerWidget {
                       const SizedBox(width: 10),
                       Expanded(child: _QuickAction(icon: Icons.card_travel, label: 'My Trips', color: AppColors.success, onTap: () => context.go('/bookings'))),
                       const SizedBox(width: 10),
-                      Expanded(child: _QuickAction(icon: Icons.lightbulb, label: 'Plan Trip', color: AppColors.warning, onTap: () => context.push('/trip-plan/create'))),
+                      Expanded(child: _QuickAction(icon: Icons.lightbulb, label: 'Plan Trip', color: AppColors.warning, onTap: () => _handlePlanTrip(context, ref))),
                       const SizedBox(width: 10),
                       Expanded(child: _QuickAction(icon: Icons.person, label: 'Profile', color: Colors.purple, onTap: () => context.go('/profile'))),
                     ],
