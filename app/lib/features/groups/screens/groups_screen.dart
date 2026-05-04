@@ -244,7 +244,7 @@ class _GroupsScreenState extends ConsumerState<GroupsScreen> {
                         coherenceColor: _coherenceColor(groups[i].coherence),
                         coherenceLabel: _coherenceLabel(groups[i].coherence),
                         formatDate: _formatDate,
-                        estimatedPrice: _estimatedPrice(groups[i]),
+                        estimatedPrice: _estimatedPrice,
                         onTap: () => context.push('/group/${groups[i].id}'),
                       ),
                     ),
