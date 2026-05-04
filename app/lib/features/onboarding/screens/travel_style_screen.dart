@@ -246,6 +246,7 @@ class TravelStyleScreen extends ConsumerWidget {
                       if (savedTouristId != null && touristId == null) {
                         ref.read(authProvider.notifier).setTouristId(savedTouristId);
                       }
+                      ref.read(authProvider.notifier).completeOnboarding();
                       if (context.mounted) {
                         context.go('/discover');
                       }

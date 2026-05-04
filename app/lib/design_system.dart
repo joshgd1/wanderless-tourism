@@ -790,6 +790,128 @@ class AppLoading extends StatelessWidget {
   }
 }
 
+/// Skeleton shimmer box — mirrors real content layout to prevent layout shift
+class AppSkeletonBox extends StatefulWidget {
+  final double width;
+  final double height;
+  final double borderRadius;
+
+  const AppSkeletonBox({
+    super.key,
+    this.width = double.infinity,
+    required this.height,
+    this.borderRadius = 6,
+  });
+
+  @override
+  State<AppSkeletonBox> createState() => _AppSkeletonBoxState();
+}
+
+class _AppSkeletonBoxState extends State<AppSkeletonBox>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _animation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 1400),
+      vsync: this,
+    )..repeat();
+    _animation = Tween<double>(begin: -2, end: 2).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _animation,
+      builder: (_, __) {
+        return Container(
+          width: widget.width,
+          height: widget.height,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(widget.borderRadius),
+            gradient: LinearGradient(
+              begin: Alignment(_animation.value - 1, 0,),
+              end: Alignment(_animation.value + 1, 0),
+              colors: [
+                AppColors.surfaceSecondary,
+                AppColors.surfaceSecondary.withOpacity(0.5),
+                AppColors.surfaceSecondary,
+              ],
+              stops: const [0.0, 0.5, 1.0],
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+/// Skeleton loader for guide card — mirrors MatchCard layout
+class AppGuideCardSkeleton extends StatelessWidget {
+  const AppGuideCardSkeleton({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.md),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(AppRadius.md),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const AppSkeletonBox(width: 80, height: 80, borderRadius: 40),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    AppSkeletonBox(width: 120, height: 16),
+                    const SizedBox(height: 8),
+                    AppSkeletonBox(width: 80, height: 12),
+                    const SizedBox(height: 8),
+                    AppSkeletonBox(width: 160, height: 12),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.md),
+          AppSkeletonBox(height: 12),
+          const SizedBox(height: 6),
+          AppSkeletonBox(width: 200, height: 12),
+          const SizedBox(height: AppSpacing.md),
+          Row(
+            children: [
+              AppSkeletonBox(width: 60, height: 24, borderRadius: 12),
+              const SizedBox(width: 8),
+              AppSkeletonBox(width: 60, height: 24, borderRadius: 12),
+              const Spacer(),
+              AppSkeletonBox(width: 90, height: 36, borderRadius: 6),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 /// Country flag helper for smart nationality detection
 class CountryFlags {
   /// Get country flag emoji from a name, location, or country hint

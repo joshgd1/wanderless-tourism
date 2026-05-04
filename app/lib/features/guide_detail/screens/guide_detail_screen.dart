@@ -131,11 +131,13 @@ class GuideDetailScreen extends ConsumerWidget {
                           const SizedBox(width: AppSpacing.sm),
                           Expanded(
                             child: _InfoCard(
-                              icon: Icons.account_balance_wallet,
+                              icon: Icons.attach_money,
                               color: Colors.orange,
-                              title: 'Budget',
-                              value: guide.budgetTier[0].toUpperCase(),
-                              subtitle: guide.budgetTier.substring(1),
+                              title: 'Per Person',
+                              value: guide.pricePerPerson != null
+                                  ? '\$${guide.pricePerPerson!.toStringAsFixed(0)}'
+                                  : '—',
+                              subtitle: guide.pricePerPerson != null ? '/ person' : 'Contact us',
                             ),
                           ),
                         ],
@@ -238,7 +240,7 @@ class GuideDetailScreen extends ConsumerWidget {
           left: 0,
           right: 0,
           bottom: 0,
-          child: _BookNowBar(guideId: guide.id, planId: planId),
+          child: _BookNowBar(guideId: guide.id, planId: planId, pricePerPerson: guide.pricePerPerson),
         ),
       ],
     );
@@ -413,8 +415,9 @@ class _InfoCard extends StatelessWidget {
 class _BookNowBar extends StatelessWidget {
   final String guideId;
   final int? planId;
+  final double? pricePerPerson;
 
-  const _BookNowBar({required this.guideId, this.planId});
+  const _BookNowBar({required this.guideId, this.planId, this.pricePerPerson});
 
   @override
   Widget build(BuildContext context) {
@@ -444,7 +447,9 @@ class _BookNowBar extends StatelessWidget {
               children: [
                 Text('Starting from', style: AppText.caption),
                 Text(
-                  '\$45 / person',
+                  pricePerPerson != null
+                      ? '\$${pricePerPerson!.toStringAsFixed(0)} / person'
+                      : 'Price on request',
                   style: AppText.h3.copyWith(color: AppColors.brand),
                 ),
               ],

@@ -163,6 +163,10 @@ class DiscoverScreen extends ConsumerWidget {
       ),
       body: CustomScrollView(
         slivers: [
+          // ── Onboarding incomplete banner ──────────────────────────────────
+          SliverToBoxAdapter(
+            child: _OnboardingBanner(),
+          ),
           // ── App Bar ──────────────────────────────────────────────────────
           SliverAppBar(
             expandedHeight: 130,
@@ -597,9 +601,16 @@ class DiscoverScreen extends ConsumerWidget {
 
           // ── Guide List ─────────────────────────────────────────────────
           matchesAsync.when(
-            loading: () => SliverFillRemaining(
-              child: Center(
-                child: AppLoading(message: isSmart ? 'Finding AI matches...' : 'Loading guides...'),
+            loading: () => SliverPadding(
+              padding: EdgeInsets.symmetric(horizontal: isWide ? 24 : 16),
+              sliver: SliverList(
+                delegate: SliverChildBuilderDelegate(
+                  (context, index) => Padding(
+                    padding: const EdgeInsets.only(bottom: AppSpacing.md),
+                    child: AppGuideCardSkeleton(key: ValueKey('skeleton_$index')),
+                  ),
+                  childCount: 4,
+                ),
               ),
             ),
             error: (err, _) => SliverFillRemaining(
@@ -635,6 +646,10 @@ class DiscoverScreen extends ConsumerWidget {
                     icon: Icons.search_off,
                     title: 'No guides found',
                     subtitle: 'Try a different search term',
+                    action: TextButton(
+                      onPressed: () => ref.read(_searchQueryProvider.notifier).state = '',
+                      child: Text('Clear search', style: AppText.labelBold.copyWith(color: AppColors.brand)),
+                    ),
                   ),
                 );
               }
@@ -1012,6 +1027,57 @@ class _FilterChip extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _OnboardingBanner extends ConsumerWidget {
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final authState = ref.watch(authProvider);
+    if (!authState.isAuthenticated || authState.onboardingCompleted) {
+      return const SizedBox.shrink();
+    }
+    return Container(
+      margin: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppColors.warningBg,
+        borderRadius: BorderRadius.circular(AppRadius.md),
+        border: Border.all(color: AppColors.warning.withOpacity(0.3)),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 36,
+            height: 36,
+            decoration: BoxDecoration(
+              color: AppColors.warning.withOpacity(0.15),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(Icons.person_add, color: AppColors.warning, size: 18),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Complete your profile', style: AppText.labelBold),
+                const SizedBox(height: 2),
+                Text(
+                  'Set your preferences to get better guide matches.',
+                  style: AppText.caption,
+                ),
+              ],
+            ),
+          ),
+          GhostButton(
+            label: 'Continue',
+            color: AppColors.warning,
+            onPressed: () => context.push('/onboarding'),
+          ),
+        ],
       ),
     );
   }

@@ -12,6 +12,7 @@ class AuthState {
   final String? email;
   final bool isLoading;
   final String? error;
+  final bool onboardingCompleted;
 
   const AuthState({
     this.token,
@@ -20,6 +21,7 @@ class AuthState {
     this.email,
     this.isLoading = false,
     this.error,
+    this.onboardingCompleted = false,
   });
 
   bool get isAuthenticated => token != null && touristId != null;
@@ -31,6 +33,7 @@ class AuthState {
     String? email,
     bool? isLoading,
     String? error,
+    bool? onboardingCompleted,
   }) {
     return AuthState(
       token: token ?? this.token,
@@ -39,6 +42,7 @@ class AuthState {
       email: email ?? this.email,
       isLoading: isLoading ?? this.isLoading,
       error: error,
+      onboardingCompleted: onboardingCompleted ?? this.onboardingCompleted,
     );
   }
 }
@@ -52,6 +56,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
   static const _touristIdKey = 'tourist_id';
   static const _nameKey = 'auth_name';
   static const _emailKey = 'auth_email';
+  static const _onboardingCompletedKey = 'onboarding_completed';
 
   static const _secure = FlutterSecureStorage(
     aOptions: AndroidOptions(encryptedSharedPreferences: true),
@@ -64,12 +69,14 @@ class AuthNotifier extends StateNotifier<AuthState> {
     final touristId = prefs.getString(_touristIdKey);
     final name = prefs.getString(_nameKey);
     final email = prefs.getString(_emailKey);
+    final onboardingCompleted = prefs.getBool(_onboardingCompletedKey) ?? false;
     if (token != null && touristId != null) {
       state = AuthState(
         token: token,
         touristId: touristId,
         name: name,
         email: email,
+        onboardingCompleted: onboardingCompleted,
       );
       ApiClient().setAuthToken(token);
     }
@@ -83,11 +90,13 @@ class AuthNotifier extends StateNotifier<AuthState> {
       await prefs.setString(_touristIdKey, state.touristId!);
       if (state.name != null) await prefs.setString(_nameKey, state.name!);
       if (state.email != null) await prefs.setString(_emailKey, state.email!);
+      await prefs.setBool(_onboardingCompletedKey, state.onboardingCompleted);
     } else {
       await _secure.delete(key: _tokenKey);
       await prefs.remove(_touristIdKey);
       await prefs.remove(_nameKey);
       await prefs.remove(_emailKey);
+      await prefs.remove(_onboardingCompletedKey);
     }
   }
 
@@ -172,6 +181,11 @@ class AuthNotifier extends StateNotifier<AuthState> {
 
   void clearError() {
     state = state.copyWith(error: null);
+  }
+
+  Future<void> completeOnboarding() async {
+    state = state.copyWith(onboardingCompleted: true);
+    await _saveToStorage();
   }
 
   /// Called after anonymous onboarding creates a tourist, to store the ID.

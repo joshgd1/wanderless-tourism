@@ -14,6 +14,7 @@ class Guide {
   final List<String> specialties;
   final List<double>? personalityVector;
   final bool licenseVerified;
+  final double? pricePerPerson;
 
   Guide({
     required this.id,
@@ -31,6 +32,7 @@ class Guide {
     required this.specialties,
     this.personalityVector,
     this.licenseVerified = false,
+    this.pricePerPerson,
   });
 
   factory Guide.fromJson(Map<String, dynamic> json) {
@@ -52,6 +54,9 @@ class Guide {
           ? List<double>.from((json['personality_vector'] as List).map((e) => (e as num).toDouble()))
           : null,
       licenseVerified: json['license_verified'] as bool? ?? false,
+      pricePerPerson: json['price_per_person'] != null
+          ? (json['price_per_person'] as num).toDouble()
+          : null,
     );
   }
 }
