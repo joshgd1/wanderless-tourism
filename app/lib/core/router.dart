@@ -18,6 +18,7 @@ import '../features/onboarding/screens/language_screen.dart';
 import '../features/onboarding/screens/travel_style_screen.dart';
 import '../features/trip_plan/screens/create_trip_plan_screen.dart';
 import '../features/trip_plan/screens/trip_plan_list_screen.dart';
+import '../features/trip_plan/screens/confirm_request_screen.dart';
 import '../features/settings/screens/settings_screen.dart';
 import '../features/guide/screens/guide_login_screen.dart';
 import '../features/guide/screens/guide_register_screen.dart';
@@ -210,6 +211,16 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/guide/:guideId',
         builder: (context, state) => GuideDetailScreen(
           guideId: state.pathParameters['guideId']!,
+          planId: state.uri.queryParameters['planId'] != null
+              ? int.parse(state.uri.queryParameters['planId']!)
+              : null,
+        ),
+      ),
+      GoRoute(
+        path: '/confirm-request',
+        builder: (context, state) => ConfirmRequestScreen(
+          planId: int.parse(state.uri.queryParameters['planId']!),
+          guideId: state.uri.queryParameters['guideId']!,
         ),
       ),
       GoRoute(

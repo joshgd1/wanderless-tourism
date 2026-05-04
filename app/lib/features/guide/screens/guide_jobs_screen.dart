@@ -350,40 +350,65 @@ class _OpenRequestRow extends ConsumerStatefulWidget {
 
 class _OpenRequestRowState extends ConsumerState<_OpenRequestRow> {
   bool _loading = false;
+  String? _action;
 
   Future<void> _accept() async {
     final id = widget.request['id'] as int;
-    setState(() => _loading = true);
+    setState(() { _loading = true; _action = 'accept'; });
     try {
       await ApiClient().acceptGuideRequest(id);
       ref.invalidate(guideOpenRequestsProvider);
       ref.invalidate(guideBookingsProvider);
     } finally {
-      if (mounted) setState(() => _loading = false);
+      if (mounted) setState(() { _loading = false; _action = null; });
+    }
+  }
+
+  Future<void> _decline() async {
+    final id = widget.request['id'] as int;
+    setState(() { _loading = true; _action = 'decline'; });
+    try {
+      await ApiClient().declineTripRequest(id);
+      ref.invalidate(guideOpenRequestsProvider);
+    } finally {
+      if (mounted) setState(() { _loading = false; _action = null; });
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final status = widget.request['status'] as String? ?? 'OPEN';
     final interests = (widget.request['interests'] as List?)?.cast<String>() ?? [];
     final destination = widget.request['destination'] as String? ?? '';
-    final tourDate = widget.request['tour_date_start'] as String? ?? '';
+    final tourDateStart = widget.request['tour_date_start'] as String? ?? '';
+    final tourDateEnd = widget.request['tour_date_end'] as String? ?? '';
     final groupSize = widget.request['group_size'] as int? ?? 0;
     final duration = widget.request['duration_hours'] as double? ?? 0.0;
+    final dietary = widget.request['dietary_requirement'] as String?;
+    final proposedStops = (widget.request['proposed_stops'] as List?)?.cast<Map<String, dynamic>>() ?? [];
+    final avoidLateNight = widget.request['avoid_late_night'] as bool? ?? false;
+
+    final isPending = status == 'PENDING_ACCEPTANCE';
 
     return AppCard(
       padding: const EdgeInsets.all(AppSpacing.md),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Header: status badge + id
           Row(
             children: [
-              StatusBadge(label: 'New', color: AppColors.statusRequested),
+              StatusBadge(
+                label: isPending ? 'Pending Your Response' : 'New Request',
+                color: isPending ? AppColors.statusRequested : AppColors.statusRequested,
+              ),
               const Spacer(),
               Text('#${widget.request['id']}', style: AppText.caption),
             ],
           ),
           const SizedBox(height: AppSpacing.md),
+
+          // Destination + interests
           Row(
             children: [
               Container(
@@ -402,43 +427,102 @@ class _OpenRequestRowState extends ConsumerState<_OpenRequestRow> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      destination,
-                      style: AppText.labelBold,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 2),
+                    Text(destination, style: AppText.labelBold, overflow: TextOverflow.ellipsis),
                     if (interests.isNotEmpty)
-                      Text(
-                        interests.join(' · '),
-                        style: AppText.caption,
-                      ),
+                      Text(interests.join(' · '), style: AppText.caption),
                   ],
                 ),
               ),
             ],
           ),
           const SizedBox(height: AppSpacing.md),
-          Row(
+
+          // Date range, group size, duration
+          Wrap(
+            spacing: AppSpacing.md,
+            runSpacing: 4,
             children: [
-              const Icon(Icons.calendar_today_outlined, size: 14, color: AppColors.textTertiary),
-              const SizedBox(width: 4),
-              Text(tourDate, style: AppText.bodySmall),
-              const SizedBox(width: AppSpacing.md),
-              const Icon(Icons.group_outlined, size: 14, color: AppColors.textTertiary),
-              const SizedBox(width: 4),
-              Text('$groupSize p', style: AppText.bodySmall),
-              const SizedBox(width: AppSpacing.md),
-              const Icon(Icons.schedule_outlined, size: 14, color: AppColors.textTertiary),
-              const SizedBox(width: 4),
-              Text('${duration.toStringAsFixed(0)}h', style: AppText.bodySmall),
+              if (tourDateStart.isNotEmpty)
+                _InfoChip(Icons.calendar_today_outlined, _formatDateRange(tourDateStart, tourDateEnd)),
+              if (groupSize > 0)
+                _InfoChip(Icons.group_outlined, '$groupSize people'),
+              if (duration > 0)
+                _InfoChip(Icons.schedule_outlined, '${duration.toStringAsFixed(0)}h'),
+              if (dietary != null && dietary.isNotEmpty)
+                _InfoChip(Icons.restaurant_outlined, dietary),
+              if (avoidLateNight)
+                _InfoChip(Icons.nightlight_outlined, 'No late night'),
             ],
           ),
+
+          // Proposed itinerary
+          if (proposedStops.isNotEmpty) ...[
+            const SizedBox(height: AppSpacing.md),
+            const Divider(height: 1),
+            const SizedBox(height: AppSpacing.sm),
+            Text('Proposed Itinerary', style: AppText.labelBold),
+            const SizedBox(height: AppSpacing.sm),
+            ...proposedStops.asMap().entries.map((entry) {
+              final i = entry.key;
+              final stop = entry.value;
+              final stopName = stop['name'] as String? ?? 'Stop';
+              final durationMin = stop['duration_minutes'] as int?;
+              final notes = stop['notes'] as String?;
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 6),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      width: 22,
+                      height: 22,
+                      decoration: BoxDecoration(
+                        color: AppColors.brand.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(11),
+                      ),
+                      child: Center(
+                        child: Text('${i + 1}', style: AppText.caption.copyWith(color: AppColors.brand, fontWeight: FontWeight.bold, fontSize: 11)),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(stopName, style: AppText.bodySmall),
+                          if (durationMin != null || (notes != null && notes.isNotEmpty))
+                            Text(
+                              [if (durationMin != null) '$durationMin min', if (notes != null && notes.isNotEmpty) notes].join(' · '),
+                              style: AppText.caption.copyWith(color: AppColors.textTertiary),
+                            ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }),
+          ],
+
           const SizedBox(height: AppSpacing.md),
           const Divider(height: 1),
           const SizedBox(height: AppSpacing.sm),
+
+          // Action buttons
           Row(
             children: [
+              if (isPending)
+                OutlinedButton(
+                  onPressed: _loading ? null : _decline,
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppColors.error,
+                    side: const BorderSide(color: AppColors.error),
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                  ),
+                  child: _loading && _action == 'decline'
+                      ? const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2))
+                      : const Text('Decline'),
+                ),
               const Spacer(),
               ElevatedButton(
                 onPressed: _loading ? null : _accept,
@@ -447,7 +531,7 @@ class _OpenRequestRowState extends ConsumerState<_OpenRequestRow> {
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
                 ),
-                child: _loading
+                child: _loading && _action == 'accept'
                     ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
                     : const Text('Accept'),
               ),
@@ -455,6 +539,39 @@ class _OpenRequestRowState extends ConsumerState<_OpenRequestRow> {
           ),
         ],
       ),
+    );
+  }
+
+  String _formatDateRange(String start, String end) {
+    if (start.isEmpty) return '';
+    try {
+      final s = DateTime.parse(start);
+      if (end.isEmpty || end == start) {
+        return '${s.day}/${s.month}/${s.year}';
+      }
+      final e = DateTime.parse(end);
+      return '${s.day}/${s.month} – ${e.day}/${e.month}/${e.year}';
+    } catch (_) {
+      return start;
+    }
+  }
+}
+
+class _InfoChip extends StatelessWidget {
+  final IconData icon;
+  final String label;
+
+  const _InfoChip(this.icon, this.label);
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, size: 14, color: AppColors.textTertiary),
+        const SizedBox(width: 4),
+        Text(label, style: AppText.bodySmall),
+      ],
     );
   }
 }

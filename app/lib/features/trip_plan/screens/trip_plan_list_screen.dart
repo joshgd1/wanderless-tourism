@@ -700,7 +700,7 @@ class _PlanDetailSheet extends StatelessWidget {
                   padding: const EdgeInsets.only(bottom: AppSpacing.sm),
                   child: _MatchedGuideCard(
                     guide: guide,
-                    onTap: () => context.push('/guide/${guide.guideId}'),
+                    onTap: () => context.push('/guide/${guide.guideId}?planId=${plan.id}'),
                   ),
                 )).toList(),
               );

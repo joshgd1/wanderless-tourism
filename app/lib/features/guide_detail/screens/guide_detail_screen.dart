@@ -14,8 +14,9 @@ final guideDetailProvider = FutureProvider.family<Guide, String>((ref, guideId) 
 
 class GuideDetailScreen extends ConsumerWidget {
   final String guideId;
+  final int? planId;
 
-  const GuideDetailScreen({super.key, required this.guideId});
+  const GuideDetailScreen({super.key, required this.guideId, this.planId});
 
   static int _uniqueLanguages(List<String> pairs) {
     final langs = <String>{};
@@ -237,7 +238,7 @@ class GuideDetailScreen extends ConsumerWidget {
           left: 0,
           right: 0,
           bottom: 0,
-          child: _BookNowBar(guideId: guide.id),
+          child: _BookNowBar(guideId: guide.id, planId: widget.planId),
         ),
       ],
     );
@@ -411,8 +412,9 @@ class _InfoCard extends StatelessWidget {
 
 class _BookNowBar extends StatelessWidget {
   final String guideId;
+  final int? planId;
 
-  const _BookNowBar({required this.guideId});
+  const _BookNowBar({required this.guideId, this.planId});
 
   @override
   Widget build(BuildContext context) {
@@ -449,9 +451,15 @@ class _BookNowBar extends StatelessWidget {
             ),
           ),
           PrimaryButton(
-            label: 'Book Now',
-            icon: Icons.calendar_today,
-            onPressed: () => context.push('/book/$guideId'),
+            label: planId != null ? 'Request Guide' : 'Book Now',
+            icon: planId != null ? Icons.send_outlined : Icons.calendar_today,
+            onPressed: () {
+              if (planId != null) {
+                context.push('/confirm-request?planId=$planId&guideId=$guideId');
+              } else {
+                context.push('/book/$guideId');
+              }
+            },
           ),
         ],
       ),

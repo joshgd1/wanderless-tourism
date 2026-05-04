@@ -214,6 +214,23 @@ class ApiClient {
     return resp.data as Map<String, dynamic>;
   }
 
+  Future<Map<String, dynamic>> requestGuideFromPlan(int planId, String guideId) async {
+    final resp = await _dioInstance.post(
+      '/trip-plans/$planId/request-guide',
+      data: {'guide_id': guideId},
+      options: Options(headers: _authHeaders),
+    );
+    return resp.data as Map<String, dynamic>;
+  }
+
+  Future<Map<String, dynamic>> declineTripRequest(int planId) async {
+    final resp = await _dioInstance.post(
+      '/trip-plans/$planId/decline-guide',
+      options: Options(headers: _authHeaders),
+    );
+    return resp.data as Map<String, dynamic>;
+  }
+
   Future<Map<String, dynamic>> getBooking(int bookingId) async {
     final resp = await _dioInstance.get(
       '/bookings/$bookingId',

@@ -748,9 +748,10 @@ async def get_guide_open_requests(
     guide_id: str = Depends(_get_guide_id),
     db: Session = Depends(get_db),
 ):
-    """Get all OPEN trip plans (pending requests) that this guide can accept."""
+    """Get OPEN trip plans (any guide can accept) + PENDING_ACCEPTANCE plans for this guide."""
     trip_plans = db.query(models.TripPlan).filter(
-        models.TripPlan.status == "OPEN"
+        (models.TripPlan.status == "OPEN") |
+        ((models.TripPlan.status == "PENDING_ACCEPTANCE") & (models.TripPlan.guide_id == guide_id))
     ).all()
     return [
         {
@@ -759,6 +760,8 @@ async def get_guide_open_requests(
             "destination": tp.destination,
             "interests": tp.interests.split("|") if tp.interests else [],
             "proposed_stops": tp.proposed_stops,
+            "status": tp.status,
+            "guide_id": tp.guide_id,
             "tour_date_start": tp.tour_date_start,
             "tour_date_end": tp.tour_date_end,
             "duration_hours": tp.duration_hours,
@@ -778,8 +781,11 @@ async def accept_trip_request(
     guide_id: str = Depends(_get_guide_id),
     db: Session = Depends(get_db),
 ):
-    """Accept an OPEN trip plan and create a booking."""
-    tp = db.query(models.TripPlan).filter_by(id=plan_id, status="OPEN").first()
+    """Accept an OPEN or PENDING_ACCEPTANCE trip plan and create a booking."""
+    tp = db.query(models.TripPlan).filter(
+        models.TripPlan.id == plan_id,
+        models.TripPlan.status.in_(["OPEN", "PENDING_ACCEPTANCE"])
+    ).first()
     if not tp:
         raise HTTPException(status_code=404, detail="Trip plan not found or already accepted")
 
@@ -2004,6 +2010,62 @@ async def accept_trip_plan(
     db.commit()
     logger.info(f"trip_plan.accepted plan_id={plan_id} guide_id={guide_id}")
     return {"id": p.id, "status": p.status, "guide_id": p.guide_id}
+
+
+@app.post("/api/trip-plans/{plan_id}/request-guide")
+async def request_guide_for_plan(
+    plan_id: int,
+    guide_id: str,
+    tourist_id: str = Depends(_get_tourist_id),
+    db: Session = Depends(get_db),
+):
+    """
+    Tourist requests a specific guide for their open trip plan.
+    Sets status to PENDING_ACCEPTANCE and stores the guide_id.
+    The guide can then accept (→ ACCEPTED) or decline (→ OPEN again).
+    """
+    p = db.query(models.TripPlan).filter_by(id=plan_id).first()
+    if not p:
+        raise HTTPException(status_code=404, detail="Trip plan not found")
+    if p.tourist_id != tourist_id:
+        raise HTTPException(status_code=403, detail="Not your trip plan")
+    if p.status != "OPEN":
+        raise HTTPException(status_code=400, detail=f"Cannot request guide for plan with status {p.status}")
+
+    guide = db.query(models.Guide).filter_by(id=guide_id).first()
+    if not guide:
+        raise HTTPException(status_code=404, detail="Guide not found")
+
+    p.status = "PENDING_ACCEPTANCE"
+    p.guide_id = guide_id
+    db.commit()
+    logger.info(f"trip_plan.request_guide plan_id={plan_id} guide_id={guide_id} tourist_id={tourist_id}")
+    return {"id": p.id, "status": p.status, "guide_id": p.guide_id}
+
+
+@app.post("/api/trip-plans/{plan_id}/decline-guide")
+async def decline_guide_request(
+    plan_id: int,
+    guide_id: str = Depends(_get_guide_id),
+    db: Session = Depends(get_db),
+):
+    """
+    Guide declines a PENDING_ACCEPTANCE trip plan request.
+    Resets status to OPEN and clears the guide_id.
+    """
+    p = db.query(models.TripPlan).filter_by(id=plan_id).first()
+    if not p:
+        raise HTTPException(status_code=404, detail="Trip plan not found")
+    if p.guide_id != guide_id:
+        raise HTTPException(status_code=403, detail="Not your trip plan to decline")
+    if p.status != "PENDING_ACCEPTANCE":
+        raise HTTPException(status_code=400, detail=f"Cannot decline plan with status {p.status}")
+
+    p.status = "OPEN"
+    p.guide_id = None
+    db.commit()
+    logger.info(f"trip_plan.declined plan_id={plan_id} guide_id={guide_id}")
+    return {"id": p.id, "status": p.status, "guide_id": None}
 
 
 @app.patch("/api/trip-plans/{plan_id}/counter")
