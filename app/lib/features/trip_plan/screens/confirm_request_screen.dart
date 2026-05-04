@@ -275,7 +275,7 @@ class _ConfirmRequestScreenState extends ConsumerState<ConfirmRequestScreen> {
                         child: PrimaryButton(
                           label: 'Send Request',
                           icon: Icons.send_outlined,
-                          loading: _submitting,
+                          isLoading: _submitting,
                           onPressed: _submitting ? null : _sendRequest,
                         ),
                       ),

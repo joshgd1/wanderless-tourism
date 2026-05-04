@@ -48,7 +48,7 @@ final _syntheticOpenRequests = [
     'dietary_requirement': 'Vegetarian',
     'avoid_late_night': true,
     'proposed_stops': [
-      {'name': 'Cloud Forest', 'duration_minutes': 90, 'notes': 'Don't miss the waterfall'},
+      {'name': 'Cloud Forest', 'duration_minutes': 90, 'notes': "Don't miss the waterfall"},
       {'name': 'Flower Dome', 'duration_minutes': 60, 'notes': 'Mediterranean plants'},
       {'name': 'Supertree Grove', 'duration_minutes': 45, 'notes': 'Best at night when illuminated'},
     ],

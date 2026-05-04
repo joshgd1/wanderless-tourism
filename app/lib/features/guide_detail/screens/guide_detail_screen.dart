@@ -238,7 +238,7 @@ class GuideDetailScreen extends ConsumerWidget {
           left: 0,
           right: 0,
           bottom: 0,
-          child: _BookNowBar(guideId: guide.id, planId: widget.planId),
+          child: _BookNowBar(guideId: guide.id, planId: planId),
         ),
       ],
     );
