@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../../../../core/auth_provider.dart';
 import '../../../../design_system.dart';
 import '../../../features/discover/screens/discover_screen.dart';
@@ -33,7 +34,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           password: _passwordController.text,
         );
     if (success && mounted) {
-      // Invalidate ML provider caches so they refetch with auth token
       ref.invalidate(mlMatchesProvider);
       ref.invalidate(matchesProvider);
       context.go('/discover');
@@ -53,85 +53,94 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     );
   }
 
-  // Wide layout — asymmetrical, brand left + form right
+  // Wide layout — image background left + white form card right
   Widget _buildWideLayout(AuthState authState) {
     return Row(
       children: [
-        // Left brand panel
+        // ── Left brand panel with image ───────────────────────────────────
         Expanded(
           flex: 5,
-          child: Container(
-            color: AppColors.textPrimary,
-            child: Stack(
-              children: [
-                // Subtle geometric pattern
-                Positioned.fill(
-                  child: CustomPaint(painter: GridPainter()),
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(AppSpacing.xxxl),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      _buildBrandMark(size: 52),
-                      const SizedBox(height: AppSpacing.xl),
-                      Text(
-                        'Your journey\nstarts here.',
-                        style: AppText.display.copyWith(
-                          color: Colors.white,
-                          fontSize: 40,
-                          height: 1.1,
-                        ),
-                      ),
-                      const SizedBox(height: AppSpacing.md),
-                      Text(
-                        'Connect with local guides across\nSoutheast Asia — from Bangkok temples\nto Bali beaches.',
-                        style: AppText.body.copyWith(
-                          color: Colors.white.withOpacity(0.6),
-                          fontSize: 15,
-                          height: 1.6,
-                        ),
-                      ),
-                      const SizedBox(height: AppSpacing.xl),
-                      // Tagline
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                        decoration: BoxDecoration(
-                          color: AppColors.brand.withOpacity(0.15),
-                          borderRadius: BorderRadius.circular(AppRadius.full),
-                          border: Border.all(color: AppColors.brand.withOpacity(0.3)),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text('🌿', style: TextStyle(fontSize: 16)),
-                            const SizedBox(width: 8),
-                            Text(
-                              'Wander less. Worry less.',
-                              style: AppText.label.copyWith(
-                                color: AppColors.brand,
-                                fontStyle: FontStyle.italic,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: AppSpacing.lg),
-                      _buildFeaturePills(),
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              // Background image
+              CachedNetworkImage(
+                imageUrl: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1200&q=80',
+                fit: BoxFit.cover,
+                errorWidget: (_, __, ___) => Container(color: AppColors.textPrimary),
+              ),
+              // Gradient overlay
+              Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      Colors.black.withOpacity(0.75),
+                      Colors.black.withOpacity(0.5),
+                      Color(0xFF0B5C3A).withOpacity(0.7),
                     ],
                   ),
                 ),
-              ],
-            ),
+              ),
+              // Content
+              Padding(
+                padding: const EdgeInsets.all(AppSpacing.xxxl),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildBrandMark(size: 48),
+                    const SizedBox(height: AppSpacing.xl),
+                    Text(
+                      'Your next\nadventure awaits.',
+                      style: AppText.display.copyWith(
+                        color: Colors.white,
+                        fontSize: 38,
+                        height: 1.15,
+                      ),
+                    ),
+                    const SizedBox(height: AppSpacing.lg),
+                    Text(
+                      'Sign in to connect with local guides\nacross Southeast Asia.',
+                      style: AppText.body.copyWith(
+                        color: Colors.white.withOpacity(0.7),
+                        height: 1.6,
+                      ),
+                    ),
+                    const SizedBox(height: AppSpacing.xl),
+                    _buildFeatureItem(Icons.check_circle_outline, 'Curated experiences'),
+                    const SizedBox(height: AppSpacing.sm),
+                    _buildFeatureItem(Icons.check_circle_outline, 'Verified local experts'),
+                    const SizedBox(height: AppSpacing.sm),
+                    _buildFeatureItem(Icons.check_circle_outline, 'Real-time trip tracking'),
+                    const Spacer(),
+                    // Decorative circles
+                    Align(
+                      alignment: Alignment.bottomRight,
+                      child: Opacity(
+                        opacity: 0.3,
+                        child: Container(
+                          width: 120,
+                          height: 120,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(color: Colors.white, width: 1.5),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
         ),
-        // Right form panel
+        // ── Right form panel ─────────────────────────────────────────────
         Expanded(
           flex: 4,
           child: Center(
             child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 400),
+              constraints: const BoxConstraints(maxWidth: 420),
               child: SingleChildScrollView(
                 padding: const EdgeInsets.all(AppSpacing.xxl),
                 child: Column(
@@ -139,10 +148,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     const SizedBox(height: AppSpacing.xl),
-                    Text('Sign in', style: AppText.h1),
-                    const SizedBox(height: 6),
+                    Text('Welcome back', style: AppText.h1),
+                    const SizedBox(height: 4),
                     Text(
-                      'Welcome back. Enter your details below.',
+                      'Sign in to continue your journey.',
                       style: AppText.bodySmall,
                     ),
                     const SizedBox(height: AppSpacing.xl),
@@ -152,22 +161,27 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     ],
                     _buildForm(authState),
                     const SizedBox(height: AppSpacing.lg),
+                    _buildSocialLogin(),
+                    const SizedBox(height: AppSpacing.lg),
                     Center(
-                      child: Text(
-                        "Don't have an account? ",
-                        style: AppText.bodySmall,
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    Center(
-                      child: GhostButton(
-                        label: 'Create an account',
-                        onPressed: () => context.push('/signup'),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text("Don't have an account? ", style: AppText.bodySmall),
+                          GestureDetector(
+                            onTap: () => context.push('/signup'),
+                            child: Text(
+                              'Sign up',
+                              style: AppText.bodySmall.copyWith(
+                                color: AppColors.brand,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                     const SizedBox(height: AppSpacing.xl),
-                    const AppDivider(),
-                    const SizedBox(height: AppSpacing.md),
                     _buildAlternateActions(),
                   ],
                 ),
@@ -179,94 +193,95 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     );
   }
 
-  // Mobile layout — clean, stacked, minimal
+  // Mobile layout — image hero top + form below
   Widget _buildMobileLayout(AuthState authState) {
     return SingleChildScrollView(
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Minimal top bar
-          Padding(
-            padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          // Hero image header
+          SizedBox(
+            height: 220,
+            child: Stack(
+              fit: StackFit.expand,
               children: [
-                _buildBrandMark(size: 32),
-                IconButton(
-                  onPressed: () => context.push('/settings'),
-                  icon: const Icon(Icons.settings_outlined, size: 20),
-                  color: AppColors.textSecondary,
+                CachedNetworkImage(
+                  imageUrl: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&q=80',
+                  fit: BoxFit.cover,
+                  errorWidget: (_, __, ___) => Container(color: AppColors.textPrimary),
+                ),
+                Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        Colors.black.withOpacity(0.3),
+                        Colors.black.withOpacity(0.7),
+                      ],
+                    ),
+                  ),
+                ),
+                SafeArea(
+                  bottom: false,
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildBrandMark(size: 40),
+                        const SizedBox(height: AppSpacing.md),
+                        Text(
+                          'Your next\nadventure awaits.',
+                          style: AppText.h2.copyWith(color: Colors.white),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
               ],
             ),
           ),
-          const SizedBox(height: AppSpacing.xl),
-          // Asymmetrical — left-aligned text
+          // Form
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24),
+            padding: const EdgeInsets.all(24),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Sign in', style: AppText.display),
+                Text('Welcome back', style: AppText.h2),
                 const SizedBox(height: 4),
-                // Tagline
-                Row(
-                  children: [
-                    Text('🌿', style: TextStyle(fontSize: 16)),
-                    const SizedBox(width: 6),
-                    Text(
-                      'Wander less. Worry less.',
-                      style: AppText.bodySmall.copyWith(
-                        color: AppColors.brand,
-                        fontStyle: FontStyle.italic,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: AppSpacing.sm),
                 Text(
-                  'Welcome back.',
-                  style: AppText.body.copyWith(color: AppColors.textSecondary),
+                  'Sign in to continue your journey.',
+                  style: AppText.bodySmall,
                 ),
-              ],
-            ),
-          ),
-          const SizedBox(height: AppSpacing.xl),
-          // Form
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: Column(
-              children: [
+                const SizedBox(height: AppSpacing.lg),
                 if (authState.error != null) ...[
                   _ErrorBanner(message: authState.error!),
                   const SizedBox(height: AppSpacing.md),
                 ],
                 _buildForm(authState),
-              ],
-            ),
-          ),
-          const SizedBox(height: AppSpacing.lg),
-          // Bottom links
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: Column(
-              children: [
+                const SizedBox(height: AppSpacing.lg),
+                _buildSocialLogin(),
+                const SizedBox(height: AppSpacing.lg),
                 Center(
-                  child: Text(
-                    "Don't have an account? ",
-                    style: AppText.bodySmall,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                SizedBox(
-                  width: double.infinity,
-                  child: GhostButton(
-                    label: 'Create an account',
-                    onPressed: () => context.push('/signup'),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text("Don't have an account? ", style: AppText.bodySmall),
+                      GestureDetector(
+                        onTap: () => context.push('/signup'),
+                        child: Text(
+                          'Sign up',
+                          style: AppText.bodySmall.copyWith(
+                            color: AppColors.brand,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
                 const SizedBox(height: AppSpacing.lg),
-                const AppDivider(),
-                const SizedBox(height: AppSpacing.md),
                 _buildAlternateActions(),
                 const SizedBox(height: AppSpacing.xl),
               ],
@@ -313,6 +328,17 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               return null;
             },
           ),
+          const SizedBox(height: AppSpacing.sm),
+          Align(
+            alignment: Alignment.centerRight,
+            child: GestureDetector(
+              onTap: () => context.push('/forgot-password'),
+              child: Text(
+                'Forgot your password?',
+                style: AppText.caption.copyWith(color: AppColors.brand),
+              ),
+            ),
+          ),
           const SizedBox(height: AppSpacing.lg),
           SizedBox(
             width: double.infinity,
@@ -324,6 +350,46 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildSocialLogin() {
+    return Column(
+      children: [
+        const AppDivider(),
+        const SizedBox(height: AppSpacing.md),
+        Row(
+          children: [
+            Expanded(child: Divider(color: AppColors.border)),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+              child: Text('or continue with', style: AppText.caption),
+            ),
+            Expanded(child: Divider(color: AppColors.border)),
+          ],
+        ),
+        const SizedBox(height: AppSpacing.md),
+        Row(
+          children: [
+            Expanded(child: _SocialButton(icon: Icons.g_mobiledata, label: 'Google')),
+            const SizedBox(width: AppSpacing.md),
+            Expanded(child: _SocialButton(icon: Icons.apple, label: 'Apple')),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildFeatureItem(IconData icon, String text) {
+    return Row(
+      children: [
+        Icon(icon, size: 18, color: AppColors.brand),
+        const SizedBox(width: 10),
+        Text(
+          text,
+          style: AppText.body.copyWith(color: Colors.white.withOpacity(0.9)),
+        ),
+      ],
     );
   }
 
@@ -366,30 +432,26 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       ),
     );
   }
+}
 
-  Widget _buildFeaturePills() {
-    final features = [
-      'Verified local guides',
-      '12 SEA countries',
-      'Real-time tracking',
-    ];
-    return Wrap(
-      spacing: 8,
-      runSpacing: 8,
-      children: features.map((f) {
-        return Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-          decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.08),
-            borderRadius: BorderRadius.circular(AppRadius.full),
-            border: Border.all(color: Colors.white.withOpacity(0.15)),
-          ),
-          child: Text(
-            f,
-            style: AppText.label.copyWith(color: Colors.white.withOpacity(0.85)),
-          ),
-        );
-      }).toList(),
+class _SocialButton extends StatelessWidget {
+  final IconData icon;
+  final String label;
+
+  const _SocialButton({required this.icon, required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return OutlinedButton.icon(
+      onPressed: () {},
+      icon: Icon(icon, size: 20),
+      label: Text(label),
+      style: OutlinedButton.styleFrom(
+        foregroundColor: AppColors.textPrimary,
+        side: BorderSide(color: AppColors.border),
+        padding: const EdgeInsets.symmetric(vertical: 14),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.md)),
+      ),
     );
   }
 }
