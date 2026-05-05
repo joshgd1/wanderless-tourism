@@ -242,7 +242,7 @@ def _seed_guides(db: Session) -> None:
             seen_ids.add(row["guide_id"])
             guide = Guide(
                 id=row["guide_id"],
-                name=f"Guide {row['guide_id']}",
+                name=row.get("name") or f"Guide {row['guide_id']}",
                 bio="Experienced local guide with deep knowledge of the region.",
                 photo_url=f"https://picsum.photos/seed/{row['guide_id']}/200/200",
                 expertise_tags=row["expertise_tags"],

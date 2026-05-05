@@ -204,7 +204,10 @@ class MatchCard extends StatelessWidget {
               color: AppColors.surfaceSecondary,
               borderRadius: BorderRadius.circular(AppRadius.sm),
             ),
-            child: Row(
+            child: Wrap(
+              spacing: 6,
+              runSpacing: 6,
+              crossAxisAlignment: WrapCrossAlignment.center,
               children: [
                 _ScoreBadge(
                   score: guide.score,
@@ -214,31 +217,27 @@ class MatchCard extends StatelessWidget {
                   scoreDest: guide.scoreDest,
                   mlExplanation: guide.mlExplanation,
                 ),
-                const SizedBox(width: 8),
                 _PriceBadge(
                   pricePerPerson: guide.pricePerPerson,
                   budgetTier: guide.budgetTier,
                 ),
-                if (guide.durationHours != null) ...[
-                  const SizedBox(width: 6),
+                if (guide.durationHours != null)
                   _MetaBadge(icon: Icons.schedule, label: '${guide.durationHours!.toStringAsFixed(0)}h'),
-                ],
-                if (guide.groupSize != null) ...[
-                  const SizedBox(width: 6),
+                if (guide.groupSize != null)
                   _MetaBadge(icon: Icons.group, label: '${guide.groupSize}'),
-                ],
-                const Spacer(),
-                if (onRequest != null)
+                if (onRequest != null) ...[
+                  const SizedBox(width: 4),
                   SecondaryButton(
                     label: 'View Profile',
                     onPressed: onTap,
                   ),
-                const SizedBox(width: 8),
-                PrimaryButton(
-                  label: 'Request',
-                  icon: Icons.send,
-                  onPressed: onRequest,
-                ),
+                  const SizedBox(width: 6),
+                  PrimaryButton(
+                    label: 'Request',
+                    icon: Icons.send,
+                    onPressed: onRequest,
+                  ),
+                ],
               ],
             ),
           ),
