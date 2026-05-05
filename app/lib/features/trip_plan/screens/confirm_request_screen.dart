@@ -5,6 +5,7 @@ import '../../../../core/api_client.dart';
 import '../../../../core/auth_provider.dart';
 import '../../../../shared/models/trip_plan.dart';
 import '../../../../design_system.dart';
+import 'trip_plan_list_screen.dart' show myTripPlansProvider;
 
 class ConfirmRequestScreen extends ConsumerStatefulWidget {
   final int planId;
@@ -61,6 +62,8 @@ class _ConfirmRequestScreenState extends ConsumerState<ConfirmRequestScreen> {
     setState(() => _submitting = true);
     try {
       await ApiClient().requestGuideFromPlan(widget.planId, widget.guideId);
+      // Refresh so plan status change appears immediately
+      ref.invalidate(myTripPlansProvider);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(

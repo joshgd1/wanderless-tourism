@@ -8,6 +8,7 @@ import '../../../../shared/models/trip_plan.dart';
 import '../../../../shared/models/safety_result.dart';
 import '../../../../shared/widgets/safety_score_card.dart';
 import '../../../../design_system.dart';
+import 'trip_plan_list_screen.dart' show myTripPlansProvider, openTripPlansProvider;
 
 class CreateTripPlanScreen extends ConsumerStatefulWidget {
   const CreateTripPlanScreen({super.key});
@@ -181,6 +182,10 @@ class _CreateTripPlanScreenState extends ConsumerState<CreateTripPlanScreen> {
         'group_size': _groupSize,
         'dietary_requirement': _dietaryRequirement,
       });
+
+      // Refresh trip plan lists so new trip appears immediately
+      ref.invalidate(myTripPlansProvider);
+      ref.invalidate(openTripPlansProvider);
 
       // Fetch and show safety score
       final planId = planResult['id'] as int? ?? planResult['plan_id'] as int?;
