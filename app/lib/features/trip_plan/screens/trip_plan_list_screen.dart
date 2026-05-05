@@ -6,8 +6,6 @@ import '../../../../core/api_client.dart';
 import '../../../../core/auth_provider.dart';
 import '../../../../shared/models/trip_plan.dart';
 import '../../../../shared/models/guide.dart';
-import '../../../../shared/models/safety_result.dart';
-import '../../../../shared/widgets/safety_score_card.dart';
 import '../../../../design_system.dart';
 import '../../bookings/screens/bookings_screen.dart';
 
@@ -20,7 +18,7 @@ final _matchedGuidesForPlanProvider = FutureProvider.family<List<MatchedGuide>, 
   final data = await api.getMlGuideRecommendations(touristId, topN: 3, destination: destination);
   final guides = data.map((e) => MatchedGuide.fromJson(e as Map<String, dynamic>)).toList();
   // Always show Mei Ling first as the demo guide
-  final meiLing = MatchedGuide(
+  const meiLing = MatchedGuide(
     guideId: 'GTH268',
     name: 'Mei Ling',
     photoUrl: 'https://picsum.photos/seed/mei_ling_guide/400/400',
@@ -51,17 +49,6 @@ final openTripPlansProvider = FutureProvider<List<TripPlan>>((ref) async {
   final api = ApiClient();
   final data = await api.getTripPlans(status: 'OPEN');
   return data.map((e) => TripPlan.fromJson(e as Map<String, dynamic>)).toList();
-});
-
-final _safetyScoreProvider = FutureProvider.family<SafetyResult?, int>((ref, planId) async {
-  try {
-    final api = ApiClient();
-    final data = await api.getSafetyScore(planId: planId);
-    if (data['total_score'] != null) {
-      return SafetyResult.fromJson(data);
-    }
-  } catch (_) {}
-  return null;
 });
 
 class TripPlanListScreen extends ConsumerWidget {
@@ -327,7 +314,7 @@ class TripPlanListScreen extends ConsumerWidget {
       ref.invalidate(myTripPlansProvider);
       ref.invalidate(bookingsListProvider);
       if (sheetCtx.mounted) {
-        // Show booking request confirmation dialog
+        // Show fake payment success dialog first
         await showDialog(
           context: sheetCtx,
           barrierDismissible: false,
@@ -351,10 +338,10 @@ class TripPlanListScreen extends ConsumerWidget {
                   ),
                 ),
                 const SizedBox(height: AppSpacing.lg),
-                Text('Request Sent!', style: AppText.h3.copyWith(color: AppColors.success)),
+                Text('Payment Successful!', style: AppText.h3.copyWith(color: AppColors.success)),
                 const SizedBox(height: AppSpacing.sm),
                 Text(
-                  'Your booking request has been sent to the guide.',
+                  'Your booking has been confirmed.',
                   style: AppText.body.copyWith(color: AppColors.textSecondary),
                   textAlign: TextAlign.center,
                 ),
@@ -390,7 +377,7 @@ class TripPlanListScreen extends ConsumerWidget {
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Booking request sent! You\'ll be notified when a guide responds.'),
+              content: Text('Booking confirmed! Your guide will contact you soon.'),
               backgroundColor: AppColors.success,
               behavior: SnackBarBehavior.floating,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.sm)),
@@ -403,7 +390,7 @@ class TripPlanListScreen extends ConsumerWidget {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Booking error: $e'),
+            content: Text('Payment error: $e'),
             backgroundColor: AppColors.error,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.sm)),
@@ -446,7 +433,7 @@ class _BackBtnState extends State<_BackBtn> {
   }
 }
 
-class _TripPlanCard extends ConsumerStatefulWidget {
+class _TripPlanCard extends StatelessWidget {
   final TripPlan plan;
   final bool isGuideView;
   final Color statusColor;
@@ -460,91 +447,21 @@ class _TripPlanCard extends ConsumerStatefulWidget {
   });
 
   @override
-  ConsumerState<_TripPlanCard> createState() => _TripPlanCardState();
-}
-
-class _TripPlanCardState extends ConsumerState<_TripPlanCard> {
-  SafetyResult? _safetyResult;
-  bool _safetyLoading = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _fetchSafetyScore();
-  }
-
-  Future<void> _fetchSafetyScore() async {
-    if (widget.plan.id == null) return;
-    setState(() => _safetyLoading = true);
-    try {
-      final api = ApiClient();
-      final data = await api.getSafetyScore(planId: widget.plan.id!);
-      if (mounted && data['total_score'] != null) {
-        setState(() {
-          _safetyResult = SafetyResult.fromJson(data);
-          _safetyLoading = false;
-        });
-      }
-    } catch (_) {
-      if (mounted) setState(() => _safetyLoading = false);
-    }
-  }
-
-  Color _scoreColor() {
-    switch (_safetyResult?.color) {
-      case 'green': return AppColors.success;
-      case 'amber': return AppColors.warning;
-      case 'red': return AppColors.error;
-      default: return AppColors.textTertiary;
-    }
-  }
-
-  @override
   Widget build(BuildContext context) {
     return AppCard(
-      onTap: widget.onTap,
+      onTap: onTap,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
               StatusBadge(
-                label: widget.plan.status,
-                color: widget.statusColor,
+                label: plan.status,
+                color: statusColor,
               ),
               const Spacer(),
-              if (_safetyResult != null) ...[
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                  decoration: BoxDecoration(
-                    color: _scoreColor().withOpacity(0.12),
-                    borderRadius: BorderRadius.circular(AppRadius.full),
-                    border: Border.all(color: _scoreColor().withOpacity(0.3)),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        _safetyResult!.level == 'safe'
-                            ? Icons.check_circle
-                            : _safetyResult!.level == 'caution'
-                                ? Icons.warning_amber
-                                : Icons.error,
-                        size: 12,
-                        color: _scoreColor(),
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        '${_safetyResult!.totalScore.round()}',
-                        style: AppText.labelBold.copyWith(color: _scoreColor(), fontSize: 12),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 8),
-              ],
-              if (widget.plan.tourDate != null)
-                Text(widget.plan.tourDate!, style: AppText.caption),
+              if (plan.tourDate != null)
+                Text(plan.tourDate!, style: AppText.caption),
             ],
           ),
           const SizedBox(height: AppSpacing.md),
@@ -564,10 +481,10 @@ class _TripPlanCardState extends ConsumerState<_TripPlanCard> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(widget.plan.destination, style: AppText.labelBold),
+                    Text(plan.destination, style: AppText.labelBold),
                     const SizedBox(height: 2),
                     Text(
-                      '${widget.plan.durationHours?.toStringAsFixed(1) ?? '?'}h  •  Group ${widget.plan.groupSize ?? '?'}',
+                      '${plan.durationHours?.toStringAsFixed(1) ?? '?'}h  •  Group ${plan.groupSize ?? '?'}',
                       style: AppText.caption,
                     ),
                   ],
@@ -576,12 +493,12 @@ class _TripPlanCardState extends ConsumerState<_TripPlanCard> {
               Icon(Icons.arrow_forward_ios, size: 14, color: AppColors.textTertiary),
             ],
           ),
-          if (widget.plan.interests.isNotEmpty) ...[
+          if (plan.interests.isNotEmpty) ...[
             const SizedBox(height: AppSpacing.md),
             Wrap(
               spacing: 6,
               runSpacing: 4,
-              children: widget.plan.interests.take(4).map((i) {
+              children: plan.interests.take(4).map((i) {
                 return Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                   decoration: BoxDecoration(
@@ -596,10 +513,10 @@ class _TripPlanCardState extends ConsumerState<_TripPlanCard> {
               }).toList(),
             ),
           ],
-          if (widget.plan.proposedStops.isNotEmpty) ...[
+          if (plan.proposedStops.isNotEmpty) ...[
             const SizedBox(height: AppSpacing.sm),
             Text(
-              '${widget.plan.proposedStops.length} proposed stop${widget.plan.proposedStops.length > 1 ? 's' : ''}',
+              '${plan.proposedStops.length} proposed stop${plan.proposedStops.length > 1 ? 's' : ''}',
               style: AppText.caption,
             ),
           ],
@@ -609,7 +526,7 @@ class _TripPlanCardState extends ConsumerState<_TripPlanCard> {
   }
 }
 
-class _PlanDetailSheet extends ConsumerStatefulWidget {
+class _PlanDetailSheet extends StatelessWidget {
   final TripPlan plan;
   final bool isGuideView;
   final Color statusColor;
@@ -629,139 +546,110 @@ class _PlanDetailSheet extends ConsumerStatefulWidget {
   });
 
   @override
-  ConsumerState<_PlanDetailSheet> createState() => _PlanDetailSheetState();
-}
-
-class _PlanDetailSheetState extends ConsumerState<_PlanDetailSheet> {
-  @override
   Widget build(BuildContext context) {
-    final guidesAsync = widget.isGuideView || widget.plan.status != 'OPEN'
-        ? null
-        : ref.watch(_matchedGuidesForPlanProvider(widget.plan.destination));
-
-    final safetyAsync = widget.plan.id != null
-        ? ref.watch(_safetyScoreProvider(widget.plan.id!))
-        : null;
-
-    return Column(
-      children: [
-        // Sticky header + scrollable content
-        Expanded(
-          child: ListView(
-            controller: widget.scrollController,
-            padding: const EdgeInsets.all(AppSpacing.lg),
-            children: [
-              Center(
-                child: Container(
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: AppColors.border,
-                    borderRadius: BorderRadius.circular(2),
-                  ),
+    return Consumer(
+      builder: (context, ref, _) {
+        final guidesAsync = isGuideView || plan.status != 'OPEN'
+            ? null
+            : ref.watch(_matchedGuidesForPlanProvider(plan.destination));
+        return ListView(
+          controller: scrollController,
+          padding: const EdgeInsets.all(AppSpacing.lg),
+          children: [
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: AppColors.border,
+                  borderRadius: BorderRadius.circular(2),
                 ),
               ),
-              const SizedBox(height: AppSpacing.lg),
-              Row(
-                children: [
-                  Expanded(
-                    child: Text(widget.plan.destination, style: AppText.h1),
-                  ),
-                  StatusBadge(
-                    label: widget.plan.status,
-                    color: widget.statusColor,
-                  ),
-                ],
-              ),
-              const SizedBox(height: AppSpacing.lg),
-              if (safetyAsync != null) ...[
-                safetyAsync.when(
-                  loading: () => const SizedBox.shrink(),
-                  error: (_, __) => const SizedBox.shrink(),
-                  data: (safety) {
-                    if (safety == null) return const SizedBox.shrink();
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: AppSpacing.md),
-                      child: SafetyScoreCard(safetyResult: safety),
-                    );
-                  },
+            ),
+            const SizedBox(height: AppSpacing.lg),
+            Row(
+              children: [
+                Expanded(
+                  child: Text(plan.destination, style: AppText.h1),
+                ),
+                StatusBadge(
+                  label: plan.status,
+                  color: statusColor,
                 ),
               ],
-              if (!widget.isGuideView && widget.plan.status == 'OPEN') ...[
+            ),
+            const SizedBox(height: AppSpacing.lg),
+            if (!isGuideView && plan.status == 'OPEN')
+              Container(
+                padding: const EdgeInsets.all(AppSpacing.md),
+                decoration: BoxDecoration(
+                  color: AppColors.success.withOpacity(0.08),
+                  borderRadius: BorderRadius.circular(AppRadius.md),
+                  border: Border.all(color: AppColors.success.withOpacity(0.2)),
+                ),
+                child: Row(
+                  children: [
+                    SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: AppColors.success,
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Waiting for a guide to accept',
+                            style: AppText.labelBold.copyWith(color: AppColors.success),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            'You\'ll be notified when a guide picks up your request. No payment required yet.',
+                            style: AppText.caption,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+        if (!isGuideView && plan.status == 'ACCEPTED' && plan.guideId != null) ...[
+          Container(
+            padding: const EdgeInsets.all(AppSpacing.md),
+            decoration: BoxDecoration(
+              color: AppColors.success.withOpacity(0.08),
+              borderRadius: BorderRadius.circular(AppRadius.md),
+              border: Border.all(color: AppColors.success.withOpacity(0.3)),
+            ),
+            child: Row(
+              children: [
                 Container(
-                  padding: const EdgeInsets.all(AppSpacing.md),
+                  width: 44,
+                  height: 44,
                   decoration: BoxDecoration(
-                    color: AppColors.success.withOpacity(0.08),
-                    borderRadius: BorderRadius.circular(AppRadius.md),
-                    border: Border.all(color: AppColors.success.withOpacity(0.2)),
+                    color: AppColors.success.withOpacity(0.15),
+                    shape: BoxShape.circle,
                   ),
-                  child: Row(
+                  child: const Icon(Icons.person, color: AppColors.success, size: 22),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      SizedBox(
-                        width: 18,
-                        height: 18,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: AppColors.success,
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Waiting for a guide to accept',
-                              style: AppText.labelBold.copyWith(color: AppColors.success),
-                            ),
-                            const SizedBox(height: 2),
-                            Text(
-                              'You\'ll be notified when a guide picks up your request. No payment required yet.',
-                              style: AppText.caption,
-                            ),
-                          ],
-                        ),
-                      ),
+                      Text('Guide Assigned!', style: AppText.labelBold),
+                      Text('ID: ${plan.guideId}', style: AppText.caption),
                     ],
                   ),
                 ),
+                Icon(Icons.check_circle, color: AppColors.success, size: 22),
               ],
-            ],
-          ),
-        ),
-          if (!widget.isGuideView && widget.plan.status == 'ACCEPTED' && widget.plan.guideId != null) ...[
-            Container(
-              padding: const EdgeInsets.all(AppSpacing.md),
-              decoration: BoxDecoration(
-                color: AppColors.success.withOpacity(0.08),
-                borderRadius: BorderRadius.circular(AppRadius.md),
-                border: Border.all(color: AppColors.success.withOpacity(0.3)),
-              ),
-              child: Row(
-                children: [
-                  Container(
-                    width: 44,
-                    height: 44,
-                    decoration: BoxDecoration(
-                      color: AppColors.success.withOpacity(0.15),
-                      shape: BoxShape.circle,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('Guide Assigned!', style: AppText.labelBold),
-                        Text('ID: ${widget.plan.guideId}', style: AppText.caption),
-                      ],
-                    ),
-                  ),
-                  Icon(Icons.check_circle, color: AppColors.success, size: 22),
-                ],
-              ),
             ),
-          ],
+          ),
           const SizedBox(height: AppSpacing.sm),
           Container(
             padding: const EdgeInsets.all(AppSpacing.md),
@@ -785,7 +673,7 @@ class _PlanDetailSheetState extends ConsumerState<_PlanDetailSheet> {
           ),
         ],
         // Top 3 matched guides for OPEN plans (tourist view)
-        if (!widget.isGuideView && widget.plan.status == 'OPEN' && guidesAsync != null) ...[
+        if (!isGuideView && plan.status == 'OPEN' && guidesAsync != null) ...[
           const SizedBox(height: AppSpacing.lg),
           Text('AI-Powered Guide Matches', style: AppText.labelBold),
           const SizedBox(height: 2),
@@ -829,7 +717,7 @@ class _PlanDetailSheetState extends ConsumerState<_PlanDetailSheet> {
                   padding: const EdgeInsets.only(bottom: AppSpacing.sm),
                   child: _MatchedGuideCard(
                     guide: guide,
-                    onTap: () => context.push('/confirm-request?planId=${widget.plan.id}&guideId=${guide.guideId}'),
+                    onTap: () => context.push('/confirm-request?planId=${plan.id}&guideId=${guide.guideId}'),
                   ),
                 )).toList(),
               );
@@ -837,17 +725,17 @@ class _PlanDetailSheetState extends ConsumerState<_PlanDetailSheet> {
           ),
         ],
         const SizedBox(height: AppSpacing.lg),
-        _DetailRow(Icons.calendar_today_outlined, 'Date', widget.plan.tourDate ?? 'Not specified'),
-        _DetailRow(Icons.schedule_outlined, 'Duration', widget.plan.durationHours != null ? '${widget.plan.durationHours!.toStringAsFixed(1)} hours' : 'Not specified'),
-        _DetailRow(Icons.group_outlined, 'Group size', widget.plan.groupSize != null ? '${widget.plan.groupSize} people' : 'Not specified'),
-        if (widget.plan.interests.isNotEmpty) ...[
+        _DetailRow(Icons.calendar_today_outlined, 'Date', plan.tourDate ?? 'Not specified'),
+        _DetailRow(Icons.schedule_outlined, 'Duration', plan.durationHours != null ? '${plan.durationHours!.toStringAsFixed(1)} hours' : 'Not specified'),
+        _DetailRow(Icons.group_outlined, 'Group size', plan.groupSize != null ? '${plan.groupSize} people' : 'Not specified'),
+        if (plan.interests.isNotEmpty) ...[
           const SizedBox(height: AppSpacing.lg),
           Text('Interests', style: AppText.labelBold),
           const SizedBox(height: AppSpacing.sm),
           Wrap(
             spacing: 8,
             runSpacing: 8,
-            children: widget.plan.interests.map((i) {
+            children: plan.interests.map((i) {
               return Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                 decoration: BoxDecoration(
@@ -862,11 +750,11 @@ class _PlanDetailSheetState extends ConsumerState<_PlanDetailSheet> {
             }).toList(),
           ),
         ],
-        if (widget.plan.proposedStops.isNotEmpty) ...[
+        if (plan.proposedStops.isNotEmpty) ...[
           const SizedBox(height: AppSpacing.lg),
           Text('Proposed Itinerary', style: AppText.labelBold),
           const SizedBox(height: AppSpacing.md),
-          ...widget.plan.proposedStops.asMap().entries.map((entry) {
+          ...plan.proposedStops.asMap().entries.map((entry) {
             final stop = entry.value;
             return Padding(
               padding: const EdgeInsets.only(bottom: AppSpacing.md),
@@ -910,55 +798,43 @@ class _PlanDetailSheetState extends ConsumerState<_PlanDetailSheet> {
               ),
             );
           }),
-        ]),
+        ],
         const SizedBox(height: AppSpacing.xl),
-        // ── Sticky Bottom CTAs ─────────────────────────────────────────────
-        Container(
-          decoration: BoxDecoration(
-            color: AppColors.surface,
-            border: Border(
-              top: BorderSide(color: AppColors.border),
+        if (isGuideView && plan.status == 'OPEN' && onAccept != null)
+          SizedBox(
+            width: double.infinity,
+            child: PrimaryButton(
+              label: 'Accept This Trip',
+              icon: Icons.check,
+              onPressed: onAccept,
             ),
           ),
-          padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.md, AppSpacing.lg, AppSpacing.lg),
-          child: SafeArea(
-            top: false,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                if (widget.isGuideView && widget.plan.status == 'OPEN' && widget.onAccept != null)
-                  SizedBox(
-                    width: double.infinity,
-                    child: PrimaryButton(
-                      label: 'Accept This Trip',
-                      icon: Icons.check,
-                      onPressed: widget.onAccept,
-                    ),
-                  ),
-                if (!widget.isGuideView && widget.plan.status == 'OPEN' && widget.onCancel != null)
-                  SizedBox(
-                    width: double.infinity,
-                    child: SecondaryButton(
-                      label: 'Cancel Plan',
-                      icon: Icons.close,
-                      color: AppColors.error,
-                      onPressed: widget.onCancel,
-                    ),
-                  ),
-                if (!widget.isGuideView && widget.plan.status == 'ACCEPTED' && widget.onConfirmPay != null)
-                  SizedBox(
-                    width: double.infinity,
-                    child: PrimaryButton(
-                      label: 'Confirm & Pay Now',
-                      icon: Icons.payment,
-                      onPressed: widget.onConfirmPay,
-                    ),
-                  ),
-              ],
+        if (!isGuideView && plan.status == 'OPEN' && onCancel != null) ...[
+          SizedBox(
+            width: double.infinity,
+            child: SecondaryButton(
+              label: 'Cancel Plan',
+              icon: Icons.close,
+              color: AppColors.error,
+              onPressed: onCancel,
             ),
           ),
+        ],
+        if (!isGuideView && plan.status == 'ACCEPTED' && onConfirmPay != null) ...[
+          const SizedBox(height: AppSpacing.md),
+          SizedBox(
+            width: double.infinity,
+            child: PrimaryButton(
+              label: 'Confirm & Pay Now',
+              icon: Icons.payment,
+              onPressed: onConfirmPay,
+            ),
+          ),
+        ],
+        const SizedBox(height: AppSpacing.lg),
       ],
     );
+  });
   }
 }
 
