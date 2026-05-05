@@ -1649,7 +1649,7 @@ class _OpenRequestCard extends StatelessWidget {
                 ),
                 const SizedBox(width: AppSpacing.sm),
                 Expanded(
-                  child: PrimaryButton(
+                  child: SecondaryButton(
                     label: 'Accept',
                     icon: Icons.check,
                     color: AppColors.success,
@@ -1796,7 +1796,7 @@ class _OpenRequestCard extends StatelessWidget {
               ),
               const SizedBox(width: AppSpacing.sm),
               Expanded(
-                child: PrimaryButton(
+                child: SecondaryButton(
                   label: 'Accept',
                   icon: Icons.check,
                   color: AppColors.success,
