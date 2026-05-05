@@ -33,6 +33,7 @@ final _syntheticOpenRequests = [
     'dietary_requirement': 'Any',
     'avoid_late_night': false,
     'tourist_name': 'Sarah Johnson',
+    'tourist_photo_url': 'https://picsum.photos/seed/sarah_johnson/200/200',
   },
   {
     'id': 102,
@@ -46,6 +47,7 @@ final _syntheticOpenRequests = [
     'dietary_requirement': 'Vegetarian',
     'avoid_late_night': true,
     'tourist_name': 'Michael Chen',
+    'tourist_photo_url': 'https://picsum.photos/seed/michael_chen/200/200',
   },
 ];
 
@@ -695,15 +697,17 @@ class _PendingTab extends ConsumerWidget {
                                 item['id'],
                                 'PENDING_ACCEPTANCE',
                                 'Accept this request?',
-                                'You will be matched with this tourist for their trip.',
+                                'You will be matched with ${item['tourist_name'] ?? 'this tourist'} for their trip.',
+                                item['tourist_name'] ?? 'Unknown',
                               ),
                               onDecline: () => _confirmAndUpdateRequest(
                                 context,
                                 ref,
                                 item['id'],
                                 'DECLINED',
-                                'Decline this request?',
-                                'The tourist will be notified and can find another guide.',
+                                'Are you sure you want to decline?',
+                                '${item['tourist_name'] ?? 'This tourist'} will be notified and can find another guide.',
+                                item['tourist_name'] ?? 'Unknown',
                               ),
                             )
                           : _JobCard(
@@ -891,6 +895,7 @@ class _PendingTab extends ConsumerWidget {
     String status,
     String title,
     String body,
+    String touristName,
   ) async {
     final confirmed = await showDialog<bool>(
       context: context,
@@ -942,7 +947,7 @@ class _PendingTab extends ConsumerWidget {
       ),
     );
     if (confirmed != true) return;
-    await _updateRequestStatus(context, ref, requestId, status);
+    await _updateRequestStatus(context, ref, requestId, status, touristName);
   }
 
   Future<void> _updateRequestStatus(
@@ -950,6 +955,7 @@ class _PendingTab extends ConsumerWidget {
     WidgetRef ref,
     int requestId,
     String status,
+    String touristName,
   ) async {
     try {
       final api = ApiClient();
@@ -962,7 +968,11 @@ class _PendingTab extends ConsumerWidget {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(status == 'PENDING_ACCEPTANCE' ? 'Request accepted!' : 'Request declined'),
+            content: Text(
+              status == 'PENDING_ACCEPTANCE'
+                  ? 'Request Accepted! $touristName has been notified.'
+                  : 'Request Declined.',
+            ),
             backgroundColor:
                 status == 'PENDING_ACCEPTANCE' ? AppColors.success : AppColors.error,
             behavior: SnackBarBehavior.floating,
@@ -975,7 +985,7 @@ class _PendingTab extends ConsumerWidget {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to update: $e'),
+            content: Text('Something went wrong. Please try again.'),
             backgroundColor: AppColors.error,
             behavior: SnackBarBehavior.floating,
             shape:
@@ -1556,14 +1566,10 @@ class _OpenRequestCard extends StatelessWidget {
                 children: [
                   Row(
                     children: [
-                      Container(
-                        width: 48,
-                        height: 48,
-                        decoration: BoxDecoration(
-                          color: AppColors.brand.withOpacity(0.1),
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Icon(Icons.person, color: AppColors.brand, size: 24),
+                      _TouristAvatar(
+                        photoUrl: request['tourist_photo_url'] as String?,
+                        name: touristName,
+                        size: 48,
                       ),
                       const SizedBox(width: 12),
                       Expanded(
@@ -1700,14 +1706,10 @@ class _OpenRequestCard extends StatelessWidget {
           // Tourist info
           Row(
             children: [
-              Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  color: AppColors.surfaceSecondary,
-                  borderRadius: BorderRadius.circular(AppRadius.sm),
-                ),
-                child: const Icon(Icons.person, color: AppColors.textTertiary, size: 22),
+              _TouristAvatar(
+                photoUrl: request['tourist_photo_url'] as String?,
+                name: touristName,
+                size: 44,
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -1829,6 +1831,70 @@ class _DetailRow extends StatelessWidget {
         ),
         Text(value, style: AppText.bodySmall.copyWith(fontWeight: FontWeight.w600)),
       ],
+    );
+  }
+}
+
+class _TouristAvatar extends StatelessWidget {
+  final String? photoUrl;
+  final String name;
+  final double size;
+
+  const _TouristAvatar({this.photoUrl, required this.name, required this.size});
+
+  Color get _color {
+    final colors = [
+      AppColors.brand,
+      AppColors.success,
+      AppColors.info,
+      Colors.purple,
+      Colors.teal,
+    ];
+    return colors[name.hashCode.abs() % colors.length];
+  }
+
+  String get _initials {
+    final parts = name.trim().split(' ');
+    if (parts.length >= 2) {
+      return '${parts[0][0]}${parts[1][0]}'.toUpperCase();
+    }
+    return name.isNotEmpty ? name[0].toUpperCase() : '?';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (photoUrl != null && photoUrl!.isNotEmpty) {
+      return ClipOval(
+        child: CachedNetworkImage(
+          imageUrl: photoUrl!,
+          width: size,
+          height: size,
+          fit: BoxFit.cover,
+          placeholder: (_, __) => _fallbackAvatar,
+          errorWidget: (_, __, ___) => _fallbackAvatar,
+        ),
+      );
+    }
+    return _fallbackAvatar;
+  }
+
+  Widget get _fallbackAvatar {
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        color: _color.withOpacity(0.15),
+        shape: BoxShape.circle,
+      ),
+      alignment: Alignment.center,
+      child: Text(
+        _initials,
+        style: TextStyle(
+          color: _color,
+          fontSize: size * 0.38,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
     );
   }
 }

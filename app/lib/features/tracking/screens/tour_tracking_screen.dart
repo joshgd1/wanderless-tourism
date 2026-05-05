@@ -26,10 +26,11 @@ class _TourTrackingScreenState extends ConsumerState<TourTrackingScreen> {
   bool _isDemoMode = false;
 
   // Demo mode: simulated Singapore tour route
-  static const _demoGuideLat = 1.2816;
-  static const _demoGuideLng = 103.8176;
-  static const _demoTouristLat = 1.2855;
-  static const _demoTouristLng = 103.8110;
+  // Guide at Orchard Road, Tourist at Marina Bay Sands — clearly visible, ~3km apart
+  static const _demoGuideLat = 1.3036;
+  static const _demoGuideLng = 103.8319;
+  static const _demoTouristLat = 1.2837;
+  static const _demoTouristLng = 103.8606;
 
   @override
   void initState() {
@@ -102,20 +103,14 @@ class _TourTrackingScreenState extends ConsumerState<TourTrackingScreen> {
         (guide.longitude + tourist.longitude) / 2,
       );
     }
-    return guide ?? tourist ?? const LatLng(18.7883, 98.9853);
+    // Default to Singapore center when only one marker is available
+    return guide ?? tourist ?? const LatLng(1.2936, 103.8474);
   }
 
-  double get _zoom {
-    final guide = _guideLocation;
-    final tourist = _touristLocation;
-    if (guide == null || tourist == null) return 15.0;
-    const distance = Distance();
-    final dist = distance.as(LengthUnit.Meter, guide, tourist);
-    if (dist < 500) return 16;
-    if (dist < 2000) return 14;
-    if (dist < 10000) return 12;
-    return 10;
-  }
+  // Fixed zoom at 13 — shows ~10km x 10km area centered on Singapore,
+  // ensuring both Guide (Orchard Rd) and Tourist (Marina Bay) markers are
+  // visible on initial load without user interaction
+  double get _zoom => 13.0;
 
   @override
   Widget build(BuildContext context) {
