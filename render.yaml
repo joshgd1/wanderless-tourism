@@ -1,8 +1,0 @@
-# Serve Flutter web build as static site
-# GitHub Actions commits app/docs/ on every push to main
-services:
-  - type: web
-    name: wanderless-tourism
-    runtime: static
-    buildCommand: echo "Static site — built by GitHub Actions"
-    staticPublishPath: app/docs
