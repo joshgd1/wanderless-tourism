@@ -996,6 +996,41 @@ class _PlanDetailSheet extends StatelessWidget {
       ],
     );
   });
+
+  Color _safetyColor(SafetyResult r) {
+    switch (r.color) {
+      case 'green': return AppColors.success;
+      case 'amber': return AppColors.warning;
+      case 'red': return AppColors.error;
+      default: return AppColors.textSecondary;
+    }
+  }
+
+  Color _safetyBgColor(SafetyResult r) {
+    switch (r.color) {
+      case 'green': return AppColors.successBg;
+      case 'amber': return AppColors.warningBg;
+      case 'red': return AppColors.errorBg;
+      default: return AppColors.surfaceSecondary;
+    }
+  }
+
+  IconData _safetyIcon(SafetyResult r) {
+    switch (r.level) {
+      case 'safe': return Icons.check_circle_outline;
+      case 'caution': return Icons.warning_amber_outlined;
+      case 'risky': return Icons.error_outline;
+      default: return Icons.info_outline;
+    }
+  }
+
+  String _safetyLevelLabel(SafetyResult r) {
+    switch (r.level) {
+      case 'safe': return 'Safe';
+      case 'caution': return 'Caution';
+      case 'risky': return 'Risky';
+      default: return r.label;
+    }
   }
 }
 
@@ -1104,42 +1139,6 @@ class _MatchedGuideCard extends StatelessWidget {
         ],
       ),
     );
-  }
-
-  Color _safetyColor(SafetyResult r) {
-    switch (r.color) {
-      case 'green': return AppColors.success;
-      case 'amber': return AppColors.warning;
-      case 'red': return AppColors.error;
-      default: return AppColors.textSecondary;
-    }
-  }
-
-  Color _safetyBgColor(SafetyResult r) {
-    switch (r.color) {
-      case 'green': return AppColors.successBg;
-      case 'amber': return AppColors.warningBg;
-      case 'red': return AppColors.errorBg;
-      default: return AppColors.surfaceSecondary;
-    }
-  }
-
-  IconData _safetyIcon(SafetyResult r) {
-    switch (r.level) {
-      case 'safe': return Icons.check_circle_outline;
-      case 'caution': return Icons.warning_amber_outlined;
-      case 'risky': return Icons.error_outline;
-      default: return Icons.info_outline;
-    }
-  }
-
-  String _safetyLevelLabel(SafetyResult r) {
-    switch (r.level) {
-      case 'safe': return 'Safe';
-      case 'caution': return 'Caution';
-      case 'risky': return 'Risky';
-      default: return r.label;
-    }
   }
 }
 
