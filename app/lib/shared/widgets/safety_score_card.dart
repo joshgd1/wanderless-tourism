@@ -104,20 +104,15 @@ class _SafetyScoreCardState extends State<SafetyScoreCard> {
                   style: AppText.captionBold.copyWith(color: _scoreColor, fontSize: 10),
                 ),
               ),
-              if (widget.onDismiss != null) ...[
-                const SizedBox(width: 4),
-                GestureDetector(
-                  onTap: () {
-                    setState(() => _dismissed = true);
-                    widget.onDismiss?.call();
-                  },
-                  child: Icon(
-                    Icons.close,
-                    size: 16,
-                    color: AppColors.textSecondary,
-                  ),
+              const SizedBox(width: 4),
+              GestureDetector(
+                onTap: () => setState(() => _dismissed = true),
+                child: const Icon(
+                  Icons.close,
+                  size: 16,
+                  color: AppColors.textSecondary,
                 ),
-              ],
+              ),
             ],
           ),
           const SizedBox(height: AppSpacing.xs),

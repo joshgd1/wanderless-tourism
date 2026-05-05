@@ -482,17 +482,26 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }
 
   Widget _buildBrandMark({required double size}) {
-    return Container(
-      width: size,
-      height: size,
-      decoration: BoxDecoration(
-        color: AppColors.brand,
-        borderRadius: BorderRadius.circular(AppRadius.md),
-      ),
-      child: Icon(
-        Icons.explore,
-        color: Colors.white,
-        size: size * 0.55,
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(AppRadius.md),
+      child: Image.asset(
+        'assets/images/wanderless_logo.png',
+        width: size,
+        height: size,
+        fit: BoxFit.cover,
+        errorBuilder: (_, __, ___) => Container(
+          width: size,
+          height: size,
+          decoration: BoxDecoration(
+            color: AppColors.brand,
+            borderRadius: BorderRadius.circular(AppRadius.md),
+          ),
+          child: Icon(
+            Icons.explore,
+            color: Colors.white,
+            size: size * 0.55,
+          ),
+        ),
       ),
     );
   }
