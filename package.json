@@ -1,0 +1,27 @@
+{
+  "name": "wanderless-tourism",
+  "version": "1.0.0",
+  "description": "Generated: generate_synthetic.py — seed=42",
+  "main": "index.js",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/joshgd1/wanderless-tourism.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/joshgd1/wanderless-tourism/issues"
+  },
+  "homepage": "https://github.com/joshgd1/wanderless-tourism#readme",
+  "devDependencies": {
+    "@playwright/test": "^1.59.1"
+  }
+}

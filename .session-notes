@@ -1,47 +1,27 @@
-# Session Notes — 2026-05-05 (Updated)
+# Session Notes — 2026-05-05
 
 ## Where we are
 
-### Completed Features Re-added
-1. ✅ **Safety score badge on `_TripPlanCard`** (commit b94d716)
-   - Converts `_TripPlanCard` to `ConsumerStatefulWidget`
-   - Fetches and displays safety score badge on each card
+Fixed Flutter Web build failure: `_syntheticGroups` in `groups_screen.dart` used non-existent `TravelGroup` fields (`tripDate`, `durationDays`, `interests`, `memberProfiles`). Replaced with correct model fields (`proposedDate`, `proposedDuration`, `members`/`TravelGroupMember`). Push `01281a9` is green for Deploy Flutter Web.
 
-2. ✅ **Safety score card on `_PlanDetailSheet`** (commit b55ac00)
-   - Watches `_safetyScoreProvider` in the detail sheet
-   - Shows full `SafetyScoreCard` when safety data available
+## Read first
 
-3. ✅ **Booking dialog text updates** (commit 5681f46)
-   - Changed "Payment Successful" → "Request Sent!"
-   - Changed "booking has been confirmed" → "booking request has been sent to guide"
-   - Updated snackbar messages
+1. `app/lib/features/groups/screens/groups_screen.dart` — fixed synthetic data; uses `TravelGroupMember` for members
+2. `app/lib/features/guide/screens/guide_dashboard_screen.dart` — has `openRequestsProvider` + `_OpenRequestCard` added prior session; card lacks Accept/Decline buttons
+3. `app/lib/features/guide/screens/guide_login_screen.dart` — beautified with hero image + social login
+4. `app/lib/features/trip_plan/screens/create_trip_plan_screen.dart` — synthetic safety score fallback (87)
 
-4. ✅ **Dart format applied to all screen files** (commit a47f83c)
-   - All 20 screen files formatted consistently
+## In-flight state
 
-5. ✅ **Cleanup of test artifacts** (commit 1d47c0b)
-   - Removed old pending template files
-   - Removed screenshot files
-   - Removed deb packages
-   - Removed node_modules/test artifacts
+- `_OpenRequestCard` on guide dashboard displays open requests but has no Accept/Decline action buttons
+- Guide login and tourist login are now very similar in visual style (hero image, social buttons)
+- Flutter APK builds were running at session end — check `gh run list` for status
 
-### Already Present (not lost after all)
-- Guide matching flow with `_MatchedGuideCard` - already in code
-- OPEN/ACCEPTED status containers - already in code
+## Traps
 
-## Commits in this session
-- c687573: fix(trip_plan): revert to working version at 0097762
-- b94d716: feat(trip_plan): add safety score badge to trip plan cards
-- b55ac00: feat(trip_plan): display safety score card on plan detail sheet
-- 5681f46: feat(trip_plan): update booking dialog to reflect guide request flow
-- a47f83c: style(trip_plan): apply dart format to trip plan list screen
-- 1d47c0b: chore: remove old template pending files and test artifacts
+- `openRequestsProvider` and `_syntheticOpenRequests` are defined AFTER their reference sites in `guide_dashboard_screen.dart` — Dart top-to-bottom compilation works but ordering is fragile
 
-## Environment
-- `flutter build web` fails locally (WSL path issue)
-- `dart format` works fine
-- GitHub Actions CI/CD runs the actual build
+## Open questions for the human
 
-## Status: Complete
-Working tree is clean. All features restored, formatting applied, artifacts cleaned.
-GitHub Actions will build and deploy automatically.
+- Should `_OpenRequestCard` have Accept/Decline buttons like booking cards do?
+- Was the intent to make guide login and tourist login nearly identical, or improved-but-distinct?
