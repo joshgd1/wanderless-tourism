@@ -1,27 +1,27 @@
-# Session Notes — 2026-05-05
+# Session Notes — 2026-05-06
 
 ## Where we are
 
-Fixed Flutter Web build failure: `_syntheticGroups` in `groups_screen.dart` used non-existent `TravelGroup` fields (`tripDate`, `durationDays`, `interests`, `memberProfiles`). Replaced with correct model fields (`proposedDate`, `proposedDuration`, `members`/`TravelGroupMember`). Push `01281a9` is green for Deploy Flutter Web.
+Completed Phase 2 UI modernization work. Safety scorecard redesigned as animated modal popup (commit `47463e2`). Guide dashboard pending requests now have modern rounded Accept/Decline buttons + 4 realistic synthetic tourist requests + toast notifications (commit `ffb17de`). "Register as Business" button now matches "Register as Guide" style. Guide login uses Wanderless logo (same as Tourist login).
 
 ## Read first
 
-1. `app/lib/features/groups/screens/groups_screen.dart` — fixed synthetic data; uses `TravelGroupMember` for members
-2. `app/lib/features/guide/screens/guide_dashboard_screen.dart` — has `openRequestsProvider` + `_OpenRequestCard` added prior session; card lacks Accept/Decline buttons
-3. `app/lib/features/guide/screens/guide_login_screen.dart` — beautified with hero image + social login
-4. `app/lib/features/trip_plan/screens/create_trip_plan_screen.dart` — synthetic safety score fallback (87)
+1. `app/lib/shared/widgets/safety_score_card.dart` — modal redesign with `showGeneralDialog` + `ScaleTransition`, 120px score ring, emoji messages per tier
+2. `app/lib/features/guide/screens/guide_dashboard_screen.dart` — `_syntheticOpenRequests` (4 tourist requests), `_ModernActionButton` widget (rounded green/red buttons), toast notifications on accept/decline
+3. `app/lib/features/auth/screens/login_screen.dart` — "Register as Business" now uses `OutlinedButton` with brand color (line ~440)
+4. `app/lib/features/guide/screens/guide_login_screen.dart` — `_buildBrandMark` uses Wanderless logo asset with `Icons.explore` fallback
 
 ## In-flight state
 
-- `_OpenRequestCard` on guide dashboard displays open requests but has no Accept/Decline action buttons
-- Guide login and tourist login are now very similar in visual style (hero image, social buttons)
-- Flutter APK builds were running at session end — check `gh run list` for status
+- All Phase 2 UI items from prior session are complete and pushed (`ffb17de`)
+- No backend changes this session — all UI-only
+- Flutter analyze unavailable in this environment (WSL/C: Flutter tool cache broken), code reviewed manually
 
 ## Traps
 
 - `openRequestsProvider` and `_syntheticOpenRequests` are defined AFTER their reference sites in `guide_dashboard_screen.dart` — Dart top-to-bottom compilation works but ordering is fragile
+- Flutter analyze unavailable — can't verify compilation locally; check CI pipeline on push
 
 ## Open questions for the human
 
-- Should `_OpenRequestCard` have Accept/Decline buttons like booking cards do?
-- Was the intent to make guide login and tourist login nearly identical, or improved-but-distinct?
+- Any additional button style inconsistencies between the tourist and guide flows to address?
