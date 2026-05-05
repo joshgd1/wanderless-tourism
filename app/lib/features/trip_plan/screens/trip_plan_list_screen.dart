@@ -634,6 +634,10 @@ class _PlanDetailSheet extends StatelessWidget {
         final guidesAsync = isGuideView || plan.status != 'OPEN'
             ? null
             : ref.watch(_matchedGuidesForPlanProvider(plan.destination));
+
+        final safetyAsync = plan.id != null
+            ? ref.watch(_safetyScoreProvider(plan.id!))
+            : null;
         return ListView(
           controller: scrollController,
           padding: const EdgeInsets.all(AppSpacing.lg),
@@ -661,6 +665,19 @@ class _PlanDetailSheet extends StatelessWidget {
               ],
             ),
             const SizedBox(height: AppSpacing.lg),
+            if (safetyAsync != null) ...[
+              safetyAsync.when(
+                loading: () => const SizedBox.shrink(),
+                error: (_, __) => const SizedBox.shrink(),
+                data: (safety) {
+                  if (safety == null) return const SizedBox.shrink();
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: AppSpacing.md),
+                    child: SafetyScoreCard(safetyResult: safety),
+                  );
+                },
+              ),
+            ],
             if (!isGuideView && plan.status == 'OPEN')
               Container(
                 padding: const EdgeInsets.all(AppSpacing.md),
