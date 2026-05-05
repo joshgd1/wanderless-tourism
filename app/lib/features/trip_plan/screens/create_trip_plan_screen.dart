@@ -221,17 +221,7 @@ class _CreateTripPlanScreenState extends ConsumerState<CreateTripPlanScreen> {
       );
 
       if (mounted) {
-        await showDialog(
-          context: context,
-          barrierDismissible: false,
-          builder: (context) => Dialog(
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.lg)),
-            child: Padding(
-              padding: const EdgeInsets.all(AppSpacing.md),
-              child: SafetyScoreCard(safetyResult: safetyResult!),
-            ),
-          ),
-        );
+        await showSafetyScoreDialog(context, safetyResult!);
       }
 
       // If shared group mode is on, create a group from this plan

@@ -674,7 +674,68 @@ class _PlanDetailSheet extends StatelessWidget {
                   if (safety == null) return const SizedBox.shrink();
                   return Padding(
                     padding: const EdgeInsets.only(bottom: AppSpacing.md),
-                    child: SafetyScoreCard(safetyResult: safety),
+                    child: GestureDetector(
+                      onTap: () => showSafetyScoreDialog(context, safety),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: _safetyBgColor(safety),
+                          borderRadius: BorderRadius.circular(AppRadius.md),
+                          border: Border.all(color: _safetyColor(safety).withOpacity(0.3)),
+                        ),
+                        padding: const EdgeInsets.all(AppSpacing.sm),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Icon(_safetyIcon(safety), color: _safetyColor(safety), size: 18),
+                                const SizedBox(width: AppSpacing.xs),
+                                Text('AI Safety', style: AppText.labelBold),
+                                const Spacer(),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: _safetyColor(safety).withOpacity(0.15),
+                                    borderRadius: BorderRadius.circular(AppRadius.sm),
+                                  ),
+                                  child: Text(
+                                    _safetyLevelLabel(safety),
+                                    style: AppText.captionBold.copyWith(
+                                      color: _safetyColor(safety), fontSize: 10,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 4),
+                                Icon(Icons.chevron_right, size: 16, color: AppColors.textSecondary),
+                              ],
+                            ),
+                            const SizedBox(height: AppSpacing.xs),
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                Text(
+                                  safety.totalScore.round().toString(),
+                                  style: AppText.h2.copyWith(
+                                    fontSize: 32, fontWeight: FontWeight.bold,
+                                    color: _safetyColor(safety), height: 1,
+                                  ),
+                                ),
+                                const SizedBox(width: 4),
+                                Padding(
+                                  padding: const EdgeInsets.only(bottom: 4),
+                                  child: Text('/100', style: AppText.caption),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: AppSpacing.xs),
+                            Text(
+                              safety.recommendation,
+                              style: AppText.caption, maxLines: 2, overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
                   );
                 },
               ),
@@ -1043,6 +1104,42 @@ class _MatchedGuideCard extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  Color _safetyColor(SafetyResult r) {
+    switch (r.color) {
+      case 'green': return AppColors.success;
+      case 'amber': return AppColors.warning;
+      case 'red': return AppColors.error;
+      default: return AppColors.textSecondary;
+    }
+  }
+
+  Color _safetyBgColor(SafetyResult r) {
+    switch (r.color) {
+      case 'green': return AppColors.successBg;
+      case 'amber': return AppColors.warningBg;
+      case 'red': return AppColors.errorBg;
+      default: return AppColors.surfaceSecondary;
+    }
+  }
+
+  IconData _safetyIcon(SafetyResult r) {
+    switch (r.level) {
+      case 'safe': return Icons.check_circle_outline;
+      case 'caution': return Icons.warning_amber_outlined;
+      case 'risky': return Icons.error_outline;
+      default: return Icons.info_outline;
+    }
+  }
+
+  String _safetyLevelLabel(SafetyResult r) {
+    switch (r.level) {
+      case 'safe': return 'Safe';
+      case 'caution': return 'Caution';
+      case 'risky': return 'Risky';
+      default: return r.label;
+    }
   }
 }
 
