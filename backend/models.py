@@ -42,6 +42,7 @@ class Tourist(Base):
     email = Column(String, unique=True, nullable=True)
     password_hash = Column(String, nullable=True)
     name = Column(String, nullable=True)
+    photo_url = Column(String, nullable=True)
     food_interest = Column(Float)
     culture_interest = Column(Float)
     adventure_interest = Column(Float)

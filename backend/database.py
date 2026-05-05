@@ -79,6 +79,7 @@ def _seed_test_tourist(db: Session) -> None:
     existing = db.query(Tourist).filter_by(email="test@wanderless.com").first()
     if existing:
         existing.name = "Alex Traveler"
+        existing.photo_url = "https://picsum.photos/seed/alex_traveler/200/200"
         existing.password_hash = _TEST_PASSWORD_HASH
         existing.food_interest = 0.5
         existing.culture_interest = 0.5
@@ -99,6 +100,7 @@ def _seed_test_tourist(db: Session) -> None:
         email="test@wanderless.com",
         password_hash=_TEST_PASSWORD_HASH,
         name="Alex Traveler",
+        photo_url="https://picsum.photos/seed/alex_traveler/200/200",
         food_interest=0.5,
         culture_interest=0.5,
         adventure_interest=0.5,
@@ -206,6 +208,21 @@ def _migrate_bookings_schema(db: Session) -> None:
     if "license_expiry" not in guide_cols:
         db.execute(text("ALTER TABLE guides ADD COLUMN license_expiry TEXT"))
 
+    # Tourist schema migrations (photo_url field)
+    tourist_result = db.execute(text("PRAGMA table_info(tourists)")).fetchall()
+    tourist_cols = {row[1] for row in tourist_result}
+    if "photo_url" not in tourist_cols:
+        db.execute(text("ALTER TABLE tourists ADD COLUMN photo_url TEXT"))
+    # Backfill name and photo_url for existing tourists
+    existing_tourists = db.query(Tourist).filter(Tourist.photo_url == None).all()
+    for t in existing_tourists:
+        if t.photo_url is None:
+            t.photo_url = f"https://picsum.photos/seed/{t.id}/200/200"
+        if t.name is None:
+            t.name = f"Tourist {t.id}"
+    if existing_tourists:
+        db.commit()
+
 
 def _seed_tourists(db: Session) -> None:
     path = DATA_DIR / "tourist_profiles.csv"
@@ -218,6 +235,8 @@ def _seed_tourists(db: Session) -> None:
             seen_ids.add(row["tourist_id"])
             tourist = Tourist(
                 id=row["tourist_id"],
+                name=f"Tourist {row['tourist_id']}",
+                photo_url=f"https://picsum.photos/seed/{row['tourist_id']}/200/200",
                 food_interest=float(row["food_interest"]),
                 culture_interest=float(row["culture_interest"]),
                 adventure_interest=float(row["adventure_interest"]),

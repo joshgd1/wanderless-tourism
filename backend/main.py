@@ -753,10 +753,18 @@ async def get_guide_open_requests(
         (models.TripPlan.status == "OPEN") |
         ((models.TripPlan.status == "PENDING_ACCEPTANCE") & (models.TripPlan.guide_id == guide_id))
     ).all()
+
+    # Fetch tourist data to include name and photo_url
+    tourist_ids = list({tp.tourist_id for tp in trip_plans})
+    tourists = db.query(models.Tourist).filter(models.Tourist.id.in_(tourist_ids)).all()
+    tourist_map = {t.id: t for t in tourists}
+
     return [
         {
             "id": tp.id,
             "tourist_id": tp.tourist_id,
+            "tourist_name": tourist_map.get(tp.tourist_id).name if tp.tourist_id in tourist_map else None,
+            "tourist_photo_url": tourist_map.get(tp.tourist_id).photo_url if tp.tourist_id in tourist_map else None,
             "destination": tp.destination,
             "interests": tp.interests.split("|") if tp.interests else [],
             "proposed_stops": tp.proposed_stops,

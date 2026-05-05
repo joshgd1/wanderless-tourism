@@ -9,47 +9,15 @@ import '../../../../design_system.dart';
 
 final guideOpenRequestsProvider = FutureProvider<List<Map<String, dynamic>>>((ref) async {
   final authState = ref.watch(guideAuthProvider);
-  if (authState.guideId == null) return _syntheticOpenRequests;
+  if (authState.guideId == null) return [];
   try {
     final api = ApiClient();
     final data = await api.getGuideOpenRequests();
-    final requests = data.cast<Map<String, dynamic>>();
-    return requests.isEmpty ? _syntheticOpenRequests : requests;
+    return data.cast<Map<String, dynamic>>();
   } catch (_) {
-    return _syntheticOpenRequests;
+    return [];
   }
 });
-
-final _syntheticOpenRequests = [
-  {
-    'id': 101,
-    'status': 'PENDING_ACCEPTANCE',
-    'destination': 'Chinatown Heritage Walk',
-    'interests': ['culture', 'food'],
-    'tour_date_start': '2026-05-15',
-    'tour_date_end': '2026-05-15',
-    'group_size': 2,
-    'duration_hours': 4.0,
-    'dietary_requirement': 'Any',
-    'avoid_late_night': false,
-    'tourist_name': 'Sarah Johnson',
-    'tourist_photo_url': 'https://picsum.photos/seed/sarah_johnson/200/200',
-  },
-  {
-    'id': 102,
-    'status': 'OPEN',
-    'destination': 'Gardens by the Bay',
-    'interests': ['nature', 'culture'],
-    'tour_date_start': '2026-05-20',
-    'tour_date_end': '2026-05-21',
-    'group_size': 4,
-    'duration_hours': 8.0,
-    'dietary_requirement': 'Vegetarian',
-    'avoid_late_night': true,
-    'tourist_name': 'Michael Chen',
-    'tourist_photo_url': 'https://picsum.photos/seed/michael_chen/200/200',
-  },
-];
 
 final guideBookingsProvider = FutureProvider<List<Map<String, dynamic>>>((ref) async {
   final authState = ref.watch(guideAuthProvider);
