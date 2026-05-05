@@ -7,7 +7,7 @@ import '../../../../core/auth_provider.dart';
 import '../../../../design_system.dart';
 import '../../../bookings/screens/bookings_screen.dart';
 
-final selectedDateProvider = StateProvider<DateTime?>((_) => null);
+final selectedDateRangeProvider = StateProvider<DateTimeRange?>((_) => null);
 final selectedGroupSizeProvider = StateProvider<int>((_) => 1);
 final selectedDurationProvider = StateProvider<double>((_) => 2.0);
 
@@ -56,7 +56,8 @@ class _BookingFlowScreenState extends ConsumerState<BookingFlowScreen> {
         }
         return;
       }
-      final date = ref.read(selectedDateProvider)!;
+      final dateRange = ref.read(selectedDateRangeProvider)!;
+      final date = dateRange.start;
       final groupSize = ref.read(selectedGroupSizeProvider);
       final duration = ref.read(selectedDurationProvider);
       final api = ApiClient();
@@ -127,30 +128,103 @@ class _DateSelectStep extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final selectedDate = ref.watch(selectedDateProvider);
+    final dateRange = ref.watch(selectedDateRangeProvider);
 
     return Padding(
       padding: const EdgeInsets.all(AppSpacing.lg),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Select a Date', style: AppText.h1),
+          Text('Select Your Trip Dates', style: AppText.h1),
+          const SizedBox(height: AppSpacing.sm),
+          Text(
+            'Choose your start and end dates',
+            style: AppText.bodySmall.copyWith(color: AppColors.textSecondary),
+          ),
           const SizedBox(height: AppSpacing.lg),
-          Expanded(
-            child: CalendarDatePicker(
-              initialDate: selectedDate ?? DateTime.now().add(const Duration(days: 1)),
-              firstDate: DateTime.now(),
-              lastDate: DateTime.now().add(const Duration(days: 90)),
-              onDateChanged: (date) {
-                ref.read(selectedDateProvider.notifier).state = date;
-              },
+          // Date range display card
+          GestureDetector(
+            onTap: () async {
+              final now = DateTime.now();
+              final picked = await showDateRangePicker(
+                context: context,
+                firstDate: now,
+                lastDate: now.add(const Duration(days: 365)),
+                initialDateRange: dateRange,
+                builder: (context, child) {
+                  return Theme(
+                    data: Theme.of(context).copyWith(
+                      colorScheme: ColorScheme.light(
+                        primary: AppColors.brand,
+                        onPrimary: Colors.white,
+                        surface: AppColors.surface,
+                        onSurface: AppColors.textPrimary,
+                      ),
+                    ),
+                    child: child!,
+                  );
+                },
+              );
+              if (picked != null) {
+                ref.read(selectedDateRangeProvider.notifier).state = picked;
+              }
+            },
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(AppSpacing.md),
+              decoration: BoxDecoration(
+                color: AppColors.surface,
+                borderRadius: BorderRadius.circular(AppRadius.lg),
+                border: Border.all(color: AppColors.border),
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: AppColors.brand.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(AppRadius.md),
+                    ),
+                    child: const Icon(Icons.date_range, color: AppColors.brand, size: 24),
+                  ),
+                  const SizedBox(width: AppSpacing.md),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          dateRange != null
+                              ? '${DateFormat('MMM d').format(dateRange.start)} – ${DateFormat('MMM d, yyyy').format(dateRange.end)}'
+                              : 'Tap to select date range',
+                          style: AppText.labelBold.copyWith(
+                            color: dateRange != null ? AppColors.textPrimary : AppColors.textSecondary,
+                          ),
+                        ),
+                        if (dateRange != null) ...[
+                          const SizedBox(height: 2),
+                          Text(
+                            '${dateRange.end.difference(dateRange.start).inDays + 1} day${dateRange.end.difference(dateRange.start).inDays == 0 ? '' : 's'}',
+                            style: AppText.caption.copyWith(color: AppColors.textSecondary),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                  Icon(
+                    Icons.edit_calendar,
+                    color: AppColors.textTertiary,
+                    size: 20,
+                  ),
+                ],
+              ),
             ),
           ),
+          const Spacer(),
           SizedBox(
             width: double.infinity,
             child: PrimaryButton(
               label: 'Continue',
-              onPressed: selectedDate != null ? onNext : null,
+              onPressed: dateRange != null ? onNext : null,
             ),
           ),
         ],
@@ -181,7 +255,7 @@ class _ConfirmStep extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final date = ref.watch(selectedDateProvider);
+    final dateRange = ref.watch(selectedDateRangeProvider);
     final groupSize = ref.watch(selectedGroupSizeProvider);
     final duration = ref.watch(selectedDurationProvider);
     final budgetAsync = ref.watch(_guideBudgetProvider(guideId));
@@ -197,8 +271,10 @@ class _ConfirmStep extends ConsumerWidget {
             child: Column(
               children: [
                 _InfoRow(
-                  label: 'Date',
-                  value: date != null ? DateFormat('MMM d, yyyy').format(date) : 'Not selected',
+                  label: 'Dates',
+                  value: dateRange != null
+                      ? '${DateFormat('MMM d').format(dateRange.start)} – ${DateFormat('MMM d, yyyy').format(dateRange.end)}'
+                      : 'Not selected',
                 ),
                 const Divider(height: AppSpacing.md),
                 _InfoRow(
@@ -349,7 +425,7 @@ class _PaymentStep extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final date = ref.watch(selectedDateProvider);
+    final dateRange = ref.watch(selectedDateRangeProvider);
     final groupSize = ref.watch(selectedGroupSizeProvider);
     final duration = ref.watch(selectedDurationProvider);
     final budgetAsync = ref.watch(_guideBudgetProvider(guideId));
@@ -427,7 +503,12 @@ class _PaymentStep extends ConsumerWidget {
           AppCard(
             child: Column(
               children: [
-                _SummaryRow(label: 'Date', value: date != null ? DateFormat('MMM d, yyyy').format(date) : '—'),
+                _SummaryRow(
+                  label: 'Dates',
+                  value: dateRange != null
+                      ? '${DateFormat('MMM d').format(dateRange.start)} – ${DateFormat('MMM d, yyyy').format(dateRange.end)}'
+                      : '—',
+                ),
                 const Divider(height: AppSpacing.md),
                 _SummaryRow(label: 'Duration', value: '${duration.toInt()} hours'),
                 const Divider(height: AppSpacing.md),

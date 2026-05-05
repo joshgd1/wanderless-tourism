@@ -394,6 +394,70 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }
 
   Widget _buildAlternateActions() {
+    final isWide = MediaQuery.of(context).size.width > 600;
+
+    if (!isWide) {
+      return Column(
+        children: [
+          const Divider(height: AppSpacing.xl),
+          Text(
+            'Are you a guide?',
+            style: AppText.bodySmall.copyWith(color: AppColors.textSecondary),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          SizedBox(
+            width: double.infinity,
+            child: PrimaryButton(
+              label: 'Sign in as Guide',
+              onPressed: () => context.push('/guide/login'),
+            ),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton(
+              onPressed: () => context.push('/guide/register'),
+              style: OutlinedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                side: BorderSide(color: AppColors.brand),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(AppRadius.md),
+                ),
+              ),
+              child: Text(
+                'Register as Guide',
+                style: AppText.label.copyWith(color: AppColors.brand),
+              ),
+            ),
+          ),
+          const SizedBox(height: AppSpacing.lg),
+          Text(
+            'Business owner?',
+            style: AppText.bodySmall.copyWith(color: AppColors.textSecondary),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          SizedBox(
+            width: double.infinity,
+            child: SecondaryButton(
+              label: 'Sign in as Business',
+              onPressed: () => context.push('/business/login'),
+            ),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          SizedBox(
+            width: double.infinity,
+            child: TextButton(
+              onPressed: () => context.push('/business/register'),
+              child: Text(
+                'Register as Business',
+                style: AppText.label.copyWith(color: AppColors.textSecondary),
+              ),
+            ),
+          ),
+        ],
+      );
+    }
+
     return Column(
       children: [
         _AltActionRow(
