@@ -1,7 +1,0 @@
-services:
-  - type: web
-    name: wanderless-tourism
-    env: docker
-    dockerfilePath: ./Dockerfile
-    plan: free
-    autoDeploy: true
