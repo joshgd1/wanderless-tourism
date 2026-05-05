@@ -1,29 +1,39 @@
-# Session Notes — 2026-05-04
+# Session Notes — 2026-05-05
 
 ## Where we are
 
-Building the AI Safety Score feature (trip plan → ML-computed safety score → color badge display). Backend ML engine and API endpoint are done. Flutter model, API client method, card widget, and integration into create_trip_plan_screen are all done. Last fix was a Dio error on "Send Request" — guide_id was sent as JSON body but backend expects query parameter.
+### Completed Features Re-added
+1. ✅ **Safety score badge on `_TripPlanCard`** (commit b94d716)
+   - Converts `_TripPlanCard` to `ConsumerStatefulWidget`
+   - Fetches and displays safety score badge on each card
 
-## Read first
+2. ✅ **Safety score card on `_PlanDetailSheet`** (commit b55ac00)
+   - Watches `_safetyScoreProvider` in the detail sheet
+   - Shows full `SafetyScoreCard` when safety data available
 
-1. `backend/ml/safety_score.py` — ML scoring engine (Area×0.30 + Route×0.20 + Time×0.15 + Transport×0.10 + Weather×0.10 + Venue×0.10 + TravellerFit×0.05)
-2. `backend/main.py` line 2236 — `POST /api/safety/score` endpoint
-3. `app/lib/features/trip_plan/screens/create_trip_plan_screen.dart` — SafetyScoreCard dialog after plan creation (lines ~185-207)
-4. `app/lib/shared/widgets/safety_score_card.dart` — display card widget
-5. `app/lib/shared/models/safety_result.dart` — Flutter data model
-6. `app/lib/core/api_client.dart` line 217 — `requestGuideFromPlan` fix: `queryParameters` instead of `data` for guide_id
+### Still Lost (not yet re-added)
+- Skeleton loaders
+- Onboarding banner improvements
+- Request dialog (guide accepts/declines) changes
+- Guide matching flow in detail sheet
 
-## In-flight state
+## Technical Notes
+- `_PlanDetailSheet.build()` has complex nested spread-if `...[` syntax
+- Must verify with `dart format --output=none` after each change
+- Provider `_safetyScoreProvider` already exists (was added earlier)
 
-- Safety Score feature fully built but uncommitted
-- Dio error on guide request fixed (was data→queryParameters)
+## Commits
+- c687573 fix(trip_plan): revert to working version at 0097762
+- b94d716 feat(trip_plan): add safety score badge to trip plan cards
+- b55ac00 feat(trip_plan): display safety score card on plan detail sheet
 
-## Traps
+## Next Steps
+1. Skeleton loaders (isolated - low risk)
+2. Request dialog changes (guide accepts/declines)
+3. Guide matching flow in detail sheet
+4. Onboarding banner improvements
 
-- Flutter analyze unavailable (WSL dart tool path broken); verify with `flutter build web`
-- Backend `uv run python` must be run from `backend/` directory
-- Render backend free tier is suspended — check `dashboard.render.com` for manual redeploy
-
-## Open questions for the human
-
-Was the Safety Score dialog appearing after creating a plan? Any other Dio errors to fix?
+## Environment Issues
+- `flutter build web` fails locally (WSL path issue)
+- `dart format` works fine
+- GitHub Actions CI/CD runs the actual build
