@@ -1,7 +1,8 @@
+# Serve Flutter web build as static site
+# GitHub Actions commits app/docs/ on every push to main
 services:
   - type: web
-    name: wanderless-api
-    env: python
-    buildCommand: pip install -r requirements.txt
-    startCommand: PYTHONPATH=backend uvicorn main:app --host 0.0.0.0 --port $PORT
-    plan: free
+    name: wanderless-tourism
+    runtime: static
+    buildCommand: echo "Static site — built by GitHub Actions"
+    staticPublishPath: app/docs
