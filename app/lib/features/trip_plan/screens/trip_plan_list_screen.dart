@@ -744,22 +744,21 @@ class _PlanDetailSheetState extends ConsumerState<_PlanDetailSheet> {
                       shape: BoxShape.circle,
                     ),
                   ),
-                  child: const Icon(Icons.person, color: AppColors.success, size: 22),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('Guide Assigned!', style: AppText.labelBold),
-                      Text('ID: ${widget.plan.guideId}', style: AppText.caption),
-                    ],
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Guide Assigned!', style: AppText.labelBold),
+                        Text('ID: ${widget.plan.guideId}', style: AppText.caption),
+                      ],
+                    ),
                   ),
-                ),
-                Icon(Icons.check_circle, color: AppColors.success, size: 22),
-              ],
+                  Icon(Icons.check_circle, color: AppColors.success, size: 22),
+                ],
+              ),
             ),
-          ),
+          ],
           const SizedBox(height: AppSpacing.sm),
           Container(
             padding: const EdgeInsets.all(AppSpacing.md),
