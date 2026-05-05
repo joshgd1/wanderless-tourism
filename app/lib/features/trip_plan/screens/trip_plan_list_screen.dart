@@ -12,22 +12,32 @@ import '../../../../design_system.dart';
 import '../../bookings/screens/bookings_screen.dart';
 
 // Provider to fetch top matched guides for a destination
-final _matchedGuidesForPlanProvider = FutureProvider.family<List<MatchedGuide>, String>((ref, destination) async {
+final _matchedGuidesForPlanProvider =
+    FutureProvider.family<List<MatchedGuide>, String>((ref, destination) async {
   final authState = ref.watch(authProvider);
   final touristId = authState.touristId;
   if (touristId == null) return [];
   final api = ApiClient();
-  final data = await api.getMlGuideRecommendations(touristId, topN: 3, destination: destination);
-  final guides = data.map((e) => MatchedGuide.fromJson(e as Map<String, dynamic>)).toList();
+  final data = await api.getMlGuideRecommendations(touristId,
+      topN: 3, destination: destination);
+  final guides = data
+      .map((e) => MatchedGuide.fromJson(e as Map<String, dynamic>))
+      .toList();
   // Always show Mei Ling first as the demo guide
   final meiLing = MatchedGuide(
     guideId: 'GTH268',
     name: 'Mei Ling 🇸🇬',
-    photoUrl: 'https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=400&h=400&fit=crop&crop=face',
-    bio: 'Passionate Singapore guide specializing in cultural heritage walks through Chinatown, Little India, and Gardens by the Bay.',
+    photoUrl:
+        'https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=400&h=400&fit=crop&crop=face',
+    bio:
+        'Passionate Singapore guide specializing in cultural heritage walks through Chinatown, Little India, and Gardens by the Bay.',
     expertiseTags: ['culture', 'food', 'heritage', 'nature'],
     languagePairs: ['en→zh', 'en→ms'],
-    locationCoverage: ['SG:Chinatown', 'SG:Little India', 'SG:Gardens by the Bay'],
+    locationCoverage: [
+      'SG:Chinatown',
+      'SG:Little India',
+      'SG:Gardens by the Bay'
+    ],
     ratingHistory: 4.8,
     ratingCount: 127,
     budgetTier: 'mid',
@@ -53,7 +63,8 @@ final openTripPlansProvider = FutureProvider<List<TripPlan>>((ref) async {
   return data.map((e) => TripPlan.fromJson(e as Map<String, dynamic>)).toList();
 });
 
-final _safetyScoreProvider = FutureProvider.family<SafetyResult?, int>((ref, planId) async {
+final _safetyScoreProvider =
+    FutureProvider.family<SafetyResult?, int>((ref, planId) async {
   try {
     final api = ApiClient();
     final data = await api.getSafetyScore(planId: planId);
@@ -117,14 +128,18 @@ class TripPlanListScreen extends ConsumerWidget {
                             const SizedBox(width: 12),
                             Expanded(
                               child: Text(
-                                isGuideView ? 'Open Trip Requests' : 'My Trip Plans',
+                                isGuideView
+                                    ? 'Open Trip Requests'
+                                    : 'My Trip Plans',
                                 style: AppText.h3.copyWith(color: Colors.white),
                               ),
                             ),
                             if (!isGuideView)
                               IconButton(
-                                icon: const Icon(Icons.add_circle_outline, color: Colors.white70),
-                                onPressed: () => context.push('/trip-plan/create'),
+                                icon: const Icon(Icons.add_circle_outline,
+                                    color: Colors.white70),
+                                onPressed: () =>
+                                    context.push('/trip-plan/create'),
                               ),
                           ],
                         ),
@@ -151,7 +166,9 @@ class TripPlanListScreen extends ConsumerWidget {
                 return SliverFillRemaining(
                   child: EmptyState(
                     icon: Icons.explore_off_outlined,
-                    title: isGuideView ? 'No open trip requests' : 'No trip plans yet',
+                    title: isGuideView
+                        ? 'No open trip requests'
+                        : 'No trip plans yet',
                     subtitle: isGuideView
                         ? 'Check back later for new requests'
                         : 'Propose your own trip and let guides compete for it!',
@@ -204,14 +221,16 @@ class TripPlanListScreen extends ConsumerWidget {
         builder: (_, scrollController) => Container(
           decoration: const BoxDecoration(
             color: AppColors.surface,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.lg)),
+            borderRadius:
+                BorderRadius.vertical(top: Radius.circular(AppRadius.lg)),
           ),
           child: _PlanDetailSheet(
             plan: plan,
             isGuideView: isGuideView,
             statusColor: _statusColor(plan.status),
             scrollController: scrollController,
-            onAccept: isGuideView ? () => _acceptPlan(context, ref, ctx, plan) : null,
+            onAccept:
+                isGuideView ? () => _acceptPlan(context, ref, ctx, plan) : null,
             onCancel: !isGuideView && plan.status == 'OPEN'
                 ? () => _cancelPlan(context, ref, ctx, plan)
                 : null,
@@ -224,7 +243,8 @@ class TripPlanListScreen extends ConsumerWidget {
     );
   }
 
-  Future<void> _acceptPlan(BuildContext context, WidgetRef ref, BuildContext sheetCtx, TripPlan plan) async {
+  Future<void> _acceptPlan(BuildContext context, WidgetRef ref,
+      BuildContext sheetCtx, TripPlan plan) async {
     final authState = ref.read(authProvider);
     if (authState.token == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -232,7 +252,8 @@ class TripPlanListScreen extends ConsumerWidget {
           content: const Text('Please log in as a guide to accept plans'),
           backgroundColor: AppColors.error,
           behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.sm)),
+          shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(AppRadius.sm)),
         ),
       );
       return;
@@ -246,10 +267,12 @@ class TripPlanListScreen extends ConsumerWidget {
         Navigator.pop(sheetCtx);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Text('Trip plan accepted! The tourist will be notified.'),
+            content:
+                const Text('Trip plan accepted! The tourist will be notified.'),
             backgroundColor: AppColors.success,
             behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.sm)),
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(AppRadius.sm)),
           ),
         );
       }
@@ -260,14 +283,16 @@ class TripPlanListScreen extends ConsumerWidget {
             content: Text('Error: $e'),
             backgroundColor: AppColors.error,
             behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.sm)),
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(AppRadius.sm)),
           ),
         );
       }
     }
   }
 
-  Future<void> _cancelPlan(BuildContext context, WidgetRef ref, BuildContext sheetCtx, TripPlan plan) async {
+  Future<void> _cancelPlan(BuildContext context, WidgetRef ref,
+      BuildContext sheetCtx, TripPlan plan) async {
     try {
       final api = ApiClient();
       await api.updateTripPlan(plan.id, {'status': 'CANCELLED'});
@@ -276,10 +301,12 @@ class TripPlanListScreen extends ConsumerWidget {
         Navigator.pop(sheetCtx);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Text('Trip plan cancelled. Any payment has been refunded.'),
+            content: const Text(
+                'Trip plan cancelled. Any payment has been refunded.'),
             backgroundColor: AppColors.success,
             behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.sm)),
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(AppRadius.sm)),
           ),
         );
       }
@@ -290,14 +317,16 @@ class TripPlanListScreen extends ConsumerWidget {
             content: Text('Error: $e'),
             backgroundColor: AppColors.error,
             behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.sm)),
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(AppRadius.sm)),
           ),
         );
       }
     }
   }
 
-  Future<void> _confirmAndPay(BuildContext context, WidgetRef ref, BuildContext sheetCtx, TripPlan plan) async {
+  Future<void> _confirmAndPay(BuildContext context, WidgetRef ref,
+      BuildContext sheetCtx, TripPlan plan) async {
     if (plan.guideId == null) return;
     try {
       final authState = ref.read(authProvider);
@@ -309,7 +338,8 @@ class TripPlanListScreen extends ConsumerWidget {
               content: const Text('Please sign in to confirm booking'),
               backgroundColor: AppColors.error,
               behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.sm)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(AppRadius.sm)),
             ),
           );
         }
@@ -332,7 +362,8 @@ class TripPlanListScreen extends ConsumerWidget {
           context: sheetCtx,
           barrierDismissible: false,
           builder: (ctx) => AlertDialog(
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.lg)),
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(AppRadius.lg)),
             content: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -351,7 +382,8 @@ class TripPlanListScreen extends ConsumerWidget {
                   ),
                 ),
                 const SizedBox(height: AppSpacing.lg),
-                Text('Request Sent!', style: AppText.h3.copyWith(color: AppColors.success)),
+                Text('Request Sent!',
+                    style: AppText.h3.copyWith(color: AppColors.success)),
                 const SizedBox(height: AppSpacing.sm),
                 Text(
                   'Your booking request has been sent to the guide.',
@@ -360,7 +392,8 @@ class TripPlanListScreen extends ConsumerWidget {
                 ),
                 const SizedBox(height: AppSpacing.sm),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   decoration: BoxDecoration(
                     color: AppColors.surface,
                     borderRadius: BorderRadius.circular(AppRadius.sm),
@@ -368,7 +401,8 @@ class TripPlanListScreen extends ConsumerWidget {
                   ),
                   child: Text(
                     'Booking ID: ${result['id']}',
-                    style: AppText.caption.copyWith(color: AppColors.textSecondary),
+                    style: AppText.caption
+                        .copyWith(color: AppColors.textSecondary),
                   ),
                 ),
                 const SizedBox(height: AppSpacing.lg),
@@ -390,10 +424,12 @@ class TripPlanListScreen extends ConsumerWidget {
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Booking request sent! You\'ll be notified when a guide responds.'),
+              content: Text(
+                  'Booking request sent! You\'ll be notified when a guide responds.'),
               backgroundColor: AppColors.success,
               behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.sm)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(AppRadius.sm)),
               duration: const Duration(seconds: 4),
             ),
           );
@@ -406,7 +442,8 @@ class TripPlanListScreen extends ConsumerWidget {
             content: Text('Booking error: $e'),
             backgroundColor: AppColors.error,
             behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.sm)),
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(AppRadius.sm)),
           ),
         );
       }
@@ -436,10 +473,12 @@ class _BackBtnState extends State<_BackBtn> {
           duration: AppDurations.fast,
           padding: const EdgeInsets.all(6),
           decoration: BoxDecoration(
-            color: _isHovered ? Colors.white.withOpacity(0.1) : Colors.transparent,
+            color:
+                _isHovered ? Colors.white.withOpacity(0.1) : Colors.transparent,
             borderRadius: BorderRadius.circular(AppRadius.sm),
           ),
-          child: Icon(Icons.arrow_back, color: Colors.white.withOpacity(_isHovered ? 1 : 0.7), size: 20),
+          child: Icon(Icons.arrow_back,
+              color: Colors.white.withOpacity(_isHovered ? 1 : 0.7), size: 20),
         ),
       ),
     );
@@ -492,10 +531,14 @@ class _TripPlanCardState extends ConsumerState<_TripPlanCard> {
 
   Color _scoreColor() {
     switch (_safetyResult?.color) {
-      case 'green': return AppColors.success;
-      case 'amber': return AppColors.warning;
-      case 'red': return AppColors.error;
-      default: return AppColors.textTertiary;
+      case 'green':
+        return AppColors.success;
+      case 'amber':
+        return AppColors.warning;
+      case 'red':
+        return AppColors.error;
+      default:
+        return AppColors.textTertiary;
     }
   }
 
@@ -515,7 +558,8 @@ class _TripPlanCardState extends ConsumerState<_TripPlanCard> {
               const Spacer(),
               if (_safetyResult != null) ...[
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                   decoration: BoxDecoration(
                     color: _scoreColor().withOpacity(0.12),
                     borderRadius: BorderRadius.circular(AppRadius.full),
@@ -536,7 +580,8 @@ class _TripPlanCardState extends ConsumerState<_TripPlanCard> {
                       const SizedBox(width: 4),
                       Text(
                         '${_safetyResult!.totalScore.round()}',
-                        style: AppText.labelBold.copyWith(color: _scoreColor(), fontSize: 12),
+                        style: AppText.labelBold
+                            .copyWith(color: _scoreColor(), fontSize: 12),
                       ),
                     ],
                   ),
@@ -573,7 +618,8 @@ class _TripPlanCardState extends ConsumerState<_TripPlanCard> {
                   ],
                 ),
               ),
-              Icon(Icons.arrow_forward_ios, size: 14, color: AppColors.textTertiary),
+              Icon(Icons.arrow_forward_ios,
+                  size: 14, color: AppColors.textTertiary),
             ],
           ),
           if (widget.plan.interests.isNotEmpty) ...[
@@ -583,7 +629,8 @@ class _TripPlanCardState extends ConsumerState<_TripPlanCard> {
               runSpacing: 4,
               children: widget.plan.interests.take(4).map((i) {
                 return Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                   decoration: BoxDecoration(
                     color: AppColors.brand.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(AppRadius.full),
@@ -630,310 +677,140 @@ class _PlanDetailSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer(
-      builder: (context, ref, _) {
-        final guidesAsync = isGuideView || plan.status != 'OPEN'
-            ? null
-            : ref.watch(_matchedGuidesForPlanProvider(plan.destination));
+    return Consumer(builder: (context, ref, _) {
+      final guidesAsync = isGuideView || plan.status != 'OPEN'
+          ? null
+          : ref.watch(_matchedGuidesForPlanProvider(plan.destination));
 
-        final safetyAsync = plan.id != null
-            ? ref.watch(_safetyScoreProvider(plan.id!))
-            : null;
-        return ListView(
-          controller: scrollController,
-          padding: const EdgeInsets.all(AppSpacing.lg),
-          children: [
-            Center(
-              child: Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: AppColors.border,
-                  borderRadius: BorderRadius.circular(2),
-                ),
+      final safetyAsync =
+          plan.id != null ? ref.watch(_safetyScoreProvider(plan.id!)) : null;
+      return ListView(
+        controller: scrollController,
+        padding: const EdgeInsets.all(AppSpacing.lg),
+        children: [
+          Center(
+            child: Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: AppColors.border,
+                borderRadius: BorderRadius.circular(2),
               ),
             ),
-            const SizedBox(height: AppSpacing.lg),
-            Row(
-              children: [
-                Expanded(
-                  child: Text(plan.destination, style: AppText.h1),
-                ),
-                StatusBadge(
-                  label: plan.status,
-                  color: statusColor,
-                ),
-              ],
-            ),
-            const SizedBox(height: AppSpacing.lg),
-            if (safetyAsync != null) ...[
-              safetyAsync.when(
-                loading: () => const SizedBox.shrink(),
-                error: (_, __) => const SizedBox.shrink(),
-                data: (safety) {
-                  if (safety == null) return const SizedBox.shrink();
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: AppSpacing.md),
-                    child: GestureDetector(
-                      onTap: () => showSafetyScoreDialog(context, safety),
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: _safetyBgColor(safety),
-                          borderRadius: BorderRadius.circular(AppRadius.md),
-                          border: Border.all(color: _safetyColor(safety).withOpacity(0.3)),
-                        ),
-                        padding: const EdgeInsets.all(AppSpacing.sm),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                Icon(_safetyIcon(safety), color: _safetyColor(safety), size: 18),
-                                const SizedBox(width: AppSpacing.xs),
-                                Text('AI Safety', style: AppText.labelBold),
-                                const Spacer(),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                  decoration: BoxDecoration(
-                                    color: _safetyColor(safety).withOpacity(0.15),
-                                    borderRadius: BorderRadius.circular(AppRadius.sm),
-                                  ),
-                                  child: Text(
-                                    _safetyLevelLabel(safety),
-                                    style: AppText.captionBold.copyWith(
-                                      color: _safetyColor(safety), fontSize: 10,
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(width: 4),
-                                Icon(Icons.chevron_right, size: 16, color: AppColors.textSecondary),
-                              ],
-                            ),
-                            const SizedBox(height: AppSpacing.xs),
-                            Row(
-                              crossAxisAlignment: CrossAxisAlignment.end,
-                              children: [
-                                Text(
-                                  safety.totalScore.round().toString(),
-                                  style: AppText.h2.copyWith(
-                                    fontSize: 32, fontWeight: FontWeight.bold,
-                                    color: _safetyColor(safety), height: 1,
-                                  ),
-                                ),
-                                const SizedBox(width: 4),
-                                Padding(
-                                  padding: const EdgeInsets.only(bottom: 4),
-                                  child: Text('/100', style: AppText.caption),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: AppSpacing.xs),
-                            Text(
-                              safety.recommendation,
-                              style: AppText.caption, maxLines: 2, overflow: TextOverflow.ellipsis,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  );
-                },
+          ),
+          const SizedBox(height: AppSpacing.lg),
+          Row(
+            children: [
+              Expanded(
+                child: Text(plan.destination, style: AppText.h1),
+              ),
+              StatusBadge(
+                label: plan.status,
+                color: statusColor,
               ),
             ],
-            if (!isGuideView && plan.status == 'OPEN')
-              Container(
-                padding: const EdgeInsets.all(AppSpacing.md),
-                decoration: BoxDecoration(
-                  color: AppColors.success.withOpacity(0.08),
-                  borderRadius: BorderRadius.circular(AppRadius.md),
-                  border: Border.all(color: AppColors.success.withOpacity(0.2)),
-                ),
-                child: Row(
-                  children: [
-                    SizedBox(
-                      width: 18,
-                      height: 18,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: AppColors.success,
+          ),
+          const SizedBox(height: AppSpacing.lg),
+          if (safetyAsync != null) ...[
+            safetyAsync.when(
+              loading: () => const SizedBox.shrink(),
+              error: (_, __) => const SizedBox.shrink(),
+              data: (safety) {
+                if (safety == null) return const SizedBox.shrink();
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: AppSpacing.md),
+                  child: GestureDetector(
+                    onTap: () => showSafetyScoreDialog(context, safety),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: _safetyBgColor(safety),
+                        borderRadius: BorderRadius.circular(AppRadius.md),
+                        border: Border.all(
+                            color: _safetyColor(safety).withOpacity(0.3)),
                       ),
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
+                      padding: const EdgeInsets.all(AppSpacing.sm),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            'Waiting for a guide to accept',
-                            style: AppText.labelBold.copyWith(color: AppColors.success),
+                          Row(
+                            children: [
+                              Icon(_safetyIcon(safety),
+                                  color: _safetyColor(safety), size: 18),
+                              const SizedBox(width: AppSpacing.xs),
+                              Text('AI Safety', style: AppText.labelBold),
+                              const Spacer(),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 6, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: _safetyColor(safety).withOpacity(0.15),
+                                  borderRadius:
+                                      BorderRadius.circular(AppRadius.sm),
+                                ),
+                                child: Text(
+                                  _safetyLevelLabel(safety),
+                                  style: AppText.captionBold.copyWith(
+                                    color: _safetyColor(safety),
+                                    fontSize: 10,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 4),
+                              Icon(Icons.chevron_right,
+                                  size: 16, color: AppColors.textSecondary),
+                            ],
                           ),
-                          const SizedBox(height: 2),
+                          const SizedBox(height: AppSpacing.xs),
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              Text(
+                                safety.totalScore.round().toString(),
+                                style: AppText.h2.copyWith(
+                                  fontSize: 32,
+                                  fontWeight: FontWeight.bold,
+                                  color: _safetyColor(safety),
+                                  height: 1,
+                                ),
+                              ),
+                              const SizedBox(width: 4),
+                              Padding(
+                                padding: const EdgeInsets.only(bottom: 4),
+                                child: Text('/100', style: AppText.caption),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: AppSpacing.xs),
                           Text(
-                            'You\'ll be notified when a guide picks up your request. No payment required yet.',
+                            safety.recommendation,
                             style: AppText.caption,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ],
                       ),
                     ),
-                  ],
-                ),
-              ),
-        if (!isGuideView && plan.status == 'ACCEPTED' && plan.guideId != null) ...[
-          Container(
-            padding: const EdgeInsets.all(AppSpacing.md),
-            decoration: BoxDecoration(
-              color: AppColors.success.withOpacity(0.08),
-              borderRadius: BorderRadius.circular(AppRadius.md),
-              border: Border.all(color: AppColors.success.withOpacity(0.3)),
-            ),
-            child: Row(
-              children: [
-                Container(
-                  width: 44,
-                  height: 44,
-                  decoration: BoxDecoration(
-                    color: AppColors.success.withOpacity(0.15),
-                    shape: BoxShape.circle,
                   ),
-                  child: const Icon(Icons.person, color: AppColors.success, size: 22),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('Guide Assigned!', style: AppText.labelBold),
-                      Text('ID: ${plan.guideId}', style: AppText.caption),
-                    ],
-                  ),
-                ),
-                Icon(Icons.check_circle, color: AppColors.success, size: 22),
-              ],
-            ),
-          ),
-          const SizedBox(height: AppSpacing.sm),
-          Container(
-            padding: const EdgeInsets.all(AppSpacing.md),
-            decoration: BoxDecoration(
-              color: AppColors.warning.withOpacity(0.08),
-              borderRadius: BorderRadius.circular(AppRadius.md),
-              border: Border.all(color: AppColors.warning.withOpacity(0.2)),
-            ),
-            child: Row(
-              children: [
-                Icon(Icons.info_outline, color: AppColors.warning, size: 18),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    'Confirm and pay to finalize your booking.',
-                    style: AppText.bodySmall.copyWith(color: AppColors.warning),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-        // Top 3 matched guides for OPEN plans (tourist view)
-        if (!isGuideView && plan.status == 'OPEN' && guidesAsync != null) ...[
-          const SizedBox(height: AppSpacing.lg),
-          Text('AI-Powered Guide Matches', style: AppText.labelBold),
-          const SizedBox(height: 2),
-          Text(
-            'Based on your trip preferences and destination',
-            style: AppText.caption,
-          ),
-          const SizedBox(height: AppSpacing.sm),
-          guidesAsync.when(
-            loading: () => const Padding(
-              padding: EdgeInsets.all(AppSpacing.md),
-              child: AppLoading(message: 'Finding best guides...'),
-            ),
-            error: (_, __) => Container(
-              padding: const EdgeInsets.all(AppSpacing.sm),
-              decoration: BoxDecoration(
-                color: AppColors.error.withOpacity(0.05),
-                borderRadius: BorderRadius.circular(AppRadius.sm),
-              ),
-              child: Row(
-                children: [
-                  const Icon(Icons.cloud_off, color: AppColors.error, size: 16),
-                  const SizedBox(width: 8),
-                  Text('Could not load matches', style: AppText.caption),
-                ],
-              ),
-            ),
-            data: (guides) {
-              if (guides.isEmpty) {
-                return Container(
-                  padding: const EdgeInsets.all(AppSpacing.sm),
-                  decoration: BoxDecoration(
-                    color: AppColors.surfaceSecondary,
-                    borderRadius: BorderRadius.circular(AppRadius.sm),
-                  ),
-                  child: Text('No matches found for your destination', style: AppText.caption),
                 );
-              }
-              return Column(
-                children: guides.take(3).map((guide) => Padding(
-                  padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-                  child: _MatchedGuideCard(
-                    guide: guide,
-                    onTap: () => context.push('/confirm-request?planId=${plan.id}&guideId=${guide.guideId}'),
-                  ),
-                )).toList(),
-              );
-            },
-          ),
-        ],
-        const SizedBox(height: AppSpacing.lg),
-        _DetailRow(Icons.calendar_today_outlined, 'Date', plan.tourDate ?? 'Not specified'),
-        _DetailRow(Icons.schedule_outlined, 'Duration', plan.durationHours != null ? '${plan.durationHours!.toStringAsFixed(1)} hours' : 'Not specified'),
-        _DetailRow(Icons.group_outlined, 'Group size', plan.groupSize != null ? '${plan.groupSize} people' : 'Not specified'),
-        if (plan.interests.isNotEmpty) ...[
-          const SizedBox(height: AppSpacing.lg),
-          Text('Interests', style: AppText.labelBold),
-          const SizedBox(height: AppSpacing.sm),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: plan.interests.map((i) {
-              return Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                decoration: BoxDecoration(
-                  color: AppColors.brand.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(AppRadius.full),
-                ),
-                child: Text(
-                  i[0].toUpperCase() + i.substring(1),
-                  style: AppText.caption.copyWith(color: AppColors.brand),
-                ),
-              );
-            }).toList(),
-          ),
-        ],
-        if (plan.proposedStops.isNotEmpty) ...[
-          const SizedBox(height: AppSpacing.lg),
-          Text('Proposed Itinerary', style: AppText.labelBold),
-          const SizedBox(height: AppSpacing.md),
-          ...plan.proposedStops.asMap().entries.map((entry) {
-            final stop = entry.value;
-            return Padding(
-              padding: const EdgeInsets.only(bottom: AppSpacing.md),
+              },
+            ),
+          ],
+          if (!isGuideView && plan.status == 'OPEN')
+            Container(
+              padding: const EdgeInsets.all(AppSpacing.md),
+              decoration: BoxDecoration(
+                color: AppColors.success.withOpacity(0.08),
+                borderRadius: BorderRadius.circular(AppRadius.md),
+                border: Border.all(color: AppColors.success.withOpacity(0.2)),
+              ),
               child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Container(
-                    width: 28,
-                    height: 28,
-                    decoration: BoxDecoration(
-                      color: AppColors.brand,
-                      shape: BoxShape.circle,
-                    ),
-                    child: Center(
-                      child: Text(
-                        '${entry.key + 1}',
-                        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12),
-                      ),
+                  SizedBox(
+                    width: 18,
+                    height: 18,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: AppColors.success,
                     ),
                   ),
                   const SizedBox(width: 10),
@@ -941,95 +818,321 @@ class _PlanDetailSheet extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(stop.name, style: AppText.labelBold),
-                        if (stop.notes != null)
-                          Text(stop.notes!, style: AppText.caption),
+                        Text(
+                          'Waiting for a guide to accept',
+                          style: AppText.labelBold
+                              .copyWith(color: AppColors.success),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          'You\'ll be notified when a guide picks up your request. No payment required yet.',
+                          style: AppText.caption,
+                        ),
                       ],
                     ),
                   ),
+                ],
+              ),
+            ),
+          if (!isGuideView &&
+              plan.status == 'ACCEPTED' &&
+              plan.guideId != null) ...[
+            Container(
+              padding: const EdgeInsets.all(AppSpacing.md),
+              decoration: BoxDecoration(
+                color: AppColors.success.withOpacity(0.08),
+                borderRadius: BorderRadius.circular(AppRadius.md),
+                border: Border.all(color: AppColors.success.withOpacity(0.3)),
+              ),
+              child: Row(
+                children: [
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    width: 44,
+                    height: 44,
                     decoration: BoxDecoration(
-                      color: AppColors.surfaceSecondary,
-                      borderRadius: BorderRadius.circular(AppRadius.full),
+                      color: AppColors.success.withOpacity(0.15),
+                      shape: BoxShape.circle,
                     ),
-                    child: Text('${stop.durationHours.toStringAsFixed(1)}h', style: AppText.caption),
+                    child: const Icon(Icons.person,
+                        color: AppColors.success, size: 22),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Guide Assigned!', style: AppText.labelBold),
+                        Text('ID: ${plan.guideId}', style: AppText.caption),
+                      ],
+                    ),
+                  ),
+                  Icon(Icons.check_circle, color: AppColors.success, size: 22),
+                ],
+              ),
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            Container(
+              padding: const EdgeInsets.all(AppSpacing.md),
+              decoration: BoxDecoration(
+                color: AppColors.warning.withOpacity(0.08),
+                borderRadius: BorderRadius.circular(AppRadius.md),
+                border: Border.all(color: AppColors.warning.withOpacity(0.2)),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.info_outline, color: AppColors.warning, size: 18),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Confirm and pay to finalize your booking.',
+                      style:
+                          AppText.bodySmall.copyWith(color: AppColors.warning),
+                    ),
                   ),
                 ],
               ),
-            );
-          }),
-        ],
-        const SizedBox(height: AppSpacing.xl),
-        if (isGuideView && plan.status == 'OPEN' && onAccept != null)
-          SizedBox(
-            width: double.infinity,
-            child: PrimaryButton(
-              label: 'Accept This Trip',
-              icon: Icons.check,
-              onPressed: onAccept,
             ),
-          ),
-        if (!isGuideView && plan.status == 'OPEN' && onCancel != null) ...[
-          SizedBox(
-            width: double.infinity,
-            child: SecondaryButton(
-              label: 'Cancel Plan',
-              icon: Icons.close,
-              color: AppColors.error,
-              onPressed: onCancel,
+          ],
+          // Top 3 matched guides for OPEN plans (tourist view)
+          if (!isGuideView && plan.status == 'OPEN' && guidesAsync != null) ...[
+            const SizedBox(height: AppSpacing.lg),
+            Text('AI-Powered Guide Matches', style: AppText.labelBold),
+            const SizedBox(height: 2),
+            Text(
+              'Based on your trip preferences and destination',
+              style: AppText.caption,
             ),
-          ),
-        ],
-        if (!isGuideView && plan.status == 'ACCEPTED' && onConfirmPay != null) ...[
-          const SizedBox(height: AppSpacing.md),
-          SizedBox(
-            width: double.infinity,
-            child: PrimaryButton(
-              label: 'Confirm & Pay Now',
-              icon: Icons.payment,
-              onPressed: onConfirmPay,
+            const SizedBox(height: AppSpacing.sm),
+            guidesAsync.when(
+              loading: () => const Padding(
+                padding: EdgeInsets.all(AppSpacing.md),
+                child: AppLoading(message: 'Finding best guides...'),
+              ),
+              error: (_, __) => Container(
+                padding: const EdgeInsets.all(AppSpacing.sm),
+                decoration: BoxDecoration(
+                  color: AppColors.error.withOpacity(0.05),
+                  borderRadius: BorderRadius.circular(AppRadius.sm),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.cloud_off,
+                        color: AppColors.error, size: 16),
+                    const SizedBox(width: 8),
+                    Text('Could not load matches', style: AppText.caption),
+                  ],
+                ),
+              ),
+              data: (guides) {
+                if (guides.isEmpty) {
+                  return Container(
+                    padding: const EdgeInsets.all(AppSpacing.sm),
+                    decoration: BoxDecoration(
+                      color: AppColors.surfaceSecondary,
+                      borderRadius: BorderRadius.circular(AppRadius.sm),
+                    ),
+                    child: Text('No matches found for your destination',
+                        style: AppText.caption),
+                  );
+                }
+                return Column(
+                  children: guides
+                      .take(3)
+                      .map((guide) => Padding(
+                            padding:
+                                const EdgeInsets.only(bottom: AppSpacing.sm),
+                            child: _MatchedGuideCard(
+                              guide: guide,
+                              onTap: () => context.push(
+                                  '/confirm-request?planId=${plan.id}&guideId=${guide.guideId}'),
+                            ),
+                          ))
+                      .toList(),
+                );
+              },
             ),
-          ),
+          ],
+          const SizedBox(height: AppSpacing.lg),
+          _DetailRow(Icons.calendar_today_outlined, 'Date',
+              plan.tourDate ?? 'Not specified'),
+          _DetailRow(
+              Icons.schedule_outlined,
+              'Duration',
+              plan.durationHours != null
+                  ? '${plan.durationHours!.toStringAsFixed(1)} hours'
+                  : 'Not specified'),
+          _DetailRow(
+              Icons.group_outlined,
+              'Group size',
+              plan.groupSize != null
+                  ? '${plan.groupSize} people'
+                  : 'Not specified'),
+          if (plan.interests.isNotEmpty) ...[
+            const SizedBox(height: AppSpacing.lg),
+            Text('Interests', style: AppText.labelBold),
+            const SizedBox(height: AppSpacing.sm),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: plan.interests.map((i) {
+                return Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: AppColors.brand.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(AppRadius.full),
+                  ),
+                  child: Text(
+                    i[0].toUpperCase() + i.substring(1),
+                    style: AppText.caption.copyWith(color: AppColors.brand),
+                  ),
+                );
+              }).toList(),
+            ),
+          ],
+          if (plan.proposedStops.isNotEmpty) ...[
+            const SizedBox(height: AppSpacing.lg),
+            Text('Proposed Itinerary', style: AppText.labelBold),
+            const SizedBox(height: AppSpacing.md),
+            ...plan.proposedStops.asMap().entries.map((entry) {
+              final stop = entry.value;
+              return Padding(
+                padding: const EdgeInsets.only(bottom: AppSpacing.md),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      width: 28,
+                      height: 28,
+                      decoration: BoxDecoration(
+                        color: AppColors.brand,
+                        shape: BoxShape.circle,
+                      ),
+                      child: Center(
+                        child: Text(
+                          '${entry.key + 1}',
+                          style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 12),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(stop.name, style: AppText.labelBold),
+                          if (stop.notes != null)
+                            Text(stop.notes!, style: AppText.caption),
+                        ],
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: AppColors.surfaceSecondary,
+                        borderRadius: BorderRadius.circular(AppRadius.full),
+                      ),
+                      child: Text('${stop.durationHours.toStringAsFixed(1)}h',
+                          style: AppText.caption),
+                    ),
+                  ],
+                ),
+              );
+            }),
+          ],
+          const SizedBox(height: AppSpacing.xl),
+          if (isGuideView && plan.status == 'OPEN' && onAccept != null)
+            SizedBox(
+              width: double.infinity,
+              child: PrimaryButton(
+                label: 'Accept This Trip',
+                icon: Icons.check,
+                onPressed: onAccept,
+              ),
+            ),
+          if (!isGuideView && plan.status == 'OPEN' && onCancel != null) ...[
+            SizedBox(
+              width: double.infinity,
+              child: SecondaryButton(
+                label: 'Cancel Plan',
+                icon: Icons.close,
+                color: AppColors.error,
+                onPressed: onCancel,
+              ),
+            ),
+          ],
+          if (!isGuideView &&
+              plan.status == 'ACCEPTED' &&
+              onConfirmPay != null) ...[
+            const SizedBox(height: AppSpacing.md),
+            SizedBox(
+              width: double.infinity,
+              child: PrimaryButton(
+                label: 'Confirm & Pay Now',
+                icon: Icons.payment,
+                onPressed: onConfirmPay,
+              ),
+            ),
+          ],
+          const SizedBox(height: AppSpacing.lg),
         ],
-        const SizedBox(height: AppSpacing.lg),
-      ],
-    );
-  });
+      );
+    });
+  }
 
   Color _safetyColor(SafetyResult r) {
     switch (r.color) {
-      case 'green': return AppColors.success;
-      case 'amber': return AppColors.warning;
-      case 'red': return AppColors.error;
-      default: return AppColors.textSecondary;
+      case 'green':
+        return AppColors.success;
+      case 'amber':
+        return AppColors.warning;
+      case 'red':
+        return AppColors.error;
+      default:
+        return AppColors.textSecondary;
     }
   }
 
   Color _safetyBgColor(SafetyResult r) {
     switch (r.color) {
-      case 'green': return AppColors.successBg;
-      case 'amber': return AppColors.warningBg;
-      case 'red': return AppColors.errorBg;
-      default: return AppColors.surfaceSecondary;
+      case 'green':
+        return AppColors.successBg;
+      case 'amber':
+        return AppColors.warningBg;
+      case 'red':
+        return AppColors.errorBg;
+      default:
+        return AppColors.surfaceSecondary;
     }
   }
 
   IconData _safetyIcon(SafetyResult r) {
     switch (r.level) {
-      case 'safe': return Icons.check_circle_outline;
-      case 'caution': return Icons.warning_amber_outlined;
-      case 'risky': return Icons.error_outline;
-      default: return Icons.info_outline;
+      case 'safe':
+        return Icons.check_circle_outline;
+      case 'caution':
+        return Icons.warning_amber_outlined;
+      case 'risky':
+        return Icons.error_outline;
+      default:
+        return Icons.info_outline;
     }
   }
 
   String _safetyLevelLabel(SafetyResult r) {
     switch (r.level) {
-      case 'safe': return 'Safe';
-      case 'caution': return 'Caution';
-      case 'risky': return 'Risky';
-      default: return r.label;
+      case 'safe':
+        return 'Safe';
+      case 'caution':
+        return 'Caution';
+      case 'risky':
+        return 'Risky';
+      default:
+        return r.label;
     }
   }
 }
@@ -1085,10 +1188,12 @@ class _MatchedGuideCard extends StatelessWidget {
                     child: CachedNetworkImage(
                       imageUrl: guide.photoUrl,
                       fit: BoxFit.cover,
-                      errorWidget: (_, __, ___) => const Icon(Icons.person, color: AppColors.textTertiary, size: 22),
+                      errorWidget: (_, __, ___) => const Icon(Icons.person,
+                          color: AppColors.textTertiary, size: 22),
                     ),
                   )
-                : const Icon(Icons.person, color: AppColors.textTertiary, size: 22),
+                : const Icon(Icons.person,
+                    color: AppColors.textTertiary, size: 22),
           ),
           const SizedBox(width: 10),
           Expanded(
@@ -1100,7 +1205,8 @@ class _MatchedGuideCard extends StatelessWidget {
                     Text(guide.name, style: AppText.labelBold),
                     if (guide.licenseVerified) ...[
                       const SizedBox(width: 4),
-                      const Icon(Icons.verified, color: AppColors.success, size: 14),
+                      const Icon(Icons.verified,
+                          color: AppColors.success, size: 14),
                     ],
                   ],
                 ),
@@ -1116,7 +1222,8 @@ class _MatchedGuideCard extends StatelessWidget {
                     const SizedBox(width: 8),
                     Text(
                       guide.budgetTier.toUpperCase(),
-                      style: AppText.caption.copyWith(color: AppColors.textTertiary),
+                      style: AppText.caption
+                          .copyWith(color: AppColors.textTertiary),
                     ),
                   ],
                 ),
@@ -1135,10 +1242,10 @@ class _MatchedGuideCard extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 4),
-          Icon(Icons.arrow_forward_ios, size: 12, color: AppColors.textTertiary),
+          Icon(Icons.arrow_forward_ios,
+              size: 12, color: AppColors.textTertiary),
         ],
       ),
     );
   }
 }
-
