@@ -728,6 +728,7 @@ class _PlanDetailSheetState extends ConsumerState<_PlanDetailSheet> {
               ],
             ],
           ),
+        ),
           if (!widget.isGuideView && widget.plan.status == 'ACCEPTED' && widget.plan.guideId != null) ...[
             Container(
               padding: const EdgeInsets.all(AppSpacing.md),
