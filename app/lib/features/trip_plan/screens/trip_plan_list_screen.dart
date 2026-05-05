@@ -6,6 +6,7 @@ import '../../../../core/api_client.dart';
 import '../../../../core/auth_provider.dart';
 import '../../../../shared/models/trip_plan.dart';
 import '../../../../shared/models/guide.dart';
+import '../../../../shared/models/safety_result.dart';
 import '../../../../design_system.dart';
 import '../../bookings/screens/bookings_screen.dart';
 
@@ -49,6 +50,17 @@ final openTripPlansProvider = FutureProvider<List<TripPlan>>((ref) async {
   final api = ApiClient();
   final data = await api.getTripPlans(status: 'OPEN');
   return data.map((e) => TripPlan.fromJson(e as Map<String, dynamic>)).toList();
+});
+
+final _safetyScoreProvider = FutureProvider.family<SafetyResult?, int>((ref, planId) async {
+  try {
+    final api = ApiClient();
+    final data = await api.getSafetyScore(planId: planId);
+    if (data['total_score'] != null) {
+      return SafetyResult.fromJson(data);
+    }
+  } catch (_) {}
+  return null;
 });
 
 class TripPlanListScreen extends ConsumerWidget {
@@ -433,7 +445,7 @@ class _BackBtnState extends State<_BackBtn> {
   }
 }
 
-class _TripPlanCard extends StatelessWidget {
+class _TripPlanCard extends ConsumerStatefulWidget {
   final TripPlan plan;
   final bool isGuideView;
   final Color statusColor;
@@ -447,21 +459,91 @@ class _TripPlanCard extends StatelessWidget {
   });
 
   @override
+  ConsumerState<_TripPlanCard> createState() => _TripPlanCardState();
+}
+
+class _TripPlanCardState extends ConsumerState<_TripPlanCard> {
+  SafetyResult? _safetyResult;
+  bool _safetyLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchSafetyScore();
+  }
+
+  Future<void> _fetchSafetyScore() async {
+    if (widget.plan.id == null) return;
+    setState(() => _safetyLoading = true);
+    try {
+      final api = ApiClient();
+      final data = await api.getSafetyScore(planId: widget.plan.id!);
+      if (mounted && data['total_score'] != null) {
+        setState(() {
+          _safetyResult = SafetyResult.fromJson(data);
+          _safetyLoading = false;
+        });
+      }
+    } catch (_) {
+      if (mounted) setState(() => _safetyLoading = false);
+    }
+  }
+
+  Color _scoreColor() {
+    switch (_safetyResult?.color) {
+      case 'green': return AppColors.success;
+      case 'amber': return AppColors.warning;
+      case 'red': return AppColors.error;
+      default: return AppColors.textTertiary;
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     return AppCard(
-      onTap: onTap,
+      onTap: widget.onTap,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
               StatusBadge(
-                label: plan.status,
-                color: statusColor,
+                label: widget.plan.status,
+                color: widget.statusColor,
               ),
               const Spacer(),
-              if (plan.tourDate != null)
-                Text(plan.tourDate!, style: AppText.caption),
+              if (_safetyResult != null) ...[
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: _scoreColor().withOpacity(0.12),
+                    borderRadius: BorderRadius.circular(AppRadius.full),
+                    border: Border.all(color: _scoreColor().withOpacity(0.3)),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        _safetyResult!.level == 'safe'
+                            ? Icons.check_circle
+                            : _safetyResult!.level == 'caution'
+                                ? Icons.warning_amber
+                                : Icons.error,
+                        size: 12,
+                        color: _scoreColor(),
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        '${_safetyResult!.totalScore.round()}',
+                        style: AppText.labelBold.copyWith(color: _scoreColor(), fontSize: 12),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 8),
+              ],
+              if (widget.plan.tourDate != null)
+                Text(widget.plan.tourDate!, style: AppText.caption),
             ],
           ),
           const SizedBox(height: AppSpacing.md),
@@ -481,10 +563,10 @@ class _TripPlanCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(plan.destination, style: AppText.labelBold),
+                    Text(widget.plan.destination, style: AppText.labelBold),
                     const SizedBox(height: 2),
                     Text(
-                      '${plan.durationHours?.toStringAsFixed(1) ?? '?'}h  •  Group ${plan.groupSize ?? '?'}',
+                      '${widget.plan.durationHours?.toStringAsFixed(1) ?? '?'}h  •  Group ${widget.plan.groupSize ?? '?'}',
                       style: AppText.caption,
                     ),
                   ],
@@ -493,12 +575,12 @@ class _TripPlanCard extends StatelessWidget {
               Icon(Icons.arrow_forward_ios, size: 14, color: AppColors.textTertiary),
             ],
           ),
-          if (plan.interests.isNotEmpty) ...[
+          if (widget.plan.interests.isNotEmpty) ...[
             const SizedBox(height: AppSpacing.md),
             Wrap(
               spacing: 6,
               runSpacing: 4,
-              children: plan.interests.take(4).map((i) {
+              children: widget.plan.interests.take(4).map((i) {
                 return Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                   decoration: BoxDecoration(
@@ -513,10 +595,10 @@ class _TripPlanCard extends StatelessWidget {
               }).toList(),
             ),
           ],
-          if (plan.proposedStops.isNotEmpty) ...[
+          if (widget.plan.proposedStops.isNotEmpty) ...[
             const SizedBox(height: AppSpacing.sm),
             Text(
-              '${plan.proposedStops.length} proposed stop${plan.proposedStops.length > 1 ? 's' : ''}',
+              '${widget.plan.proposedStops.length} proposed stop${widget.plan.proposedStops.length > 1 ? 's' : ''}',
               style: AppText.caption,
             ),
           ],
