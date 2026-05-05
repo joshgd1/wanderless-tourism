@@ -128,13 +128,14 @@ final destinationsProvider = FutureProvider<List<_Destination>>((ref) async {
     if (data.isEmpty) return _staticDestinations;
     return data.map((d) {
       final map = d as Map<String, dynamic>;
+      final tags = (map['tags'] as List?)?.cast<String>() ?? [];
       return _Destination(
-        name: map['destination'] as String? ?? 'Singapore',
-        country: map['region'] as String? ?? 'Singapore',
+        name: map['name'] as String? ?? 'Singapore',
+        country: map['name'] as String? ?? 'Singapore',
         imageUrl: map['image_url'] as String? ??
             'https://images.unsplash.com/photo-1525625293386-3f8f99389edd?w=800&q=80',
         guideCount: map['guide_count'] as int? ?? 20,
-        tag: map['tag'] as String? ?? 'Popular',
+        tag: tags.isNotEmpty ? tags.first : 'Popular',
       );
     }).toList();
   } catch (_) {
