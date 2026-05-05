@@ -7,6 +7,48 @@ import '../../../../core/api_client.dart';
 import '../../../../core/guide_auth_provider.dart';
 import '../../../../design_system.dart';
 
+final guideOpenRequestsProvider = FutureProvider<List<Map<String, dynamic>>>((ref) async {
+  final authState = ref.watch(guideAuthProvider);
+  if (authState.guideId == null) return _syntheticOpenRequests;
+  try {
+    final api = ApiClient();
+    final data = await api.getGuideOpenRequests();
+    final requests = data.cast<Map<String, dynamic>>();
+    return requests.isEmpty ? _syntheticOpenRequests : requests;
+  } catch (_) {
+    return _syntheticOpenRequests;
+  }
+});
+
+final _syntheticOpenRequests = [
+  {
+    'id': 101,
+    'status': 'PENDING_ACCEPTANCE',
+    'destination': 'Chinatown Heritage Walk',
+    'interests': ['culture', 'food'],
+    'tour_date_start': '2026-05-15',
+    'tour_date_end': '2026-05-15',
+    'group_size': 2,
+    'duration_hours': 4.0,
+    'dietary_requirement': 'Any',
+    'avoid_late_night': false,
+    'tourist_name': 'Sarah Johnson',
+  },
+  {
+    'id': 102,
+    'status': 'OPEN',
+    'destination': 'Gardens by the Bay',
+    'interests': ['nature', 'culture'],
+    'tour_date_start': '2026-05-20',
+    'tour_date_end': '2026-05-21',
+    'group_size': 4,
+    'duration_hours': 8.0,
+    'dietary_requirement': 'Vegetarian',
+    'avoid_late_night': true,
+    'tourist_name': 'Michael Chen',
+  },
+];
+
 final guideBookingsProvider = FutureProvider<List<Map<String, dynamic>>>((ref) async {
   final authState = ref.watch(guideAuthProvider);
   if (authState.guideId == null) return [];
@@ -93,6 +135,7 @@ class _GuideDashboardScreenState extends ConsumerState<GuideDashboardScreen>
     final authState = ref.watch(guideAuthProvider);
     final bookingsAsync = ref.watch(guideBookingsProvider);
     final guideMeAsync = ref.watch(guideMeProvider);
+    final openRequestsAsync = ref.watch(guideOpenRequestsProvider);
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -183,7 +226,7 @@ class _GuideDashboardScreenState extends ConsumerState<GuideDashboardScreen>
         body: TabBarView(
           controller: _tabController,
           children: [
-            _PendingTab(bookingsAsync: bookingsAsync),
+            _PendingTab(bookingsAsync: bookingsAsync, openRequestsAsync: openRequestsAsync),
             _CurrentJobsTab(bookingsAsync: bookingsAsync),
             _HistoryTab(bookingsAsync: bookingsAsync),
             _OpenGroupsTab(),
@@ -357,8 +400,9 @@ class _LogoutButtonState extends State<_LogoutButton> {
 
 class _PendingTab extends ConsumerWidget {
   final AsyncValue<List<Map<String, dynamic>>> bookingsAsync;
+  final AsyncValue<List<Map<String, dynamic>>> openRequestsAsync;
 
-  const _PendingTab({required this.bookingsAsync});
+  const _PendingTab({required this.bookingsAsync, required this.openRequestsAsync});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -377,7 +421,10 @@ class _PendingTab extends ConsumerWidget {
         final requestedBookings =
             bookings.where((b) => b['status'] == 'REQUESTED').toList();
 
-        if (requestedBookings.isEmpty) {
+        final openRequests = openRequestsAsync.whenOrNull(data: (r) => r) ?? [];
+        final allPending = [...requestedBookings, ...openRequests];
+
+        if (allPending.isEmpty) {
           return const EmptyState(
             icon: Icons.check_circle_outline,
             title: 'No pending requests',
@@ -402,7 +449,7 @@ class _PendingTab extends ConsumerWidget {
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      '${requestedBookings.length} request${requestedBookings.length > 1 ? 's' : ''} waiting for your response',
+                      '${allPending.length} request${allPending.length > 1 ? 's' : ''} waiting for your response',
                       style: AppText.labelBold
                           .copyWith(color: AppColors.warning),
                     ),
@@ -412,33 +459,39 @@ class _PendingTab extends ConsumerWidget {
             ),
             Expanded(
               child: RefreshIndicator(
-                onRefresh: () async => ref.refresh(guideBookingsProvider),
+                onRefresh: () async {
+                  ref.refresh(guideBookingsProvider);
+                  ref.refresh(guideOpenRequestsProvider);
+                },
                 child: ListView.builder(
                   padding: const EdgeInsets.all(AppSpacing.md),
-                  itemCount: requestedBookings.length,
+                  itemCount: allPending.length,
                   itemBuilder: (context, index) {
-                    final booking = requestedBookings[index];
+                    final item = allPending[index];
+                    final isRequest = item.containsKey('tourist_name') && !item.containsKey('gross_value');
                     return Padding(
                       padding: const EdgeInsets.only(bottom: AppSpacing.md),
-                      child: _JobCard(
-                        booking: booking,
-                        onAccept: () => _confirmAndUpdate(
-                          context,
-                          ref,
-                          booking['id'],
-                          'CONFIRMED',
-                          'Accept this booking?',
-                          'Once accepted, the tourist will be notified and can proceed with payment.',
-                        ),
-                        onDecline: () => _confirmAndUpdate(
-                          context,
-                          ref,
-                          booking['id'],
-                          'CANCELLED',
-                          'Decline this booking?',
-                          'The tourist will be notified and can find another guide.',
-                        ),
-                      ),
+                      child: isRequest
+                          ? _OpenRequestCard(request: item)
+                          : _JobCard(
+                              booking: item,
+                              onAccept: () => _confirmAndUpdate(
+                                context,
+                                ref,
+                                item['id'],
+                                'CONFIRMED',
+                                'Accept this booking?',
+                                'Once accepted, the tourist will be notified and can proceed with payment.',
+                              ),
+                              onDecline: () => _confirmAndUpdate(
+                                context,
+                                ref,
+                                item['id'],
+                                'CANCELLED',
+                                'Decline this booking?',
+                                'The tourist will be notified and can find another guide.',
+                              ),
+                            ),
                     );
                   },
                 ),
@@ -1087,6 +1140,131 @@ class _JobCard extends StatelessWidget {
                   ),
                 ],
               ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _OpenRequestCard extends StatelessWidget {
+  final Map<String, dynamic> request;
+
+  const _OpenRequestCard({required this.request});
+
+  @override
+  Widget build(BuildContext context) {
+    final status = request['status'] as String? ?? 'OPEN';
+    final destination = request['destination'] as String? ?? 'TBD';
+    final touristName = request['tourist_name'] as String? ?? 'Unknown Tourist';
+    final groupSize = request['group_size'] as int? ?? 2;
+    final durationHours = (request['duration_hours'] as num?)?.toDouble() ?? 4.0;
+    final interests = (request['interests'] as List?)?.cast<String>() ?? [];
+
+    return AppCard(
+      padding: const EdgeInsets.all(AppSpacing.md),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header row
+          Row(
+            children: [
+              StatusBadge(
+                label: status == 'PENDING_ACCEPTANCE' ? 'Pending' : 'Open',
+                color: status == 'PENDING_ACCEPTANCE' ? AppColors.warning : AppColors.info,
+              ),
+              const Spacer(),
+              Text(
+                '#${request['id']}',
+                style: AppText.caption,
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.md),
+          // Tourist info
+          Row(
+            children: [
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: AppColors.surfaceSecondary,
+                  borderRadius: BorderRadius.circular(AppRadius.sm),
+                ),
+                child: const Icon(Icons.person, color: AppColors.textTertiary, size: 22),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      touristName,
+                      style: AppText.labelBold,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      'Tourist',
+                      style: AppText.caption,
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    request['tour_date_start'] as String? ?? 'TBD',
+                    style: AppText.labelBold,
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    '${durationHours.toStringAsFixed(1)}h',
+                    style: AppText.caption,
+                  ),
+                ],
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.md),
+          // Destination + group
+          Row(
+            children: [
+              const Icon(Icons.location_on_outlined, size: 15, color: AppColors.textTertiary),
+              const SizedBox(width: 4),
+              Expanded(
+                child: Text(
+                  destination,
+                  style: AppText.bodySmall,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              const SizedBox(width: AppSpacing.md),
+              const Icon(Icons.group_outlined, size: 15, color: AppColors.textTertiary),
+              const SizedBox(width: 4),
+              Text(
+                '$groupSize',
+                style: AppText.bodySmall,
+              ),
+            ],
+          ),
+          // Interests
+          if (interests.isNotEmpty) ...[
+            const SizedBox(height: AppSpacing.sm),
+            Wrap(
+              spacing: 4,
+              runSpacing: 4,
+              children: interests.take(3).map((i) => Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: AppColors.brand.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(AppRadius.full),
+                ),
+                child: Text(i, style: AppText.caption.copyWith(color: AppColors.brand, fontSize: 10)),
+              )).toList(),
             ),
           ],
         ],

@@ -5,10 +5,84 @@ import '../../../../core/api_client.dart';
 import '../../../../shared/models/travel_group.dart';
 import '../../../../design_system.dart';
 
+final _syntheticGroups = [
+  TravelGroup(
+    id: 1,
+    destination: 'Singapore',
+    coherence: 'high_coherence',
+    memberCount: 4,
+    tripDate: '2026-05-20',
+    durationDays: 3,
+    estimatedPricePerPerson: 185.0,
+    interests: ['culture', 'food'],
+    memberProfiles: [
+      {'name': 'Sarah', 'gender': 'female', 'age': 28},
+      {'name': 'Mike', 'gender': 'male', 'age': 32},
+      {'name': 'Emma', 'gender': 'female', 'age': 26},
+      {'name': 'James', 'gender': 'male', 'age': 30},
+    ],
+  ),
+  TravelGroup(
+    id: 2,
+    destination: 'Chiang Mai',
+    coherence: 'moderate_coherence',
+    memberCount: 6,
+    tripDate: '2026-06-05',
+    durationDays: 4,
+    estimatedPricePerPerson: 120.0,
+    interests: ['temples', 'nature', 'food'],
+    memberProfiles: [
+      {'name': 'Anna', 'gender': 'female', 'age': 25},
+      {'name': 'Ben', 'gender': 'male', 'age': 29},
+      {'name': 'Clara', 'gender': 'female', 'age': 31},
+      {'name': 'David', 'gender': 'male', 'age': 35},
+      {'name': 'Eva', 'gender': 'female', 'age': 27},
+      {'name': 'Frank', 'gender': 'male', 'age': 33},
+    ],
+  ),
+  TravelGroup(
+    id: 3,
+    destination: 'Bali',
+    coherence: 'high_coherence',
+    memberCount: 3,
+    tripDate: '2026-06-15',
+    durationDays: 5,
+    estimatedPricePerPerson: 210.0,
+    interests: ['beach', 'yoga', 'nature'],
+    memberProfiles: [
+      {'name': 'Grace', 'gender': 'female', 'age': 30},
+      {'name': 'Henry', 'gender': 'male', 'age': 28},
+      {'name': 'Iris', 'gender': 'female', 'age': 26},
+    ],
+  ),
+  TravelGroup(
+    id: 4,
+    destination: 'Bangkok',
+    coherence: 'low_coherence',
+    memberCount: 5,
+    tripDate: '2026-07-01',
+    durationDays: 3,
+    estimatedPricePerPerson: 95.0,
+    interests: ['nightlife', 'shopping', 'food'],
+    memberProfiles: [
+      {'name': 'Jack', 'gender': 'male', 'age': 24},
+      {'name': 'Kate', 'gender': 'female', 'age': 29},
+      {'name': 'Leo', 'gender': 'male', 'age': 27},
+      {'name': 'Mia', 'gender': 'female', 'age': 31},
+      {'name': 'Noah', 'gender': 'male', 'age': 26},
+    ],
+  ),
+];
+
 final groupsProvider = FutureProvider.family<List<TravelGroup>, String?>((ref, destination) async {
-  final api = ApiClient();
-  final data = await api.getGroups(destination: destination);
-  return data.map((e) => TravelGroup.fromJson(e as Map<String, dynamic>)).toList();
+  try {
+    final api = ApiClient();
+    final data = await api.getGroups(destination: destination);
+    final groups = data.map((e) => TravelGroup.fromJson(e as Map<String, dynamic>)).toList();
+    return groups.isEmpty ? _syntheticGroups : groups;
+  } catch (_) {
+    return _syntheticGroups;
+  }
 });
 
 class GroupsScreen extends ConsumerStatefulWidget {

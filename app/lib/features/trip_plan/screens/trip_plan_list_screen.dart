@@ -22,8 +22,8 @@ final _matchedGuidesForPlanProvider = FutureProvider.family<List<MatchedGuide>, 
   // Always show Mei Ling first as the demo guide
   final meiLing = MatchedGuide(
     guideId: 'GTH268',
-    name: 'Mei Ling',
-    photoUrl: 'https://picsum.photos/seed/mei_ling_guide/400/400',
+    name: 'Mei Ling 🇸🇬',
+    photoUrl: 'https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=400&h=400&fit=crop&crop=face',
     bio: 'Passionate Singapore guide specializing in cultural heritage walks through Chinatown, Little India, and Gardens by the Bay.',
     expertiseTags: ['culture', 'food', 'heritage', 'nature'],
     languagePairs: ['en→zh', 'en→ms'],

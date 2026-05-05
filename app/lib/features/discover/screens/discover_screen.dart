@@ -44,7 +44,7 @@ final _selectedFilterProvider = StateProvider<String>((_) => 'Recommended');
 final _smartModeProvider = StateProvider<bool>((_) => false);
 final _searchQueryProvider = StateProvider<String>((_) => '');
 
-// Static fallback destinations — Singapore, Malaysia, Thailand, Bali order
+// Static fallback destinations — Singapore, Malaysia, Thailand, Bali, Japan, Vietnam order
 final _staticDestinations = [
   _Destination(
     name: 'Marina Bay',
@@ -94,6 +94,27 @@ final _staticDestinations = [
     imageUrl: 'https://images.unsplash.com/photo-1537996194471-e657df975ab4?w=800&q=80',
     guideCount: 28,
     tag: 'Nature & Arts',
+  ),
+  _Destination(
+    name: 'Kyoto',
+    country: 'Japan',
+    imageUrl: 'https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?w=800&q=80',
+    guideCount: 63,
+    tag: 'Temples & Gardens',
+  ),
+  _Destination(
+    name: 'Hoi An',
+    country: 'Vietnam',
+    imageUrl: 'https://images.unsplash.com/photo-1528127269322-539801943592?w=800&q=80',
+    guideCount: 37,
+    tag: 'Ancient Town',
+  ),
+  _Destination(
+    name: 'Bana Hills',
+    country: 'Vietnam',
+    imageUrl: 'https://images.unsplash.com/photo-1559128010-7c1ad6e1b6a5?w=800&q=80',
+    guideCount: 25,
+    tag: 'Mountain & Golden Bridge',
   ),
 ];
 

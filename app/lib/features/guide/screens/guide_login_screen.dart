@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../../../../core/guide_auth_provider.dart';
 import '../../../../design_system.dart';
 
@@ -52,63 +53,95 @@ class _GuideLoginScreenState extends ConsumerState<GuideLoginScreen> {
   Widget _buildWideLayout(GuideAuthState authState) {
     return Row(
       children: [
-        // Left brand panel — dark
+        // Left brand panel with image
         Expanded(
           flex: 5,
-          child: Container(
-            color: AppColors.textPrimary,
-            child: Stack(
-              children: [
-                Positioned.fill(
-                  child: CustomPaint(painter: GridPainter()),
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(AppSpacing.xxxl),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      _buildBrandMark(),
-                      const SizedBox(height: AppSpacing.xl),
-                      Text(
-                        'Manage your\nguides.',
-                        style: AppText.display.copyWith(
-                          color: Colors.white,
-                          fontSize: 40,
-                          height: 1.1,
-                        ),
-                      ),
-                      const SizedBox(height: AppSpacing.lg),
-                      Text(
-                        'Track bookings, manage your schedule,\nand grow your tourism business\nacross Southeast Asia.',
-                        style: AppText.body.copyWith(
-                          color: Colors.white.withOpacity(0.6),
-                          height: 1.6,
-                        ),
-                      ),
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              CachedNetworkImage(
+                imageUrl: 'https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=1200&q=80',
+                fit: BoxFit.cover,
+                errorWidget: (_, __, ___) => Container(color: AppColors.textPrimary),
+              ),
+              Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      Colors.black.withOpacity(0.75),
+                      Colors.black.withOpacity(0.5),
+                      Color(0xFF1E6091).withOpacity(0.7),
                     ],
                   ),
                 ),
-              ],
-            ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(AppSpacing.xxxl),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildBrandMark(size: 48),
+                    const SizedBox(height: AppSpacing.xl),
+                    Text(
+                      'Grow your\nguiding business.',
+                      style: AppText.display.copyWith(
+                        color: Colors.white,
+                        fontSize: 38,
+                        height: 1.15,
+                      ),
+                    ),
+                    const SizedBox(height: AppSpacing.lg),
+                    Text(
+                      'Sign in to manage bookings,\nschedules, and reviews\nacross Southeast Asia.',
+                      style: AppText.body.copyWith(
+                        color: Colors.white.withOpacity(0.7),
+                        height: 1.6,
+                      ),
+                    ),
+                    const SizedBox(height: AppSpacing.xl),
+                    _buildFeatureItem(Icons.calendar_today, 'Manage bookings'),
+                    const SizedBox(height: AppSpacing.sm),
+                    _buildFeatureItem(Icons.star, 'Build your reputation'),
+                    const SizedBox(height: AppSpacing.sm),
+                    _buildFeatureItem(Icons.explore, 'Showcase your tours'),
+                    const Spacer(),
+                    Align(
+                      alignment: Alignment.bottomRight,
+                      child: Opacity(
+                        opacity: 0.3,
+                        child: Container(
+                          width: 120,
+                          height: 120,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(color: Colors.white, width: 1.5),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
         ),
-        // Right form
+        // Right form panel
         Expanded(
           flex: 4,
           child: Center(
             child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 400),
+              constraints: const BoxConstraints(maxWidth: 420),
               child: SingleChildScrollView(
                 padding: const EdgeInsets.all(AppSpacing.xxl),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     const SizedBox(height: AppSpacing.xl),
-                    _buildBackButton(),
-                    const SizedBox(height: AppSpacing.xl),
                     Text('Guide Portal', style: AppText.h1),
-                    const SizedBox(height: 6),
+                    const SizedBox(height: 4),
                     Text(
                       'Sign in to manage your guided tours.',
                       style: AppText.bodySmall,
@@ -120,8 +153,27 @@ class _GuideLoginScreenState extends ConsumerState<GuideLoginScreen> {
                     ],
                     _buildForm(authState),
                     const SizedBox(height: AppSpacing.lg),
-                    const AppDivider(),
-                    const SizedBox(height: AppSpacing.md),
+                    _buildSocialLogin(),
+                    const SizedBox(height: AppSpacing.lg),
+                    Center(
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text("Don't have an account? ", style: AppText.bodySmall),
+                          GestureDetector(
+                            onTap: () => context.push('/guide/register'),
+                            child: Text(
+                              'Register',
+                              style: AppText.bodySmall.copyWith(
+                                color: AppColors.brand,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: AppSpacing.xl),
                     _buildAltActions(),
                   ],
                 ),
@@ -157,7 +209,7 @@ class _GuideLoginScreenState extends ConsumerState<GuideLoginScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildBrandMark(),
+                _buildBrandMark(size: 48),
                 const SizedBox(height: AppSpacing.lg),
                 Text('Guide Portal', style: AppText.display),
                 const SizedBox(height: 6),
@@ -248,6 +300,46 @@ class _GuideLoginScreenState extends ConsumerState<GuideLoginScreen> {
     );
   }
 
+  Widget _buildFeatureItem(IconData icon, String text) {
+    return Row(
+      children: [
+        Icon(icon, size: 18, color: AppColors.brand),
+        const SizedBox(width: 10),
+        Text(
+          text,
+          style: AppText.body.copyWith(color: Colors.white.withOpacity(0.9)),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSocialLogin() {
+    return Column(
+      children: [
+        const AppDivider(),
+        const SizedBox(height: AppSpacing.md),
+        Row(
+          children: [
+            Expanded(child: Divider(color: AppColors.border)),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+              child: Text('or continue with', style: AppText.caption),
+            ),
+            Expanded(child: Divider(color: AppColors.border)),
+          ],
+        ),
+        const SizedBox(height: AppSpacing.md),
+        Row(
+          children: [
+            Expanded(child: _SocialButton(icon: Icons.g_mobiledata, label: 'Google')),
+            const SizedBox(width: AppSpacing.md),
+            Expanded(child: _SocialButton(icon: Icons.apple, label: 'Apple')),
+          ],
+        ),
+      ],
+    );
+  }
+
   Widget _buildAltActions() {
     return Column(
       children: [
@@ -295,15 +387,19 @@ class _GuideLoginScreenState extends ConsumerState<GuideLoginScreen> {
     );
   }
 
-  Widget _buildBrandMark() {
+  Widget _buildBrandMark({required double size}) {
     return Container(
-      width: 48,
-      height: 48,
+      width: size,
+      height: size,
       decoration: BoxDecoration(
         color: AppColors.brand,
         borderRadius: BorderRadius.circular(AppRadius.md),
       ),
-      child: const Icon(Icons.person, color: Colors.white, size: 26),
+      child: Icon(
+        Icons.person,
+        color: Colors.white,
+        size: size * 0.55,
+      ),
     );
   }
 }
@@ -338,3 +434,24 @@ class _ErrorBanner extends StatelessWidget {
   }
 }
 
+class _SocialButton extends StatelessWidget {
+  final IconData icon;
+  final String label;
+
+  const _SocialButton({required this.icon, required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return OutlinedButton.icon(
+      onPressed: () {},
+      icon: Icon(icon, size: 20),
+      label: Text(label),
+      style: OutlinedButton.styleFrom(
+        foregroundColor: AppColors.textPrimary,
+        side: BorderSide(color: AppColors.border),
+        padding: const EdgeInsets.symmetric(vertical: 14),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.md)),
+      ),
+    );
+  }
+}

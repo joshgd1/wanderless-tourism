@@ -99,13 +99,6 @@ class GenderScreen extends ConsumerWidget {
                     ),
                     const SizedBox(height: AppSpacing.md),
                     _GenderOption(
-                      label: 'Non-binary',
-                      icon: Icons.people_outline,
-                      isSelected: state.gender == 'non_binary',
-                      onTap: () => notifier.setGender('non_binary'),
-                    ),
-                    const SizedBox(height: AppSpacing.md),
-                    _GenderOption(
                       label: 'Prefer not to say',
                       icon: Icons.person_outline,
                       isSelected: state.gender == 'prefer_not_to_say',
@@ -177,13 +170,6 @@ class GenderScreen extends ConsumerWidget {
                   icon: Icons.female,
                   isSelected: state.gender == 'female',
                   onTap: () => notifier.setGender('female'),
-                ),
-                const SizedBox(height: AppSpacing.md),
-                _GenderOption(
-                  label: 'Non-binary',
-                  icon: Icons.people_outline,
-                  isSelected: state.gender == 'non_binary',
-                  onTap: () => notifier.setGender('non_binary'),
                 ),
                 const SizedBox(height: AppSpacing.md),
                 _GenderOption(
