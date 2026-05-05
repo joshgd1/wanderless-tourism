@@ -11,29 +11,29 @@
    - Watches `_safetyScoreProvider` in the detail sheet
    - Shows full `SafetyScoreCard` when safety data available
 
-### Still Lost (not yet re-added)
-- Skeleton loaders
-- Onboarding banner improvements
-- Request dialog (guide accepts/declines) changes
-- Guide matching flow in detail sheet
+3. ✅ **Booking dialog text updates** (commit 5681f46)
+   - Changed "Payment Successful" → "Request Sent!"
+   - Changed "booking has been confirmed" → "booking request has been sent to guide"
+   - Updated snackbar messages
 
-## Technical Notes
-- `_PlanDetailSheet.build()` has complex nested spread-if `...[` syntax
-- Must verify with `dart format --output=none` after each change
-- Provider `_safetyScoreProvider` already exists (was added earlier)
+### Already Present (not lost after all)
+- Guide matching flow with `_MatchedGuideCard` - already in code
+- OPEN/ACCEPTED status containers - already in code
 
-## Commits
-- c687573 fix(trip_plan): revert to working version at 0097762
+### Possibly Lost (needs verification)
+- Skeleton loaders - may be in different files/screens
+- Onboarding banner improvements - may be in login or other screens
+
+## Commits Since Revert (c687573)
 - b94d716 feat(trip_plan): add safety score badge to trip plan cards
 - b55ac00 feat(trip_plan): display safety score card on plan detail sheet
+- 5681f46 feat(trip_plan): update booking dialog to reflect guide request flow
 
-## Next Steps
-1. Skeleton loaders (isolated - low risk)
-2. Request dialog changes (guide accepts/declines)
-3. Guide matching flow in detail sheet
-4. Onboarding banner improvements
-
-## Environment Issues
+## Environment
 - `flutter build web` fails locally (WSL path issue)
 - `dart format` works fine
 - GitHub Actions CI/CD runs the actual build
+
+## Status: Mostly Complete
+The major features from the lost commits appear to have been re-added.
+The `_PlanDetailSheet` build method is complex - manual verification recommended.
