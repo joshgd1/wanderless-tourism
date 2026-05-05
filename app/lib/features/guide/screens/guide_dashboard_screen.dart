@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -6,23 +7,6 @@ import 'package:country_flags/country_flags.dart';
 import '../../../../core/api_client.dart';
 import '../../../../core/guide_auth_provider.dart';
 import '../../../../design_system.dart';
-
-final guideOpenRequestsProvider = FutureProvider<List<Map<String, dynamic>>>((ref) async {
-  final authState = ref.watch(guideAuthProvider);
-  if (authState.guideId == null) return [];
-  try {
-    final api = ApiClient();
-    final data = await api.getGuideOpenRequests();
-    final requests = data.cast<Map<String, dynamic>>();
-    // Demo: if no real requests, show synthetic pending requests
-    if (requests.isEmpty) {
-      return _syntheticOpenRequests;
-    }
-    return requests;
-  } catch (_) {
-    return _syntheticOpenRequests;
-  }
-});
 
 final _syntheticOpenRequests = [
   {
@@ -78,6 +62,26 @@ final _syntheticOpenRequests = [
     'avoid_late_night': true,
   },
 ];
+
+/// Polling interval for open requests auto-refresh.
+const _openRequestsPollInterval = Duration(seconds: 30);
+
+final guideOpenRequestsProvider = FutureProvider<List<Map<String, dynamic>>>((ref) async {
+  final authState = ref.watch(guideAuthProvider);
+  if (authState.guideId == null) return _syntheticOpenRequests;
+  try {
+    final api = ApiClient();
+    final data = await api.getGuideOpenRequests();
+    final requests = data.cast<Map<String, dynamic>>();
+    // Demo: if no real requests, show synthetic pending requests
+    if (requests.isEmpty) {
+      return _syntheticOpenRequests;
+    }
+    return requests;
+  } catch (_) {
+    return _syntheticOpenRequests;
+  }
+});
 
 final guideBookingsProvider = FutureProvider<List<Map<String, dynamic>>>((ref) async {
   final authState = ref.watch(guideAuthProvider);
@@ -200,15 +204,20 @@ class _GuideDashboardScreenState extends ConsumerState<GuideDashboardScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+  Timer? _pollingTimer;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 4, vsync: this);
+    _pollingTimer = Timer.periodic(_openRequestsPollInterval, (_) {
+      ref.invalidate(guideOpenRequestsProvider);
+    });
   }
 
   @override
   void dispose() {
+    _pollingTimer?.cancel();
     _tabController.dispose();
     super.dispose();
   }
@@ -299,7 +308,6 @@ class _GuideProfileCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final flag = CountryFlags.fromName(name);
     return Row(
       children: [
         // Avatar
@@ -328,7 +336,6 @@ class _GuideProfileCard extends StatelessWidget {
           children: [
             Row(
               children: [
-                Text(flag, style: const TextStyle(fontSize: 18)),
                 const SizedBox(width: 6),
                 Text(
                   name,

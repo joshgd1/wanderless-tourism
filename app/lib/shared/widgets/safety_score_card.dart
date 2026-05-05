@@ -92,12 +92,17 @@ class _SafetyScoreModal extends StatelessWidget {
                   children: [
                     Text(_levelLabel, style: AppText.labelBold),
                     const Spacer(),
-                    IconButton(
-                      icon: const Icon(Icons.close, size: 20),
-                      onPressed: () => Navigator.of(context).pop(),
-                      padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(),
-                      color: AppColors.textSecondary,
+                    Material(
+                      color: Colors.white.withOpacity(0.15),
+                      shape: const CircleBorder(),
+                      child: InkWell(
+                        onTap: () => Navigator.of(context).pop(),
+                        customBorder: const CircleBorder(),
+                        child: const Padding(
+                          padding: EdgeInsets.all(6),
+                          child: Icon(Icons.close_rounded, size: 18, color: Colors.white70),
+                        ),
+                      ),
                     ),
                   ],
                 ),
