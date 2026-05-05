@@ -326,7 +326,7 @@ class TripPlanListScreen extends ConsumerWidget {
       ref.invalidate(myTripPlansProvider);
       ref.invalidate(bookingsListProvider);
       if (sheetCtx.mounted) {
-        // Show fake payment success dialog first
+        // Show booking request confirmation dialog
         await showDialog(
           context: sheetCtx,
           barrierDismissible: false,
@@ -350,10 +350,10 @@ class TripPlanListScreen extends ConsumerWidget {
                   ),
                 ),
                 const SizedBox(height: AppSpacing.lg),
-                Text('Payment Successful!', style: AppText.h3.copyWith(color: AppColors.success)),
+                Text('Request Sent!', style: AppText.h3.copyWith(color: AppColors.success)),
                 const SizedBox(height: AppSpacing.sm),
                 Text(
-                  'Your booking has been confirmed.',
+                  'Your booking request has been sent to the guide.',
                   style: AppText.body.copyWith(color: AppColors.textSecondary),
                   textAlign: TextAlign.center,
                 ),
@@ -389,7 +389,7 @@ class TripPlanListScreen extends ConsumerWidget {
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Booking confirmed! Your guide will contact you soon.'),
+              content: Text('Booking request sent! You\'ll be notified when a guide responds.'),
               backgroundColor: AppColors.success,
               behavior: SnackBarBehavior.floating,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.sm)),
@@ -402,7 +402,7 @@ class TripPlanListScreen extends ConsumerWidget {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Payment error: $e'),
+            content: Text('Booking error: $e'),
             backgroundColor: AppColors.error,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.sm)),
