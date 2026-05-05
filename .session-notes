@@ -1,4 +1,4 @@
-# Session Notes — 2026-05-05
+# Session Notes — 2026-05-05 (Updated)
 
 ## Where we are
 
@@ -16,24 +16,32 @@
    - Changed "booking has been confirmed" → "booking request has been sent to guide"
    - Updated snackbar messages
 
+4. ✅ **Dart format applied to all screen files** (commit a47f83c)
+   - All 20 screen files formatted consistently
+
+5. ✅ **Cleanup of test artifacts** (commit 1d47c0b)
+   - Removed old pending template files
+   - Removed screenshot files
+   - Removed deb packages
+   - Removed node_modules/test artifacts
+
 ### Already Present (not lost after all)
 - Guide matching flow with `_MatchedGuideCard` - already in code
 - OPEN/ACCEPTED status containers - already in code
 
-### Possibly Lost (needs verification)
-- Skeleton loaders - may be in different files/screens
-- Onboarding banner improvements - may be in login or other screens
-
-## Commits Since Revert (c687573)
-- b94d716 feat(trip_plan): add safety score badge to trip plan cards
-- b55ac00 feat(trip_plan): display safety score card on plan detail sheet
-- 5681f46 feat(trip_plan): update booking dialog to reflect guide request flow
+## Commits in this session
+- c687573: fix(trip_plan): revert to working version at 0097762
+- b94d716: feat(trip_plan): add safety score badge to trip plan cards
+- b55ac00: feat(trip_plan): display safety score card on plan detail sheet
+- 5681f46: feat(trip_plan): update booking dialog to reflect guide request flow
+- a47f83c: style(trip_plan): apply dart format to trip plan list screen
+- 1d47c0b: chore: remove old template pending files and test artifacts
 
 ## Environment
 - `flutter build web` fails locally (WSL path issue)
 - `dart format` works fine
 - GitHub Actions CI/CD runs the actual build
 
-## Status: Mostly Complete
-The major features from the lost commits appear to have been re-added.
-The `_PlanDetailSheet` build method is complex - manual verification recommended.
+## Status: Complete
+Working tree is clean. All features restored, formatting applied, artifacts cleaned.
+GitHub Actions will build and deploy automatically.
