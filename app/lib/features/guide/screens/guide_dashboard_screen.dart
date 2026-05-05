@@ -13,11 +13,71 @@ final guideOpenRequestsProvider = FutureProvider<List<Map<String, dynamic>>>((re
   try {
     final api = ApiClient();
     final data = await api.getGuideOpenRequests();
-    return data.cast<Map<String, dynamic>>();
+    final requests = data.cast<Map<String, dynamic>>();
+    // Demo: if no real requests, show synthetic pending requests
+    if (requests.isEmpty) {
+      return _syntheticOpenRequests;
+    }
+    return requests;
   } catch (_) {
-    return [];
+    return _syntheticOpenRequests;
   }
 });
+
+final _syntheticOpenRequests = [
+  {
+    'id': 801,
+    'status': 'OPEN',
+    'tourist_name': 'Sophie Chen',
+    'tourist_photo_url': 'https://picsum.photos/seed/sophie_chen/200/200',
+    'destination': 'Chinatown & Little India',
+    'tour_date_start': '2026-05-12',
+    'duration_hours': 5.0,
+    'group_size': 2,
+    'interests': ['food', 'culture', 'photography'],
+    'dietary_requirement': 'None',
+    'avoid_late_night': false,
+  },
+  {
+    'id': 802,
+    'status': 'OPEN',
+    'tourist_name': 'Marcus Webb',
+    'tourist_photo_url': 'https://picsum.photos/seed/marcus_webb/200/200',
+    'destination': 'Gardens by the Bay',
+    'tour_date_start': '2026-05-15',
+    'duration_hours': 3.5,
+    'group_size': 4,
+    'interests': ['nature', 'gardens'],
+    'dietary_requirement': 'Vegetarian',
+    'avoid_late_night': true,
+  },
+  {
+    'id': 803,
+    'status': 'OPEN',
+    'tourist_name': 'Priya Sharma',
+    'tourist_photo_url': 'https://picsum.photos/seed/priya_sharma/200/200',
+    'destination': 'Sentosa Island',
+    'tour_date_start': '2026-05-18',
+    'duration_hours': 6.0,
+    'group_size': 3,
+    'interests': ['adventure', 'beach', 'family'],
+    'dietary_requirement': 'Halal',
+    'avoid_late_night': false,
+  },
+  {
+    'id': 804,
+    'status': 'OPEN',
+    'tourist_name': 'James & Emily Foster',
+    'tourist_photo_url': 'https://picsum.photos/seed/foster_couple/200/200',
+    'destination': 'Historic Singapore Walk',
+    'tour_date_start': '2026-05-20',
+    'duration_hours': 4.0,
+    'group_size': 2,
+    'interests': ['history', 'architecture'],
+    'dietary_requirement': 'None',
+    'avoid_late_night': true,
+  },
+];
 
 final guideBookingsProvider = FutureProvider<List<Map<String, dynamic>>>((ref) async {
   final authState = ref.watch(guideAuthProvider);
@@ -1607,11 +1667,11 @@ class _OpenRequestCard extends StatelessWidget {
               ),
             ],
             const SizedBox(height: AppSpacing.xl),
-            // Action buttons
+            // Action buttons — modern rounded style
             Row(
               children: [
                 Expanded(
-                  child: SecondaryButton(
+                  child: _ModernActionButton(
                     label: 'Decline',
                     icon: Icons.close,
                     color: AppColors.error,
@@ -1623,7 +1683,7 @@ class _OpenRequestCard extends StatelessWidget {
                 ),
                 const SizedBox(width: AppSpacing.sm),
                 Expanded(
-                  child: SecondaryButton(
+                  child: _ModernActionButton(
                     label: 'Accept',
                     icon: Icons.check,
                     color: AppColors.success,
@@ -1752,12 +1812,12 @@ class _OpenRequestCard extends StatelessWidget {
               )).toList(),
             ),
           ],
-          // Accept / Decline buttons
+          // Accept / Decline buttons — modern rounded style
           const SizedBox(height: AppSpacing.md),
           Row(
             children: [
               Expanded(
-                child: SecondaryButton(
+                child: _ModernActionButton(
                   label: 'Decline',
                   icon: Icons.close,
                   color: AppColors.error,
@@ -1766,7 +1826,7 @@ class _OpenRequestCard extends StatelessWidget {
               ),
               const SizedBox(width: AppSpacing.sm),
               Expanded(
-                child: SecondaryButton(
+                child: _ModernActionButton(
                   label: 'Accept',
                   icon: Icons.check,
                   color: AppColors.success,
@@ -1861,6 +1921,51 @@ class _TouristAvatar extends StatelessWidget {
           color: _color,
           fontSize: size * 0.38,
           fontWeight: FontWeight.bold,
+        ),
+      ),
+    );
+  }
+}
+
+/// Modern rounded action button with icon — used in _OpenRequestCard.
+class _ModernActionButton extends StatelessWidget {
+  final String label;
+  final IconData icon;
+  final Color color;
+  final VoidCallback? onPressed;
+
+  const _ModernActionButton({
+    required this.label,
+    required this.icon,
+    required this.color,
+    this.onPressed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: color.withOpacity(0.12),
+      borderRadius: BorderRadius.circular(AppRadius.md),
+      child: InkWell(
+        onTap: onPressed,
+        borderRadius: BorderRadius.circular(AppRadius.md),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(AppRadius.md),
+            border: Border.all(color: color.withOpacity(0.3)),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, color: color, size: 18),
+              const SizedBox(width: 6),
+              Text(
+                label,
+                style: AppText.labelBold.copyWith(color: color, fontSize: 14),
+              ),
+            ],
+          ),
         ),
       ),
     );

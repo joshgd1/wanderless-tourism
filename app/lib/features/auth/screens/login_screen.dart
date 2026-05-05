@@ -446,11 +446,18 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           const SizedBox(height: AppSpacing.sm),
           SizedBox(
             width: double.infinity,
-            child: TextButton(
+            child: OutlinedButton(
               onPressed: () => context.push('/business/register'),
+              style: OutlinedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                side: BorderSide(color: AppColors.brand),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(AppRadius.md),
+                ),
+              ),
               child: Text(
                 'Register as Business',
-                style: AppText.label.copyWith(color: AppColors.textSecondary),
+                style: AppText.label.copyWith(color: AppColors.brand),
               ),
             ),
           ),
