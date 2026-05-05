@@ -1,4 +1,4 @@
-name: Deploy Flutter Web
+name: Build Flutter Web → docs/ + GitHub Pages
 
 on:
   push:
@@ -6,16 +6,16 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
   pages: write
   id-token: write
 
 concurrency:
-  group: "pages"
+  group: pages
   cancel-in-progress: false
 
 jobs:
-  build:
+  build-and-commit:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -35,8 +35,15 @@ jobs:
       - run: flutter build web --base-href=/wanderless-tourism/ --output-dir=docs
         working-directory: ./app
 
-      - name: Disable Jekyll processing
-        run: touch app/docs/.nojekyll
+      - run: touch app/docs/.nojekyll
+
+      - name: Commit docs/ to repo
+        run: |
+          git config --local user.email "noreply@anthropic.com"
+          git config --local user.name "Claude Actions"
+          git add app/docs/
+          git diff --staged --quiet && echo "No changes to commit" || git commit -m "chore: commit Flutter web build artifacts"
+          git push || echo "Push skipped (no changes)"
 
       - name: Upload Pages Artifact
         uses: actions/upload-pages-artifact@v3
@@ -47,7 +54,7 @@ jobs:
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
-    needs: build
+    needs: build-and-commit
     runs-on: ubuntu-latest
     steps:
       - name: Deploy to GitHub Pages
