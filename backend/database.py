@@ -52,6 +52,7 @@ def _seed_test_guide(db: Session) -> None:
         )
         existing.photo_url = "https://picsum.photos/seed/mei_ling_guide/400/400"
         existing.license_verified = True
+        existing.id = 'GTH268'
         db.commit()
         return
 
