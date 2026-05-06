@@ -1,0 +1,12 @@
+# Backend files ARE deployed — do NOT ignore backend/
+requirements.txt
+conftest.py
+.pytest_cache
+__pycache__
+.venv
+venv/
+# Flutter
+app/
+node_modules/
+docs/
+.github/
