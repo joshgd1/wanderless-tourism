@@ -8,7 +8,7 @@ import '../../../../core/api_client.dart';
 import '../../../../core/guide_auth_provider.dart';
 import '../../../../design_system.dart';
 import '../../trip_plan/providers/trip_plan_providers.dart'
-    show guideOpenRequestsProvider as _sharedGuideOpenRequestsProvider;
+    as trip_plan_providers show guideOpenRequestsProvider;
 
 const _openRequestsPollInterval = Duration(seconds: 30);
 
@@ -73,7 +73,7 @@ final _syntheticOpenRequests = [
 /// real API data shown as it arrives from the server.
 final guideOpenRequestsProvider = FutureProvider<List<Map<String, dynamic>>>((ref) async {
   try {
-    final liveRequests = await _sharedGuideOpenRequestsProvider.future;
+    final liveRequests = await trip_plan_providers.guideOpenRequestsProvider.future;
     // Always include synthetic data alongside live data
     return [..._syntheticOpenRequests, ...liveRequests];
   } catch (_) {
