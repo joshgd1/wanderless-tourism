@@ -33,43 +33,61 @@ logger = logging.getLogger("wanderless.ml")
 # ─── Destination catalogue (static knowledge base) ─────────────────────────────
 
 DESTINATIONS = {
-    "Old City": {
-        "tags": ["culture", "history", "temples", "food", "photography"],
-        "budget": "mid",
-        "pace": 0.3,
-        "description": "Chiang Mai's historic heart with ancient temples, "
-        "traditional markets, and street food",
-    },
-    "Doi Suthep": {
-        "tags": ["nature", "trekking", "photography", "culture"],
-        "budget": "budget",
-        "pace": 0.5,
-        "description": "Mountain temple with panoramic city views and forest trails",
-    },
-    "Mae Sa Valley": {
-        "tags": ["nature", "adventure", "trekking", "rural"],
-        "budget": "budget",
-        "pace": 0.7,
-        "description": "Waterfalls, orchid farms, and mountain villages in the valley",
-    },
-    "Nimman": {
-        "tags": ["food", "nightlife", "shopping", "wellness"],
+    "Singapore": {
+        "tags": ["culture", "food", "shopping", "nightlife", "architecture"],
         "budget": "premium",
-        "pace": 0.4,
-        "description": "Modern Chiang Mai's cafe district, boutique shops, and spas",
+        "pace": 0.5,
+        "description": "The Lion City — a futuristic metropolis where colonial heritage "
+        "meets world-class street food and cutting-edge architecture",
     },
-    "Santitham": {
-        "tags": ["food", "culture", "local", "markets", "photography"],
+    "Chiang Mai": {
+        "tags": ["culture", "temples", "food", "nature", "trekking"],
+        "budget": "budget",
+        "pace": 0.4,
+        "description": "Land of Smiles — ancient temples in the mountains with "
+        "vibrant night markets and legendary street food",
+    },
+    "Hoi An": {
+        "tags": ["culture", "history", "food", "shopping", "photography"],
         "budget": "mid",
         "pace": 0.3,
-        "description": "Authentic local neighborhood with family-run restaurants "
-        "and morning markets",
+        "description": "The Hidden Gem — UNESCO-listed ancient town with lantern-lit "
+        "streets, tailor-made garments, and acclaimed cuisine",
     },
-    "Hang Dong": {
-        "tags": ["shopping", "art", "cooking", "wellness"],
+    "Bali": {
+        "tags": ["nature", "temples", "surfing", "wellness", "culture"],
         "budget": "mid",
+        "pace": 0.5,
+        "description": "Island of the Gods — volcanic landscapes, emerald rice "
+        "terraces, sacred temples, and world-class surfing",
+    },
+    "Kuala Lumpur": {
+        "tags": ["food", "architecture", "shopping", "culture", "nightlife"],
+        "budget": "mid",
+        "pace": 0.5,
+        "description": "Truly Asia — a sensory feast of colonial skylines, "
+        "bustling markets, and some of the world's best street food",
+    },
+    "Palawan": {
+        "tags": ["nature", "beaches", "diving", "islands", "adventure"],
+        "budget": "budget",
         "pace": 0.4,
-        "description": "Artisan boutiques, cooking schools, and silk weaving villages",
+        "description": "Pearl of the Orient — crystal lagoons, limestone cliffs, "
+        "and pristine underwater ecosystems in paradise",
+    },
+    "Siem Reap": {
+        "tags": ["history", "temples", "culture", "food", "photography"],
+        "budget": "budget",
+        "pace": 0.4,
+        "description": "Kingdom of Wonder — gateway to Angkor's ancient temple "
+        "complexes and Cambodia's rich Khmer heritage",
+    },
+    "Bagan": {
+        "tags": ["history", "temples", "photography", "culture", "hot air balloon"],
+        "budget": "budget",
+        "pace": 0.3,
+        "description": "The Golden Land — thousands of ancient Buddhist temples "
+        "rising from the mist over the Irrawaddy plain",
     },
 }
 
