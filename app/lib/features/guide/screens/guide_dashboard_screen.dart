@@ -7,9 +7,78 @@ import 'package:country_flags/country_flags.dart';
 import '../../../../core/api_client.dart';
 import '../../../../core/guide_auth_provider.dart';
 import '../../../../design_system.dart';
-import '../../trip_plan/providers/trip_plan_providers.dart' show guideOpenRequestsProvider;
+import '../../trip_plan/providers/trip_plan_providers.dart'
+    show guideOpenRequestsProvider as _sharedGuideOpenRequestsProvider;
 
 const _openRequestsPollInterval = Duration(seconds: 30);
+
+/// Synthetic fallback data shown when API returns empty or error.
+final _syntheticOpenRequests = [
+  {
+    'id': 801,
+    'status': 'PENDING_ACCEPTANCE',
+    'tourist_name': 'Sophie Chen',
+    'tourist_photo_url': 'https://picsum.photos/seed/sophie_chen/200/200',
+    'destination': 'Chinatown & Little India',
+    'tour_date_start': '2026-05-12',
+    'duration_hours': 5.0,
+    'group_size': 2,
+    'interests': ['food', 'culture', 'photography'],
+    'dietary_requirement': 'None',
+    'avoid_late_night': false,
+  },
+  {
+    'id': 802,
+    'status': 'PENDING_ACCEPTANCE',
+    'tourist_name': 'Marcus Webb',
+    'tourist_photo_url': 'https://picsum.photos/seed/marcus_webb/200/200',
+    'destination': 'Gardens by the Bay',
+    'tour_date_start': '2026-05-15',
+    'duration_hours': 3.5,
+    'group_size': 4,
+    'interests': ['nature', 'gardens'],
+    'dietary_requirement': 'Vegetarian',
+    'avoid_late_night': true,
+  },
+  {
+    'id': 803,
+    'status': 'PENDING_ACCEPTANCE',
+    'tourist_name': 'Priya Sharma',
+    'tourist_photo_url': 'https://picsum.photos/seed/priya_sharma/200/200',
+    'destination': 'Sentosa Island',
+    'tour_date_start': '2026-05-18',
+    'duration_hours': 6.0,
+    'group_size': 3,
+    'interests': ['adventure', 'beach', 'family'],
+    'dietary_requirement': 'Halal',
+    'avoid_late_night': false,
+  },
+  {
+    'id': 804,
+    'status': 'PENDING_ACCEPTANCE',
+    'tourist_name': 'James & Emily Foster',
+    'tourist_photo_url': 'https://picsum.photos/seed/foster_couple/200/200',
+    'destination': 'Historic Singapore Walk',
+    'tour_date_start': '2026-05-20',
+    'duration_hours': 4.0,
+    'group_size': 2,
+    'interests': ['history', 'architecture'],
+    'dietary_requirement': 'None',
+    'avoid_late_night': true,
+  },
+];
+
+/// Wrapper that calls the shared API provider and falls back to synthetic
+/// data when the API returns empty or throws.
+final guideOpenRequestsProvider = FutureProvider<List<Map<String, dynamic>>>((ref) async {
+  try {
+    final requests = await _sharedGuideOpenRequestsProvider.future;
+    if (requests.isEmpty) return _syntheticOpenRequests;
+    return requests;
+  } catch (_) {
+    return _syntheticOpenRequests;
+  }
+});
 
 final guideBookingsProvider = FutureProvider<List<Map<String, dynamic>>>((ref) async {
   final authState = ref.watch(guideAuthProvider);
