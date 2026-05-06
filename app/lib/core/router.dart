@@ -94,12 +94,12 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
               ),
               child: ClipOval(
                 child: Image.asset(
-                  'assets/images/wanderless_logo.png',
+                  'assets/images/WanderLess_logo.png',
                   width: 90,
                   height: 90,
                   fit: BoxFit.cover,
                   errorBuilder: (_, __, ___) => const Icon(
-                    Icons.explore,
+                    Icons.travel_explore,
                     size: 40,
                     color: Color(0xFFED8A19),
                   ),
@@ -108,7 +108,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
             ),
             const SizedBox(height: 24),
             const Text(
-              'WanderAI',
+              'WanderLess',
               style: TextStyle(
                 color: Colors.white,
                 fontSize: 24,

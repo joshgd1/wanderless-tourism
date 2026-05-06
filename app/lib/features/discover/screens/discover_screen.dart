@@ -208,11 +208,11 @@ class DiscoverScreen extends ConsumerWidget {
                                           color: AppColors.brand,
                                           borderRadius: BorderRadius.circular(AppRadius.sm),
                                         ),
-                                        child: const Icon(Icons.explore, color: Colors.white, size: 18),
+                                        child: const Icon(Icons.travel_explore, color: Colors.white, size: 18),
                                       ),
                                       const SizedBox(width: 10),
                                       Text(
-                                        'WanderAI',
+                                        'WanderLess',
                                         style: AppText.h3.copyWith(color: Colors.white, fontSize: 18),
                                       ),
                                     ],
