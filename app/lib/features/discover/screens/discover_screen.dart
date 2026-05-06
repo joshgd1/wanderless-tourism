@@ -74,7 +74,7 @@ final _staticDestinations = [
     name: 'Bali',
     country: 'Indonesia',
     tagline: 'Island of the Gods',
-    imageUrl: 'https://images.unsplash.com/photo-1537996194471-e657df975ab4?w=800&q=80', // Bali temple at sunset
+    imageUrl: 'https://images.unsplash.com/photo-XEhchWQuWyM?w=800&q=80', // Tegallalang Rice Terrace
     guideCount: 55,
     tag: 'Tegalalang Rice Terrace',
   ),
@@ -82,7 +82,7 @@ final _staticDestinations = [
     name: 'Kuala Lumpur',
     country: 'Malaysia',
     tagline: 'Truly Asia',
-    imageUrl: 'https://images.unsplash.com/photo-1598935898639-81586f7d2129?w=800&q=80', // Petronas Twin Towers
+    imageUrl: 'https://images.unsplash.com/photo-YpzoWsiQZAE?w=800&q=80', // Petronas Twin Towers
     guideCount: 34,
     tag: 'Petronas Twin Towers',
   ),

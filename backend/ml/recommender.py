@@ -39,6 +39,10 @@ DESTINATIONS = {
         "pace": 0.5,
         "description": "The Lion City — a futuristic metropolis where colonial heritage "
         "meets world-class street food and cutting-edge architecture",
+        "image_url": "https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=800&q=80",
+        "country": "Singapore",
+        "tagline": "The Lion City",
+        "tag": "Supertrees at Gardens by the Bay",
     },
     "Chiang Mai": {
         "tags": ["culture", "temples", "food", "nature", "trekking"],
@@ -46,6 +50,10 @@ DESTINATIONS = {
         "pace": 0.4,
         "description": "Land of Smiles — ancient temples in the mountains with "
         "vibrant night markets and legendary street food",
+        "image_url": "https://images.unsplash.com/photo-1598935898639-81586f7d2129?w=800&q=80",
+        "country": "Thailand",
+        "tagline": "Land of Smiles",
+        "tag": "Doi Suthep Temple",
     },
     "Hoi An": {
         "tags": ["culture", "history", "food", "shopping", "photography"],
@@ -53,6 +61,10 @@ DESTINATIONS = {
         "pace": 0.3,
         "description": "The Hidden Gem — UNESCO-listed ancient town with lantern-lit "
         "streets, tailor-made garments, and acclaimed cuisine",
+        "image_url": "https://images.unsplash.com/photo-1528127265832-92d1c7d1a5b4?w=800&q=80",
+        "country": "Vietnam",
+        "tagline": "The Hidden Gem",
+        "tag": "Ancient Town lanterns",
     },
     "Bali": {
         "tags": ["nature", "temples", "surfing", "wellness", "culture"],
@@ -60,6 +72,10 @@ DESTINATIONS = {
         "pace": 0.5,
         "description": "Island of the Gods — volcanic landscapes, emerald rice "
         "terraces, sacred temples, and world-class surfing",
+        "image_url": "https://images.unsplash.com/photo-XEhchWQuWyM?w=800&q=80",
+        "country": "Indonesia",
+        "tagline": "Island of the Gods",
+        "tag": "Tegalalang Rice Terrace",
     },
     "Kuala Lumpur": {
         "tags": ["food", "architecture", "shopping", "culture", "nightlife"],
@@ -67,6 +83,10 @@ DESTINATIONS = {
         "pace": 0.5,
         "description": "Truly Asia — a sensory feast of colonial skylines, "
         "bustling markets, and some of the world's best street food",
+        "image_url": "https://images.unsplash.com/photo-YpzoWsiQZAE?w=800&q=80",
+        "country": "Malaysia",
+        "tagline": "Truly Asia",
+        "tag": "Petronas Twin Towers",
     },
     "Palawan": {
         "tags": ["nature", "beaches", "diving", "islands", "adventure"],
@@ -74,6 +94,10 @@ DESTINATIONS = {
         "pace": 0.4,
         "description": "Pearl of the Orient — crystal lagoons, limestone cliffs, "
         "and pristine underwater ecosystems in paradise",
+        "image_url": "https://images.unsplash.com/photo-1518509562904-e7ef99cdcc86?w=800&q=80",
+        "country": "Philippines",
+        "tagline": "Pearl of the Orient",
+        "tag": "El Nido Lagoons",
     },
     "Siem Reap": {
         "tags": ["history", "temples", "culture", "food", "photography"],
@@ -81,6 +105,10 @@ DESTINATIONS = {
         "pace": 0.4,
         "description": "Kingdom of Wonder — gateway to Angkor's ancient temple "
         "complexes and Cambodia's rich Khmer heritage",
+        "image_url": "https://images.unsplash.com/photo-1539025021-12d3d5a5f7a2?w=800&q=80",
+        "country": "Cambodia",
+        "tagline": "Kingdom of Wonder",
+        "tag": "Angkor Wat at sunrise",
     },
     "Bagan": {
         "tags": ["history", "temples", "photography", "culture", "hot air balloon"],
@@ -88,6 +116,10 @@ DESTINATIONS = {
         "pace": 0.3,
         "description": "The Golden Land — thousands of ancient Buddhist temples "
         "rising from the mist over the Irrawaddy plain",
+        "image_url": "https://images.unsplash.com/photo-1540541338537-71f5c7a27e8a?w=800&q=80",
+        "country": "Myanmar",
+        "tagline": "The Golden Land",
+        "tag": "Bagan Temples at sunrise",
     },
 }
 
@@ -544,6 +576,11 @@ class HybridRecommender:
             results.append({
                 "rank": rank,
                 "name": name,
+                "country": dest["country"],
+                "tagline": dest["tagline"],
+                "image_url": dest["image_url"],
+                "guide_count": 30 + (rank * 5),
+                "tag": dest["tag"],
                 "score": round(float(raw_score), 4),
                 "tags": dest["tags"],
                 "description": dest["description"],
