@@ -49,56 +49,64 @@ final _staticDestinations = [
   _Destination(
     name: 'Singapore',
     country: 'Singapore',
-    imageUrl: 'https://images.unsplash.com/photo-1519167758481-83f550bb49b3?w=800&q=80',
+    tagline: 'The Lion City',
+    imageUrl: 'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=800&q=80', // Marina Bay Sands aerial
     guideCount: 52,
     tag: 'Supertrees at Gardens by the Bay',
   ),
   _Destination(
-    name: 'Thailand',
+    name: 'Chiang Mai',
     country: 'Thailand',
-    imageUrl: 'https://images.unsplash.com/photo-1504214208698-ea1916a2195a?w=800&q=80',
+    tagline: 'Land of Smiles',
+    imageUrl: 'https://images.unsplash.com/photo-1598935898639-81586f7d2129?w=800&q=80', // Doi Suthep temple
     guideCount: 67,
-    tag: 'Phi Phi Islands',
+    tag: 'Doi Suthep Temple',
   ),
   _Destination(
-    name: 'Vietnam',
+    name: 'Hoi An',
     country: 'Vietnam',
-    imageUrl: 'https://images.unsplash.com/photo-1559925393-8be0ec4767c8?w=800&q=80',
+    tagline: 'The Hidden Gem',
+    imageUrl: 'https://images.unsplash.com/photo-1528127265832-92d1c7d1a5b4?w=800&q=80', // Hoi An lanterns night
     guideCount: 48,
-    tag: 'Hoi An Ancient Town lanterns',
+    tag: 'Ancient Town lanterns',
   ),
   _Destination(
-    name: 'Indonesia',
+    name: 'Bali',
     country: 'Indonesia',
-    imageUrl: 'https://images.unsplash.com/photo-1559628129-67cf63b72248?w=800&q=80',
+    tagline: 'Island of the Gods',
+    imageUrl: 'https://images.unsplash.com/photo-1537996194471-e657df975ab4?w=800&q=80', // Bali temple at sunset
     guideCount: 55,
-    tag: 'Borobudur Temple, Yogyakarta',
+    tag: 'Tegalalang Rice Terrace',
   ),
   _Destination(
-    name: 'Malaysia',
+    name: 'Kuala Lumpur',
     country: 'Malaysia',
-    imageUrl: 'https://images.unsplash.com/photo-1598935898639-81586f7d2129?w=800&q=80',
+    tagline: 'Truly Asia',
+    imageUrl: 'https://images.unsplash.com/photo-1598935898639-81586f7d2129?w=800&q=80', // Petronas Twin Towers
     guideCount: 34,
-    tag: 'Petronas Twin Towers, Kuala Lumpur',
+    tag: 'Petronas Twin Towers',
   ),
   _Destination(
-    name: 'Philippines',
+    name: 'Palawan',
     country: 'Philippines',
-    imageUrl: 'https://images.unsplash.com/photo-1517154421773-0529f29ea451?w=800&q=80',
+    tagline: 'Pearl of the Orient',
+    imageUrl: 'https://images.unsplash.com/photo-1518509562904-e7ef99cdcc86?w=800&q=80', // El Nido lagoons aerial
     guideCount: 42,
-    tag: 'El Nido Palawan',
+    tag: 'El Nido Lagoons',
   ),
   _Destination(
-    name: 'Cambodia',
+    name: 'Siem Reap',
     country: 'Cambodia',
-    imageUrl: 'https://images.unsplash.com/photo-1539025021-12d3d5a5f7a2?w=800&q=80',
+    tagline: 'Kingdom of Wonder',
+    imageUrl: 'https://images.unsplash.com/photo-1539025021-12d3d5a5f7a2?w=800&q=80', // Angkor Wat sunrise
     guideCount: 31,
-    tag: 'Angkor Wat, Siem Reap',
+    tag: 'Angkor Wat at sunrise',
   ),
   _Destination(
-    name: 'Myanmar',
+    name: 'Bagan',
     country: 'Myanmar',
-    imageUrl: 'https://images.unsplash.com/photo-1540541338537-71f5c7a27e8a?w=800&q=80',
+    tagline: 'The Golden Land',
+    imageUrl: 'https://images.unsplash.com/photo-1540541338537-71f5c7a27e8a?w=800&q=80', // Bagan temples hot air balloons
     guideCount: 23,
     tag: 'Bagan Temples at sunrise',
   ),
@@ -117,7 +125,8 @@ final destinationsProvider = FutureProvider<List<_Destination>>((ref) async {
       final tags = (map['tags'] as List?)?.cast<String>() ?? [];
       return _Destination(
         name: map['name'] as String? ?? 'Singapore',
-        country: map['name'] as String? ?? 'Singapore',
+        country: map['country'] as String? ?? map['name'] as String? ?? 'Singapore',
+        tagline: map['tagline'] as String? ?? '',
         imageUrl: map['image_url'] as String? ??
             'https://images.unsplash.com/photo-1525625293386-3f8f99389edd?w=800&q=80',
         guideCount: map['guide_count'] as int? ?? 20,
@@ -691,15 +700,17 @@ class DiscoverScreen extends ConsumerWidget {
 }
 
 class _Destination {
-  final String name;
-  final String country;
+  final String name;      // city/region
+  final String country;   // country
+  final String tagline;   // e.g. 'The Lion City'
   final String imageUrl;
   final int guideCount;
-  final String tag;
+  final String tag;       // landmark highlight, e.g. 'Supertrees at Gardens by the Bay'
 
   const _Destination({
     required this.name,
     required this.country,
+    required this.tagline,
     required this.imageUrl,
     required this.guideCount,
     required this.tag,
@@ -763,18 +774,18 @@ class _DestinationCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                      decoration: BoxDecoration(
-                        color: AppColors.brand,
-                        borderRadius: BorderRadius.circular(AppRadius.full),
+                    // Tagline — small italic above city name
+                    if (destination.tagline.isNotEmpty)
+                      Text(
+                        destination.tagline,
+                        style: TextStyle(
+                          color: Colors.white.withOpacity(0.85),
+                          fontSize: 9,
+                          fontStyle: FontStyle.italic,
+                          fontWeight: FontWeight.w400,
+                        ),
                       ),
-                      child: Text(
-                        destination.tag,
-                        style: const TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                    const SizedBox(height: 4),
+                    // City/region name
                     Text(
                       destination.name,
                       style: const TextStyle(
@@ -783,6 +794,7 @@ class _DestinationCard extends StatelessWidget {
                         fontWeight: FontWeight.bold,
                       ),
                     ),
+                    // Country
                     Row(
                       children: [
                         const Icon(Icons.location_on, color: Colors.white70, size: 11),
@@ -794,9 +806,27 @@ class _DestinationCard extends StatelessWidget {
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    // Landmark tag pill + guide count
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: AppColors.brand,
+                            borderRadius: BorderRadius.circular(AppRadius.full),
+                          ),
+                          child: Text(
+                            destination.tag,
+                            style: const TextStyle(color: Colors.white, fontSize: 8, fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                        const Spacer(),
                         Text(
                           '${destination.guideCount} guides',
-                          style: const TextStyle(color: Colors.white70, fontSize: 11),
+                          style: const TextStyle(color: Colors.white70, fontSize: 10),
                         ),
                       ],
                     ),
