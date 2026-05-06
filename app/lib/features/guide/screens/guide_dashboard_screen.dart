@@ -68,15 +68,11 @@ final _syntheticOpenRequests = [
   },
 ];
 
-/// Provider that combines live API data with synthetic fallback data.
-/// Both appear simultaneously — synthetic as always-visible demo content,
-/// real API data shown as it arrives from the server.
+/// Provider for guide's open requests (PENDING_ACCEPTANCE plans assigned to this guide).
+/// Returns live API data only — no synthetic masking.
 final guideOpenRequestsProvider = FutureProvider<List<Map<String, dynamic>>>((ref) async {
-  // Watch the upstream provider to track it as a dependency
   final liveAsync = ref.watch(trip_plan_providers.guideOpenRequestsProvider);
-  final liveData = liveAsync.value ?? [];
-  // Always include synthetic data alongside live data
-  return [..._syntheticOpenRequests, ...liveData];
+  return liveAsync.value ?? [];
 });
 
 final guideBookingsProvider = FutureProvider<List<Map<String, dynamic>>>((ref) async {
