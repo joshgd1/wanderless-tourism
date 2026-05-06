@@ -73,7 +73,7 @@ final guideOpenRequestsProvider = FutureProvider<List<Map<String, dynamic>>>((re
   if (authState.guideId == null) return _syntheticOpenRequests;
   try {
     final api = ApiClient();
-    final data = await api.getGuideOpenRequests();
+    final data = await api.getGuideOpenRequests(guideToken: authState.token!);
     final requests = data.cast<Map<String, dynamic>>();
     // If real API returns data use it, otherwise fall back to demo requests
     return requests.isEmpty ? _syntheticOpenRequests : requests;
