@@ -4,7 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../../../core/guide_auth_provider.dart';
 import '../../../../design_system.dart';
-import '../../trip_plan/providers/trip_plan_providers.dart';
+import '../../trip_plan/providers/trip_plan_providers.dart' show guideOpenRequestsProvider;
 
 class GuideLoginScreen extends ConsumerStatefulWidget {
   const GuideLoginScreen({super.key});
@@ -34,7 +34,7 @@ class _GuideLoginScreenState extends ConsumerState<GuideLoginScreen> {
           password: _passwordController.text,
         );
     if (success && mounted) {
-      ref.invalidate(openTripPlansProvider);
+      ref.invalidate(guideOpenRequestsProvider);
       context.go('/guide/dashboard');
     }
   }

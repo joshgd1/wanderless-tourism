@@ -19,3 +19,11 @@ final openTripPlansProvider = FutureProvider<List<TripPlan>>((ref) async {
   final data = await api.getTripPlans(status: 'OPEN');
   return data.map((e) => TripPlan.fromJson(e as Map<String, dynamic>)).toList();
 });
+
+/// Provider for guide open requests fetched from the guide endpoint.
+/// Invalidated on guide login so the guide dashboard refreshes with live data.
+final guideOpenRequestsProvider = FutureProvider<List<Map<String, dynamic>>>((ref) async {
+  final api = ApiClient();
+  final data = await api.getGuideOpenRequests();
+  return data.cast<Map<String, dynamic>>();
+});

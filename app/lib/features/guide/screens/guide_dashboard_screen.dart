@@ -7,6 +7,7 @@ import 'package:country_flags/country_flags.dart';
 import '../../../../core/api_client.dart';
 import '../../../../core/guide_auth_provider.dart';
 import '../../../../design_system.dart';
+import '../../trip_plan/providers/trip_plan_providers.dart' show guideOpenRequestsProvider;
 
 final _syntheticOpenRequests = [
   {
@@ -734,6 +735,10 @@ class _PendingTab extends ConsumerWidget {
                                 'Accept this request?',
                                 'You will be matched with ${item['tourist_name'] ?? 'this tourist'} for their trip.',
                                 item['tourist_name'] ?? 'Unknown',
+                                destination: item['destination'] as String?,
+                                tourDate: item['tour_date_start'] as String?,
+                                durationHours: (item['duration_hours'] as num?)?.toDouble(),
+                                groupSize: item['group_size'] as int?,
                               ),
                               onDecline: () => _confirmAndUpdateRequest(
                                 context,
@@ -930,8 +935,12 @@ class _PendingTab extends ConsumerWidget {
     String status,
     String title,
     String body,
-    String touristName,
-  ) async {
+    String touristName, {
+    String? destination,
+    String? tourDate,
+    double? durationHours,
+    int? groupSize,
+  }) async {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -982,7 +991,17 @@ class _PendingTab extends ConsumerWidget {
       ),
     );
     if (confirmed != true) return;
-    await _updateRequestStatus(context, ref, requestId, status, touristName);
+    await _updateRequestStatus(
+      context,
+      ref,
+      requestId,
+      status,
+      touristName,
+      destination: destination,
+      tourDate: tourDate,
+      durationHours: durationHours,
+      groupSize: groupSize,
+    );
   }
 
   Future<void> _updateRequestStatus(
@@ -990,8 +1009,12 @@ class _PendingTab extends ConsumerWidget {
     WidgetRef ref,
     int requestId,
     String status,
-    String touristName,
-  ) async {
+    String touristName, {
+    String? destination,
+    String? tourDate,
+    double? durationHours,
+    int? groupSize,
+  }) async {
     try {
       final api = ApiClient();
       if (status == 'PENDING_ACCEPTANCE') {
@@ -1001,20 +1024,29 @@ class _PendingTab extends ConsumerWidget {
       }
       ref.refresh(guideOpenRequestsProvider);
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              status == 'PENDING_ACCEPTANCE'
-                  ? 'Request Accepted! $touristName has been notified.'
-                  : 'Request Declined.',
+        if (status == 'PENDING_ACCEPTANCE') {
+          await showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (ctx) => _AcceptSuccessDialog(
+              onDone: () => Navigator.pop(ctx),
+              destination: destination ?? 'Tour Request',
+              tourDate: tourDate ?? 'TBD',
+              durationHours: durationHours ?? 4.0,
+              groupSize: groupSize ?? 2,
             ),
-            backgroundColor:
-                status == 'PENDING_ACCEPTANCE' ? AppColors.success : AppColors.error,
-            behavior: SnackBarBehavior.floating,
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.sm)),
-          ),
-        );
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Request Declined.'),
+              backgroundColor: AppColors.error,
+              behavior: SnackBarBehavior.floating,
+              shape:
+                  RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.sm)),
+            ),
+          );
+        }
       }
     } catch (e) {
       if (context.mounted) {
@@ -1034,8 +1066,18 @@ class _PendingTab extends ConsumerWidget {
 
 class _AcceptSuccessDialog extends StatefulWidget {
   final VoidCallback onDone;
+  final String? destination;
+  final String? tourDate;
+  final double? durationHours;
+  final int? groupSize;
 
-  const _AcceptSuccessDialog({required this.onDone});
+  const _AcceptSuccessDialog({
+    required this.onDone,
+    this.destination,
+    this.tourDate,
+    this.durationHours,
+    this.groupSize,
+  });
 
   @override
   State<_AcceptSuccessDialog> createState() => _AcceptSuccessDialogState();
@@ -1098,12 +1140,12 @@ class _AcceptSuccessDialogState extends State<_AcceptSuccessDialog>
               ),
               const SizedBox(height: AppSpacing.lg),
               Text(
-                'Booking Accepted!',
+                'Request Accepted!',
                 style: AppText.h3.copyWith(color: AppColors.success),
               ),
               const SizedBox(height: AppSpacing.sm),
               Text(
-                'You have accepted the Singapore tour request.',
+                'You have accepted the tour request${widget.destination != null ? ' for ${widget.destination}' : ''}.',
                 style: AppText.body.copyWith(color: AppColors.textSecondary),
                 textAlign: TextAlign.center,
               ),
@@ -1123,16 +1165,13 @@ class _AcceptSuccessDialogState extends State<_AcceptSuccessDialog>
                         const Icon(Icons.location_on,
                             size: 16, color: AppColors.brand),
                         const SizedBox(width: 6),
-                        const Expanded(
-                          child: Text('Marina Bay, Singapore',
-                              style: TextStyle(
+                        Expanded(
+                          child: Text(widget.destination ?? 'Tour Request',
+                              style: const TextStyle(
                                   fontWeight: FontWeight.w600,
                                   fontSize: 13,
                                   color: AppColors.textPrimary)),
                         ),
-                        Text(
-                            CountryFlags.fromName('Singapore'),
-                            style: const TextStyle(fontSize: 14)),
                       ],
                     ),
                     const SizedBox(height: 8),
@@ -1141,14 +1180,14 @@ class _AcceptSuccessDialogState extends State<_AcceptSuccessDialog>
                         const Icon(Icons.calendar_today,
                             size: 16, color: AppColors.textTertiary),
                         const SizedBox(width: 6),
-                        const Text('May 10, 2026',
-                            style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+                        Text(widget.tourDate ?? 'TBD',
+                            style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
                         const SizedBox(width: 16),
                         const Icon(Icons.schedule,
                             size: 16, color: AppColors.textTertiary),
                         const SizedBox(width: 6),
-                        const Text('4 hours',
-                            style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+                        Text('${(widget.durationHours ?? 4.0).toStringAsFixed(1)} hours',
+                            style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
                       ],
                     ),
                     const SizedBox(height: 8),
@@ -1157,8 +1196,8 @@ class _AcceptSuccessDialogState extends State<_AcceptSuccessDialog>
                         const Icon(Icons.group,
                             size: 16, color: AppColors.textTertiary),
                         const SizedBox(width: 6),
-                        const Text('2 tourists',
-                            style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+                        Text('${widget.groupSize ?? 2} tourist${(widget.groupSize ?? 2) == 1 ? '' : 's'}',
+                            style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
                       ],
                     ),
                   ],
