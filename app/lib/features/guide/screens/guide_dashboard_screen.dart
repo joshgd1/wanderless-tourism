@@ -72,14 +72,11 @@ final _syntheticOpenRequests = [
 /// Both appear simultaneously — synthetic as always-visible demo content,
 /// real API data shown as it arrives from the server.
 final guideOpenRequestsProvider = FutureProvider<List<Map<String, dynamic>>>((ref) async {
-  try {
-    final liveRequests = await trip_plan_providers.guideOpenRequestsProvider.future;
-    // Always include synthetic data alongside live data
-    return [..._syntheticOpenRequests, ...liveRequests];
-  } catch (_) {
-    // On error, still show synthetic data so the UI is never empty
-    return _syntheticOpenRequests;
-  }
+  // Watch the upstream provider to track it as a dependency
+  final liveAsync = ref.watch(trip_plan_providers.guideOpenRequestsProvider);
+  final liveData = liveAsync.value ?? [];
+  // Always include synthetic data alongside live data
+  return [..._syntheticOpenRequests, ...liveData];
 });
 
 final guideBookingsProvider = FutureProvider<List<Map<String, dynamic>>>((ref) async {
