@@ -68,14 +68,16 @@ final _syntheticOpenRequests = [
   },
 ];
 
-/// Wrapper that calls the shared API provider and falls back to synthetic
-/// data when the API returns empty or throws.
+/// Provider that combines live API data with synthetic fallback data.
+/// Both appear simultaneously — synthetic as always-visible demo content,
+/// real API data shown as it arrives from the server.
 final guideOpenRequestsProvider = FutureProvider<List<Map<String, dynamic>>>((ref) async {
   try {
-    final requests = await _sharedGuideOpenRequestsProvider.future;
-    if (requests.isEmpty) return _syntheticOpenRequests;
-    return requests;
+    final liveRequests = await _sharedGuideOpenRequestsProvider.future;
+    // Always include synthetic data alongside live data
+    return [..._syntheticOpenRequests, ...liveRequests];
   } catch (_) {
+    // On error, still show synthetic data so the UI is never empty
     return _syntheticOpenRequests;
   }
 });

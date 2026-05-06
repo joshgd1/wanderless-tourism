@@ -748,10 +748,17 @@ async def get_guide_open_requests(
     guide_id: str = Depends(_get_guide_id),
     db: Session = Depends(get_db),
 ):
-    """Get OPEN trip plans (any guide can accept) + PENDING_ACCEPTANCE plans for this guide."""
+    """
+    Get pending requests for this guide.
+    Returns all trip plans where guide_id is set to this guide, regardless of status —
+    this ensures the guide sees every request sent to them until they accept or decline.
+    Also returns OPEN plans (any guide can accept).
+    """
     trip_plans = db.query(models.TripPlan).filter(
-        (models.TripPlan.status == "OPEN") |
-        ((models.TripPlan.status == "PENDING_ACCEPTANCE") & (models.TripPlan.guide_id == guide_id))
+        # Plans assigned to this specific guide (tourist requested this guide) — show regardless of status
+        (models.TripPlan.guide_id == guide_id) |
+        # OPEN plans any guide can accept
+        (models.TripPlan.status == "OPEN")
     ).all()
 
     # Fetch tourist data to include name and photo_url
