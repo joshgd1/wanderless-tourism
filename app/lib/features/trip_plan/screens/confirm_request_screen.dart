@@ -5,7 +5,7 @@ import '../../../../core/api_client.dart';
 import '../../../../core/auth_provider.dart';
 import '../../../../shared/models/trip_plan.dart';
 import '../../../../design_system.dart';
-import 'trip_plan_list_screen.dart' show myTripPlansProvider;
+import '../providers/trip_plan_providers.dart';
 
 class ConfirmRequestScreen extends ConsumerStatefulWidget {
   final int planId;
@@ -18,7 +18,8 @@ class ConfirmRequestScreen extends ConsumerStatefulWidget {
   });
 
   @override
-  ConsumerState<ConfirmRequestScreen> createState() => _ConfirmRequestScreenState();
+  ConsumerState<ConfirmRequestScreen> createState() =>
+      _ConfirmRequestScreenState();
 }
 
 class _ConfirmRequestScreenState extends ConsumerState<ConfirmRequestScreen> {
@@ -70,7 +71,8 @@ class _ConfirmRequestScreenState extends ConsumerState<ConfirmRequestScreen> {
             content: const Text('Request sent — waiting for guide to accept'),
             backgroundColor: AppColors.success,
             behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.sm)),
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(AppRadius.sm)),
           ),
         );
         context.go('/trip-plans');
@@ -82,7 +84,8 @@ class _ConfirmRequestScreenState extends ConsumerState<ConfirmRequestScreen> {
             content: Text('Failed to send request: $e'),
             backgroundColor: AppColors.error,
             behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.sm)),
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(AppRadius.sm)),
           ),
         );
         setState(() => _submitting = false);
@@ -97,7 +100,8 @@ class _ConfirmRequestScreenState extends ConsumerState<ConfirmRequestScreen> {
       appBar: AppBar(
         backgroundColor: AppColors.textPrimary,
         foregroundColor: Colors.white,
-        title: Text('Confirm Request', style: AppText.h3.copyWith(color: Colors.white)),
+        title: Text('Confirm Request',
+            style: AppText.h3.copyWith(color: Colors.white)),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () => context.pop(),
@@ -109,7 +113,8 @@ class _ConfirmRequestScreenState extends ConsumerState<ConfirmRequestScreen> {
               ? Center(
                   child: Padding(
                     padding: const EdgeInsets.all(AppSpacing.lg),
-                    child: Text(_error!, style: AppText.body.copyWith(color: AppColors.error)),
+                    child: Text(_error!,
+                        style: AppText.body.copyWith(color: AppColors.error)),
                   ),
                 )
               : SingleChildScrollView(
@@ -126,8 +131,10 @@ class _ConfirmRequestScreenState extends ConsumerState<ConfirmRequestScreen> {
                               radius: 28,
                               backgroundColor: AppColors.surfaceSecondary,
                               child: Text(
-                                (_guide!['name'] as String? ?? 'G')[0].toUpperCase(),
-                                style: AppText.h3.copyWith(color: AppColors.brand),
+                                (_guide!['name'] as String? ?? 'G')[0]
+                                    .toUpperCase(),
+                                style:
+                                    AppText.h3.copyWith(color: AppColors.brand),
                               ),
                             ),
                             const SizedBox(width: 12),
@@ -135,13 +142,15 @@ class _ConfirmRequestScreenState extends ConsumerState<ConfirmRequestScreen> {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text(_guide!['name'] as String? ?? 'Guide', style: AppText.labelBold),
+                                  Text(_guide!['name'] as String? ?? 'Guide',
+                                      style: AppText.labelBold),
                                   if (_guide!['bio'] != null)
                                     Text(
                                       (_guide!['bio'] as String).length > 60
                                           ? '${(_guide!['bio'] as String).substring(0, 60)}...'
                                           : _guide!['bio'] as String,
-                                      style: AppText.bodySmall.copyWith(color: AppColors.textSecondary),
+                                      style: AppText.bodySmall.copyWith(
+                                          color: AppColors.textSecondary),
                                     ),
                                 ],
                               ),
@@ -180,7 +189,8 @@ class _ConfirmRequestScreenState extends ConsumerState<ConfirmRequestScreen> {
                               _DetailRow(
                                 icon: Icons.schedule_outlined,
                                 label: 'Duration',
-                                value: '${(_plan!['duration_hours'] as num).toStringAsFixed(0)} hours',
+                                value:
+                                    '${(_plan!['duration_hours'] as num).toStringAsFixed(0)} hours',
                               ),
                             ],
                             if (_plan!['group_size'] != null) ...[
@@ -191,15 +201,19 @@ class _ConfirmRequestScreenState extends ConsumerState<ConfirmRequestScreen> {
                                 value: '${_plan!['group_size']} people',
                               ),
                             ],
-                            if ((_plan!['interests'] as List?)?.isNotEmpty ?? false) ...[
+                            if ((_plan!['interests'] as List?)?.isNotEmpty ??
+                                false) ...[
                               const Divider(height: 24),
                               _DetailRow(
                                 icon: Icons.interests_outlined,
                                 label: 'Interests',
-                                value: (_plan!['interests'] as List).join(' · '),
+                                value:
+                                    (_plan!['interests'] as List).join(' · '),
                               ),
                             ],
-                            if (_plan!['dietary_requirement'] != null && (_plan!['dietary_requirement'] as String).isNotEmpty) ...[
+                            if (_plan!['dietary_requirement'] != null &&
+                                (_plan!['dietary_requirement'] as String)
+                                    .isNotEmpty) ...[
                               const Divider(height: 24),
                               _DetailRow(
                                 icon: Icons.restaurant_outlined,
@@ -213,15 +227,18 @@ class _ConfirmRequestScreenState extends ConsumerState<ConfirmRequestScreen> {
                       const SizedBox(height: AppSpacing.lg),
 
                       // Proposed itinerary
-                      if ((_plan!['proposed_stops'] as List?)?.isNotEmpty ?? false) ...[
+                      if ((_plan!['proposed_stops'] as List?)?.isNotEmpty ??
+                          false) ...[
                         Text('Proposed Itinerary', style: AppText.labelBold),
                         const SizedBox(height: AppSpacing.sm),
                         ...List.generate(
                           (_plan!['proposed_stops'] as List).length,
                           (i) {
-                            final stop = (_plan!['proposed_stops'] as List)[i] as Map<String, dynamic>;
+                            final stop = (_plan!['proposed_stops'] as List)[i]
+                                as Map<String, dynamic>;
                             return Padding(
-                              padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+                              padding:
+                                  const EdgeInsets.only(bottom: AppSpacing.sm),
                               child: AppCard(
                                 padding: const EdgeInsets.all(AppSpacing.md),
                                 child: Row(
@@ -247,18 +264,27 @@ class _ConfirmRequestScreenState extends ConsumerState<ConfirmRequestScreen> {
                                     const SizedBox(width: 12),
                                     Expanded(
                                       child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
                                         children: [
-                                          Text(stop['name'] as String? ?? 'Stop', style: AppText.body),
+                                          Text(
+                                              stop['name'] as String? ?? 'Stop',
+                                              style: AppText.body),
                                           if (stop['duration_minutes'] != null)
                                             Text(
                                               '${stop['duration_minutes']} min',
-                                              style: AppText.bodySmall.copyWith(color: AppColors.textSecondary),
+                                              style: AppText.bodySmall.copyWith(
+                                                  color:
+                                                      AppColors.textSecondary),
                                             ),
-                                          if (stop['notes'] != null && (stop['notes'] as String).isNotEmpty)
+                                          if (stop['notes'] != null &&
+                                              (stop['notes'] as String)
+                                                  .isNotEmpty)
                                             Text(
                                               stop['notes'] as String,
-                                              style: AppText.bodySmall.copyWith(color: AppColors.textTertiary),
+                                              style: AppText.bodySmall.copyWith(
+                                                  color:
+                                                      AppColors.textTertiary),
                                             ),
                                         ],
                                       ),
@@ -286,7 +312,9 @@ class _ConfirmRequestScreenState extends ConsumerState<ConfirmRequestScreen> {
                       Center(
                         child: TextButton(
                           onPressed: () => context.pop(),
-                          child: Text('Cancel', style: AppText.body.copyWith(color: AppColors.textSecondary)),
+                          child: Text('Cancel',
+                              style: AppText.body
+                                  .copyWith(color: AppColors.textSecondary)),
                         ),
                       ),
                     ],
@@ -315,7 +343,8 @@ class _DetailRow extends StatelessWidget {
   final String label;
   final String value;
 
-  const _DetailRow({required this.icon, required this.label, required this.value});
+  const _DetailRow(
+      {required this.icon, required this.label, required this.value});
 
   @override
   Widget build(BuildContext context) {

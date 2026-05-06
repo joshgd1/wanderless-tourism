@@ -8,13 +8,14 @@ import '../../../../shared/models/trip_plan.dart';
 import '../../../../shared/models/safety_result.dart';
 import '../../../../shared/widgets/safety_score_card.dart';
 import '../../../../design_system.dart';
-import 'trip_plan_list_screen.dart' show myTripPlansProvider, openTripPlansProvider;
+import '../providers/trip_plan_providers.dart';
 
 class CreateTripPlanScreen extends ConsumerStatefulWidget {
   const CreateTripPlanScreen({super.key});
 
   @override
-  ConsumerState<CreateTripPlanScreen> createState() => _CreateTripPlanScreenState();
+  ConsumerState<CreateTripPlanScreen> createState() =>
+      _CreateTripPlanScreenState();
 }
 
 class _CreateTripPlanScreenState extends ConsumerState<CreateTripPlanScreen> {
@@ -34,7 +35,14 @@ class _CreateTripPlanScreenState extends ConsumerState<CreateTripPlanScreen> {
   bool _isLoadingSuggestions = false;
   bool _createAsGroup = true;
 
-  final _allInterests = ['Food', 'Culture', 'Adventure', 'Nature', 'Wellness', 'History'];
+  final _allInterests = [
+    'Food',
+    'Culture',
+    'Adventure',
+    'Nature',
+    'Wellness',
+    'History'
+  ];
 
   @override
   void initState() {
@@ -134,7 +142,8 @@ class _CreateTripPlanScreenState extends ConsumerState<CreateTripPlanScreen> {
           content: const Text('Please enter a destination'),
           backgroundColor: AppColors.error,
           behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.sm)),
+          shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(AppRadius.sm)),
         ),
       );
       return;
@@ -145,7 +154,8 @@ class _CreateTripPlanScreenState extends ConsumerState<CreateTripPlanScreen> {
           content: const Text('Select at least one interest'),
           backgroundColor: AppColors.error,
           behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.sm)),
+          shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(AppRadius.sm)),
         ),
       );
       return;
@@ -163,7 +173,8 @@ class _CreateTripPlanScreenState extends ConsumerState<CreateTripPlanScreen> {
               content: const Text('Please sign in first'),
               backgroundColor: AppColors.error,
               behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.sm)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(AppRadius.sm)),
             ),
           );
         }
@@ -176,8 +187,12 @@ class _CreateTripPlanScreenState extends ConsumerState<CreateTripPlanScreen> {
         'destination': _destController.text.trim(),
         'interests': _selectedInterests.join('|'),
         'proposed_stops': _stops.map((s) => s.toJson()).toList(),
-        'tour_date_start': _startDate == null ? null : DateFormat('yyyy-MM-dd').format(_startDate!),
-        'tour_date_end': _endDate == null ? null : DateFormat('yyyy-MM-dd').format(_endDate!),
+        'tour_date_start': _startDate == null
+            ? null
+            : DateFormat('yyyy-MM-dd').format(_startDate!),
+        'tour_date_end': _endDate == null
+            ? null
+            : DateFormat('yyyy-MM-dd').format(_endDate!),
         'duration_hours': _durationHours,
         'group_size': _groupSize,
         'dietary_requirement': _dietaryRequirement,
@@ -209,15 +224,23 @@ class _CreateTripPlanScreenState extends ConsumerState<CreateTripPlanScreen> {
         level: 'safe',
         color: 'green',
         breakdown: {
-          'area': SafetyScoreBreakdown(score: 88, weight: 0.15, contribution: 13.2),
-          'route': SafetyScoreBreakdown(score: 85, weight: 0.15, contribution: 12.75),
-          'time': SafetyScoreBreakdown(score: 90, weight: 0.10, contribution: 9.0),
-          'transport': SafetyScoreBreakdown(score: 82, weight: 0.20, contribution: 16.4),
-          'weather': SafetyScoreBreakdown(score: 95, weight: 0.10, contribution: 9.5),
-          'venue': SafetyScoreBreakdown(score: 88, weight: 0.15, contribution: 13.2),
-          'traveller_fit': SafetyScoreBreakdown(score: 86, weight: 0.15, contribution: 12.9),
+          'area':
+              SafetyScoreBreakdown(score: 88, weight: 0.15, contribution: 13.2),
+          'route': SafetyScoreBreakdown(
+              score: 85, weight: 0.15, contribution: 12.75),
+          'time':
+              SafetyScoreBreakdown(score: 90, weight: 0.10, contribution: 9.0),
+          'transport':
+              SafetyScoreBreakdown(score: 82, weight: 0.20, contribution: 16.4),
+          'weather':
+              SafetyScoreBreakdown(score: 95, weight: 0.10, contribution: 9.5),
+          'venue':
+              SafetyScoreBreakdown(score: 88, weight: 0.15, contribution: 13.2),
+          'traveller_fit':
+              SafetyScoreBreakdown(score: 86, weight: 0.15, contribution: 12.9),
         },
-        recommendation: 'This trip plan has good safety characteristics. Recommended for your travel preferences.',
+        recommendation:
+            'This trip plan has good safety characteristics. Recommended for your travel preferences.',
       );
 
       if (mounted) {
@@ -239,10 +262,12 @@ class _CreateTripPlanScreenState extends ConsumerState<CreateTripPlanScreen> {
             if (mounted) {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
-                  content: Text('Trip plan was created but group sharing failed: $e'),
+                  content: Text(
+                      'Trip plan was created but group sharing failed: $e'),
                   backgroundColor: AppColors.error,
                   behavior: SnackBarBehavior.floating,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.sm)),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(AppRadius.sm)),
                 ),
               );
             }
@@ -251,10 +276,12 @@ class _CreateTripPlanScreenState extends ConsumerState<CreateTripPlanScreen> {
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: const Text('Trip plan posted and shared! Other travelers can now join your group.'),
+                content: const Text(
+                    'Trip plan posted and shared! Other travelers can now join your group.'),
                 backgroundColor: AppColors.success,
                 behavior: SnackBarBehavior.floating,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.sm)),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(AppRadius.sm)),
               ),
             );
             context.go('/groups');
@@ -263,10 +290,12 @@ class _CreateTripPlanScreenState extends ConsumerState<CreateTripPlanScreen> {
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: const Text('Trip plan posted! (Group creation requires a saved plan.)'),
+                content: const Text(
+                    'Trip plan posted! (Group creation requires a saved plan.)'),
                 backgroundColor: AppColors.success,
                 behavior: SnackBarBehavior.floating,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.sm)),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(AppRadius.sm)),
               ),
             );
             context.pop();
@@ -276,10 +305,12 @@ class _CreateTripPlanScreenState extends ConsumerState<CreateTripPlanScreen> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: const Text('Trip plan posted! Guides can now accept it.'),
+              content:
+                  const Text('Trip plan posted! Guides can now accept it.'),
               backgroundColor: AppColors.success,
               behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.sm)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(AppRadius.sm)),
             ),
           );
           context.pop();
@@ -292,7 +323,8 @@ class _CreateTripPlanScreenState extends ConsumerState<CreateTripPlanScreen> {
             content: Text('Error: $e'),
             backgroundColor: AppColors.error,
             behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.sm)),
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(AppRadius.sm)),
           ),
         );
       }
@@ -359,12 +391,14 @@ class _CreateTripPlanScreenState extends ConsumerState<CreateTripPlanScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        _SectionTitle(label: 'Destination', icon: Icons.place_outlined),
+                        _SectionTitle(
+                            label: 'Destination', icon: Icons.place_outlined),
                         const SizedBox(height: AppSpacing.sm),
                         AppTextField(
                           controller: _destController,
                           hint: 'e.g. Singapore',
-                          prefix: const Icon(Icons.tour_outlined, size: 18, color: AppColors.textTertiary),
+                          prefix: const Icon(Icons.tour_outlined,
+                              size: 18, color: AppColors.textTertiary),
                         ),
                       ],
                     ),
@@ -374,13 +408,18 @@ class _CreateTripPlanScreenState extends ConsumerState<CreateTripPlanScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        _SectionTitle(label: 'Preferred Date Range', icon: Icons.calendar_today_outlined),
+                        _SectionTitle(
+                            label: 'Preferred Date Range',
+                            icon: Icons.calendar_today_outlined),
                         const SizedBox(height: AppSpacing.sm),
                         _DateRangePicker(
                           startDate: _startDate,
                           endDate: _endDate,
                           onTap: () => _selectDateRange(),
-                          onClear: () => setState(() { _startDate = null; _endDate = null; }),
+                          onClear: () => setState(() {
+                            _startDate = null;
+                            _endDate = null;
+                          }),
                         ),
                       ],
                     ),
@@ -396,15 +435,19 @@ class _CreateTripPlanScreenState extends ConsumerState<CreateTripPlanScreen> {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  _SectionTitle(label: 'Duration', icon: Icons.schedule_outlined),
+                                  _SectionTitle(
+                                      label: 'Duration',
+                                      icon: Icons.schedule_outlined),
                                   const SizedBox(height: AppSpacing.sm),
                                   _SliderRow(
                                     value: _durationHours,
                                     min: 1,
                                     max: 12,
                                     divisions: 22,
-                                    label: '${_durationHours.toStringAsFixed(1)}h',
-                                    onChanged: (v) => setState(() => _durationHours = v),
+                                    label:
+                                        '${_durationHours.toStringAsFixed(1)}h',
+                                    onChanged: (v) =>
+                                        setState(() => _durationHours = v),
                                   ),
                                 ],
                               ),
@@ -414,13 +457,16 @@ class _CreateTripPlanScreenState extends ConsumerState<CreateTripPlanScreen> {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  _SectionTitle(label: 'Group Size', icon: Icons.group_outlined),
+                                  _SectionTitle(
+                                      label: 'Group Size',
+                                      icon: Icons.group_outlined),
                                   const SizedBox(height: AppSpacing.sm),
                                   _StepperRow(
                                     value: _groupSize,
                                     min: 1,
                                     max: 15,
-                                    onChanged: (v) => setState(() => _groupSize = v),
+                                    onChanged: (v) =>
+                                        setState(() => _groupSize = v),
                                   ),
                                 ],
                               ),
@@ -435,22 +481,26 @@ class _CreateTripPlanScreenState extends ConsumerState<CreateTripPlanScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        _SectionTitle(label: 'Interests', icon: Icons.interests_outlined),
+                        _SectionTitle(
+                            label: 'Interests', icon: Icons.interests_outlined),
                         const SizedBox(height: AppSpacing.sm),
                         Wrap(
                           spacing: 8,
                           runSpacing: 8,
                           children: _allInterests.map((interest) {
-                            final selected = _selectedInterests.contains(interest.toLowerCase());
+                            final selected = _selectedInterests
+                                .contains(interest.toLowerCase());
                             return _InterestPill(
                               label: interest,
                               isSelected: selected,
                               onTap: () {
                                 setState(() {
                                   if (selected) {
-                                    _selectedInterests.remove(interest.toLowerCase());
+                                    _selectedInterests
+                                        .remove(interest.toLowerCase());
                                   } else {
-                                    _selectedInterests.add(interest.toLowerCase());
+                                    _selectedInterests
+                                        .add(interest.toLowerCase());
                                   }
                                 });
                               },
@@ -465,11 +515,14 @@ class _CreateTripPlanScreenState extends ConsumerState<CreateTripPlanScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        _SectionTitle(label: 'Dietary Requirement', icon: Icons.restaurant_outlined),
+                        _SectionTitle(
+                            label: 'Dietary Requirement',
+                            icon: Icons.restaurant_outlined),
                         const SizedBox(height: AppSpacing.sm),
                         _DietaryChips(
                           value: _dietaryRequirement,
-                          onChanged: (v) => setState(() => _dietaryRequirement = v),
+                          onChanged: (v) =>
+                              setState(() => _dietaryRequirement = v),
                         ),
                       ],
                     ),
@@ -481,7 +534,9 @@ class _CreateTripPlanScreenState extends ConsumerState<CreateTripPlanScreen> {
                       children: [
                         Row(
                           children: [
-                            _SectionTitle(label: 'Proposed Stops', icon: Icons.place_outlined),
+                            _SectionTitle(
+                                label: 'Proposed Stops',
+                                icon: Icons.place_outlined),
                             const Spacer(),
                             GhostButton(
                               label: 'Add Stop',
@@ -505,7 +560,8 @@ class _CreateTripPlanScreenState extends ConsumerState<CreateTripPlanScreen> {
                             ),
                             child: Row(
                               children: [
-                                Icon(Icons.info_outline, size: 16, color: AppColors.textTertiary),
+                                Icon(Icons.info_outline,
+                                    size: 16, color: AppColors.textTertiary),
                                 const SizedBox(width: 8),
                                 Expanded(
                                   child: Text(
@@ -521,11 +577,13 @@ class _CreateTripPlanScreenState extends ConsumerState<CreateTripPlanScreen> {
                           ...List.generate(_stops.length, (i) {
                             final stop = _stops[i];
                             return Padding(
-                              padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+                              padding:
+                                  const EdgeInsets.only(bottom: AppSpacing.sm),
                               child: _StopTile(
                                 index: i + 1,
                                 stop: stop,
-                                onRemove: () => setState(() => _stops.removeAt(i)),
+                                onRemove: () =>
+                                    setState(() => _stops.removeAt(i)),
                               ),
                             );
                           }),
@@ -578,10 +636,12 @@ class _BackBtnState extends State<_BackBtn> {
           duration: AppDurations.fast,
           padding: const EdgeInsets.all(6),
           decoration: BoxDecoration(
-            color: _isHovered ? Colors.white.withOpacity(0.1) : Colors.transparent,
+            color:
+                _isHovered ? Colors.white.withOpacity(0.1) : Colors.transparent,
             borderRadius: BorderRadius.circular(AppRadius.sm),
           ),
-          child: Icon(Icons.arrow_back, color: Colors.white.withOpacity(_isHovered ? 1 : 0.7), size: 20),
+          child: Icon(Icons.arrow_back,
+              color: Colors.white.withOpacity(_isHovered ? 1 : 0.7), size: 20),
         ),
       ),
     );
@@ -654,7 +714,8 @@ class _SliderRow extends StatelessWidget {
                 color: AppColors.brand.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(AppRadius.full),
               ),
-              child: Text(label, style: AppText.labelBold.copyWith(color: AppColors.brand)),
+              child: Text(label,
+                  style: AppText.labelBold.copyWith(color: AppColors.brand)),
             ),
             Text('${max.toInt()}h', style: AppText.caption),
           ],
@@ -811,7 +872,14 @@ class _DietaryChips extends StatelessWidget {
 
   const _DietaryChips({required this.value, required this.onChanged});
 
-  static const _options = ['Any', 'Halal', 'Vegetarian', 'Vegan', 'Kosher', 'Gluten-free'];
+  static const _options = [
+    'Any',
+    'Halal',
+    'Vegetarian',
+    'Vegan',
+    'Kosher',
+    'Gluten-free'
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -835,7 +903,8 @@ class _DietaryChip extends StatefulWidget {
   final bool isSelected;
   final VoidCallback onTap;
 
-  const _DietaryChip({required this.label, required this.isSelected, required this.onTap});
+  const _DietaryChip(
+      {required this.label, required this.isSelected, required this.onTap});
 
   @override
   State<_DietaryChip> createState() => _DietaryChipState();
@@ -904,7 +973,10 @@ class _StopTile extends StatelessWidget {
           child: Center(
             child: Text(
               '$index',
-              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12),
+              style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 12),
             ),
           ),
         ),
@@ -914,8 +986,7 @@ class _StopTile extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(stop.name, style: AppText.labelBold),
-              if (stop.notes != null)
-                Text(stop.notes!, style: AppText.caption),
+              if (stop.notes != null) Text(stop.notes!, style: AppText.caption),
             ],
           ),
         ),
@@ -925,7 +996,8 @@ class _StopTile extends StatelessWidget {
             color: AppColors.surfaceSecondary,
             borderRadius: BorderRadius.circular(AppRadius.full),
           ),
-          child: Text('${stop.durationHours.toStringAsFixed(1)}h', style: AppText.caption),
+          child: Text('${stop.durationHours.toStringAsFixed(1)}h',
+              style: AppText.caption),
         ),
         const SizedBox(width: 8),
         IconButton(
@@ -958,7 +1030,8 @@ class _DateRangePicker extends StatelessWidget {
     if (startDate != null && endDate != null) {
       return '${DateFormat('MMM d').format(startDate!)} – ${DateFormat('MMM d, yyyy').format(endDate!)}';
     }
-    if (startDate != null) return '${DateFormat('MMM d, yyyy').format(startDate!)} – Select end';
+    if (startDate != null)
+      return '${DateFormat('MMM d, yyyy').format(startDate!)} – Select end';
     return '${DateFormat('MMM d').format(endDate!)} – Select start';
   }
 
@@ -968,7 +1041,8 @@ class _DateRangePicker extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm + 4),
+        padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.md, vertical: AppSpacing.sm + 4),
         decoration: BoxDecoration(
           color: AppColors.surface,
           borderRadius: BorderRadius.circular(AppRadius.sm),
@@ -986,14 +1060,16 @@ class _DateRangePicker extends StatelessWidget {
               child: Text(
                 _label,
                 style: AppText.body.copyWith(
-                  color: hasRange ? AppColors.textPrimary : AppColors.textTertiary,
+                  color:
+                      hasRange ? AppColors.textPrimary : AppColors.textTertiary,
                 ),
               ),
             ),
             if (hasRange)
               GestureDetector(
                 onTap: onClear,
-                child: const Icon(Icons.close, size: 16, color: AppColors.textTertiary),
+                child: const Icon(Icons.close,
+                    size: 16, color: AppColors.textTertiary),
               ),
           ],
         ),
@@ -1052,7 +1128,8 @@ class _AddStopSheetState extends State<_AddStopSheet> {
             controller: _nameController,
             label: 'Stop name',
             hint: 'e.g. Wat Phra Singh',
-            prefix: const Icon(Icons.place_outlined, size: 18, color: AppColors.textTertiary),
+            prefix: const Icon(Icons.place_outlined,
+                size: 18, color: AppColors.textTertiary),
           ),
           const SizedBox(height: AppSpacing.md),
           Text('Duration', style: AppText.label),
@@ -1067,7 +1144,8 @@ class _AddStopSheetState extends State<_AddStopSheet> {
                     overlayColor: AppColors.brand.withOpacity(0.2),
                     inactiveTrackColor: AppColors.surfaceSecondary,
                     trackHeight: 4,
-                    thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 8),
+                    thumbShape:
+                        const RoundSliderThumbShape(enabledThumbRadius: 8),
                   ),
                   child: Slider(
                     value: _durationHours,
@@ -1079,7 +1157,8 @@ class _AddStopSheetState extends State<_AddStopSheet> {
                 ),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
                   color: AppColors.brand.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(AppRadius.full),
@@ -1118,7 +1197,9 @@ class _AddStopSheetState extends State<_AddStopSheet> {
                     widget.onAdd(ProposedStop(
                       name: _nameController.text.trim(),
                       durationHours: _durationHours,
-                      notes: _notesController.text.trim().isEmpty ? null : _notesController.text.trim(),
+                      notes: _notesController.text.trim().isEmpty
+                          ? null
+                          : _notesController.text.trim(),
                     ));
                     Navigator.pop(context);
                   },
@@ -1144,9 +1225,12 @@ class _GroupToggle extends StatelessWidget {
     return GestureDetector(
       onTap: () => onChanged(!value),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.md),
+        padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.md, vertical: AppSpacing.md),
         decoration: BoxDecoration(
-          color: value ? AppColors.brand.withOpacity(0.08) : AppColors.surfaceSecondary,
+          color: value
+              ? AppColors.brand.withOpacity(0.08)
+              : AppColors.surfaceSecondary,
           borderRadius: BorderRadius.circular(AppRadius.md),
           border: Border.all(
             color: value ? AppColors.brand : AppColors.border,
@@ -1192,4 +1276,3 @@ class _GroupToggle extends StatelessWidget {
     );
   }
 }
-
