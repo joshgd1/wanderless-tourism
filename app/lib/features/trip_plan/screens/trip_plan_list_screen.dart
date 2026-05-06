@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../../../core/api_client.dart';
 import '../../../../core/auth_provider.dart';
+import '../../../../core/guide_auth_provider.dart';
 import '../../../../shared/models/trip_plan.dart';
 import '../../../../shared/models/guide.dart';
 import '../../../../shared/models/safety_result.dart';
@@ -231,8 +232,8 @@ class TripPlanListScreen extends ConsumerWidget {
 
   Future<void> _acceptPlan(BuildContext context, WidgetRef ref,
       BuildContext sheetCtx, TripPlan plan) async {
-    final authState = ref.read(authProvider);
-    if (authState.token == null) {
+    final guideAuth = ref.read(guideAuthProvider);
+    if (guideAuth.token == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: const Text('Please log in as a guide to accept plans'),
@@ -247,7 +248,7 @@ class TripPlanListScreen extends ConsumerWidget {
 
     try {
       final api = ApiClient();
-      await api.acceptGuideRequest(plan.id);
+      await api.acceptGuideRequest(plan.id, guideToken: guideAuth.token!);
       ref.invalidate(openTripPlansProvider);
       if (context.mounted) {
         Navigator.pop(sheetCtx);

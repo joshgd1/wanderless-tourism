@@ -400,9 +400,10 @@ class _OpenRequestRowState extends ConsumerState<_OpenRequestRow> {
 
   Future<void> _accept() async {
     final id = widget.request['id'] as int;
+    final guideAuth = ref.read(guideAuthProvider);
     setState(() { _loading = true; _action = 'accept'; });
     try {
-      await ApiClient().acceptGuideRequest(id);
+      await ApiClient().acceptGuideRequest(id, guideToken: guideAuth.token!);
       ref.invalidate(guideOpenRequestsProvider);
       ref.invalidate(guideBookingsProvider);
       if (mounted) {

@@ -951,9 +951,10 @@ class _PendingTab extends ConsumerWidget {
     int? groupSize,
   }) async {
     try {
+      final guideAuth = ref.read(guideAuthProvider);
       final api = ApiClient();
       if (status == 'PENDING_ACCEPTANCE') {
-        await api.acceptGuideRequest(requestId);
+        await api.acceptGuideRequest(requestId, guideToken: guideAuth.token!);
       } else {
         await api.declineTripRequest(requestId);
       }
