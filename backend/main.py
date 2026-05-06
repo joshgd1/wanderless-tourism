@@ -596,34 +596,6 @@ async def list_guides(db: Session = Depends(get_db)):
     ]
 
 
-@app.get("/api/guides/{guide_id}")
-async def get_guide(guide_id: str, db: Session = Depends(get_db)):
-    g = db.query(models.Guide).filter_by(id=guide_id).first()
-    if not g:
-        raise HTTPException(status_code=404, detail="Guide not found")
-    return {
-        "id": g.id,
-        "name": g.name,
-        "bio": g.bio,
-        "photo_url": g.photo_url,
-        "expertise_tags": (g.expertise_tags or "").split("|"),
-        "personality_vector": [float(x) for x in (g.personality_vector or "").split("|")] if g.personality_vector else [],
-        "language_pairs": (g.language_pairs or "").split("|"),
-        "pace_style": g.pace_style,
-        "group_size_preferred": g.group_size_preferred,
-        "budget_tier": g.budget_tier,
-        "location_coverage": (g.location_coverage or "").split("|"),
-        "availability": g.availability,
-        "rating": g.rating_history,
-        "review_count": g.rating_count,
-        "price_range": None,
-        "response_rate": None,
-        "response_time": None,
-        "specialties": (g.specialties or "").split("|"),
-        "license_verified": g.license_verified,
-    }
-
-
 # ─── Guide auth endpoints ────────────────────────────────────────────────────────
 
 @app.post("/api/guides/register")
@@ -882,6 +854,34 @@ async def get_guide_wallet_transactions(
         }
         for t in txns
     ]
+
+
+@app.get("/api/guides/{guide_id}")
+async def get_guide(guide_id: str, db: Session = Depends(get_db)):
+    g = db.query(models.Guide).filter_by(id=guide_id).first()
+    if not g:
+        raise HTTPException(status_code=404, detail="Guide not found")
+    return {
+        "id": g.id,
+        "name": g.name,
+        "bio": g.bio,
+        "photo_url": g.photo_url,
+        "expertise_tags": (g.expertise_tags or "").split("|"),
+        "personality_vector": [float(x) for x in (g.personality_vector or "").split("|")] if g.personality_vector else [],
+        "language_pairs": (g.language_pairs or "").split("|"),
+        "pace_style": g.pace_style,
+        "group_size_preferred": g.group_size_preferred,
+        "budget_tier": g.budget_tier,
+        "location_coverage": (g.location_coverage or "").split("|"),
+        "availability": g.availability,
+        "rating": g.rating_history,
+        "review_count": g.rating_count,
+        "price_range": None,
+        "response_rate": None,
+        "response_time": None,
+        "specialties": (g.specialties or "").split("|"),
+        "license_verified": g.license_verified,
+    }
 
 
 # ─── Business Owner auth endpoints ─────────────────────────────────────────────
