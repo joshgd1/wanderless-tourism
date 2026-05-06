@@ -4,7 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../../../core/guide_auth_provider.dart';
 import '../../../../design_system.dart';
-import '../../../trip_plan/providers/trip_plan_providers.dart';
+import '../../trip_plan/providers/trip_plan_providers.dart';
 
 class GuideLoginScreen extends ConsumerStatefulWidget {
   const GuideLoginScreen({super.key});
