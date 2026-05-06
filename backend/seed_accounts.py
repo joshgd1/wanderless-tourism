@@ -106,6 +106,7 @@ def seed_test_guide(db: SessionLocal):
         existing.bio = "Passionate Singapore guide specializing in cultural heritage walks through Chinatown, Little India, and Gardens by the Bay. Let me show you the authentic side of Singapore — from hidden hawker stalls to stunning skyline views."
         existing.photo_url = f"https://picsum.photos/seed/mei_ling_guide/400/400"
         existing.license_verified = True
+        existing.id = 'GTH268'
         db.commit()
         return existing
     # Bind to an existing seeded guide (first guide in database)
@@ -119,6 +120,7 @@ def seed_test_guide(db: SessionLocal):
     guide.bio = "Passionate Singapore guide specializing in cultural heritage walks through Chinatown, Little India, and Gardens by the Bay. Let me show you the authentic side of Singapore — from hidden hawker stalls to stunning skyline views."
     guide.photo_url = f"https://picsum.photos/seed/mei_ling_guide/400/400"
     guide.license_verified = True
+    guide.id = 'GTH268'
     db.commit()
     print(f"  Guide: guide@wanderless.com / wanderless123  (id={guide.id}, name={guide.name})")
     return guide
