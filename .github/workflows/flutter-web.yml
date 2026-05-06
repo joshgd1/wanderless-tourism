@@ -30,6 +30,11 @@ jobs:
           flutter pub get
           flutter create --platforms=web .
 
+      - name: Set app title in web/index.html
+        run: |
+          sed -i 's/<title>wanderless<\/title>/<title>WanderLess<\/title>/' app/web/index.html
+          sed -i 's/content="wanderless"/content="WanderLess"/' app/web/index.html
+
       - run: rm -rf app/.dart_tool
 
       - run: flutter build web --base-href=/wanderless-tourism/ --output-dir=docs
