@@ -21,10 +21,10 @@ final guideOpenRequestsProvider = FutureProvider<List<Map<String, dynamic>>>((re
 
 final guideBookingsProvider = FutureProvider<List<Map<String, dynamic>>>((ref) async {
   final authState = ref.watch(guideAuthProvider);
-  if (authState.guideId == null) return [];
+  if (authState.guideId == null || authState.token == null) return [];
   try {
     final api = ApiClient();
-    final data = await api.getGuideBookings();
+    final data = await api.getGuideBookings(guideToken: authState.token!);
     final bookings = data.cast<Map<String, dynamic>>();
     // Demo: if no bookings, add a sample pending REQUESTED booking for Singapore demo
     if (bookings.isEmpty) {
@@ -63,9 +63,9 @@ final guideBookingsProvider = FutureProvider<List<Map<String, dynamic>>>((ref) a
 
 final guideMeProvider = FutureProvider<Map<String, dynamic>?>((ref) async {
   final authState = ref.watch(guideAuthProvider);
-  if (authState.guideId == null) return null;
+  if (authState.guideId == null || authState.token == null) return null;
   final api = ApiClient();
-  final data = await api.getGuideMe();
+  final data = await api.getGuideMe(guideToken: authState.token);
   return data;
 });
 
@@ -427,7 +427,7 @@ class _GuideStickyHeader extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              'Hi, ${name.split(' ').first}',
+              'Hi, ${name.split(' ').first} 🇸🇬',
               style: AppText.labelBold.copyWith(fontSize: 14),
             ),
             Text(

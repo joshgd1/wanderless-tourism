@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/api_client.dart';
 import '../../../core/auth_provider.dart';
+import '../../../core/guide_auth_provider.dart';
 import '../../../shared/models/trip_plan.dart';
 import '../../../shared/models/guide.dart';
 
@@ -21,9 +22,12 @@ final openTripPlansProvider = FutureProvider<List<TripPlan>>((ref) async {
 });
 
 /// Provider for guide open requests fetched from the guide endpoint.
-/// Invalidated on guide login so the guide dashboard refreshes with live data.
+/// Uses the guide's own JWT token from guideAuthProvider to avoid cross-auth
+/// contamination when tourist and guide logins interleave.
 final guideOpenRequestsProvider = FutureProvider<List<Map<String, dynamic>>>((ref) async {
+  final guideAuth = ref.watch(guideAuthProvider);
+  if (guideAuth.token == null) return [];
   final api = ApiClient();
-  final data = await api.getGuideOpenRequests();
+  final data = await api.getGuideOpenRequests(guideToken: guideAuth.token!);
   return data.cast<Map<String, dynamic>>();
 });

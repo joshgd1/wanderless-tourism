@@ -70,6 +70,7 @@ class GuideAuthNotifier extends StateNotifier<GuideAuthState> {
         guideName: name,
         email: email,
       );
+      // Set on the singleton so cold-start guide API calls use the restored token.
       ApiClient().setAuthToken(token);
     }
   }
@@ -93,6 +94,7 @@ class GuideAuthNotifier extends StateNotifier<GuideAuthState> {
   Future<bool> login({required String email, required String password}) async {
     state = state.copyWith(isLoading: true, error: null);
     try {
+      // Use the ApiClient singleton so _authToken static is set — not a local var.
       final api = ApiClient();
       final result = await api.guideLogin(email: email, password: password);
       final token = result['access_token'] as String;
@@ -105,7 +107,8 @@ class GuideAuthNotifier extends StateNotifier<GuideAuthState> {
         guideName: name,
         email: email,
       );
-      api.setAuthToken(token);
+      // Set on the singleton so all subsequent guide API calls use this token.
+      ApiClient().setAuthToken(token);
       await _saveToStorage();
       return true;
     } catch (e) {

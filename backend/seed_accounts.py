@@ -104,7 +104,7 @@ def seed_test_guide(db: SessionLocal):
         existing.password_hash = TEST_PASSWORD_HASH
         existing.name = "Mei Ling"
         existing.bio = "Passionate Singapore guide specializing in cultural heritage walks through Chinatown, Little India, and Gardens by the Bay. Let me show you the authentic side of Singapore — from hidden hawker stalls to stunning skyline views."
-        existing.photo_url = f"https://picsum.photos/seed/mei_ling_guide/400/400"
+        existing.photo_url = "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&h=400&fit=crop&crop=face"
         existing.license_verified = True
         existing.id = 'GTH268'
         db.commit()
@@ -118,7 +118,7 @@ def seed_test_guide(db: SessionLocal):
     guide.password_hash = TEST_PASSWORD_HASH
     guide.name = "Mei Ling"
     guide.bio = "Passionate Singapore guide specializing in cultural heritage walks through Chinatown, Little India, and Gardens by the Bay. Let me show you the authentic side of Singapore — from hidden hawker stalls to stunning skyline views."
-    guide.photo_url = f"https://picsum.photos/seed/mei_ling_guide/400/400"
+    guide.photo_url = "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&h=400&fit=crop&crop=face"
     guide.license_verified = True
     guide.id = 'GTH268'
     db.commit()

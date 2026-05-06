@@ -94,10 +94,13 @@ class ApiClient {
     return resp.data as Map<String, dynamic>;
   }
 
-  Future<Map<String, dynamic>> getGuideMe() async {
+  Future<Map<String, dynamic>> getGuideMe({String? guideToken}) async {
+    final headers = guideToken != null
+        ? {'Authorization': 'Bearer $guideToken'}
+        : _authHeaders;
     final resp = await _dioInstance.get(
       '/guides/auth/me',
-      options: Options(headers: _authHeaders),
+      options: Options(headers: headers),
     );
     return resp.data as Map<String, dynamic>;
   }
@@ -190,26 +193,31 @@ class ApiClient {
     return (resp.data as List).cast<Map<String, dynamic>>();
   }
 
-  Future<List<Map<String, dynamic>>> getGuideBookings() async {
+  Future<List<Map<String, dynamic>>> getGuideBookings({String? guideToken}) async {
+    final headers = guideToken != null
+        ? {'Authorization': 'Bearer $guideToken'}
+        : _authHeaders;
     final resp = await _dioInstance.get(
       '/guide/bookings',
-      options: Options(headers: _authHeaders),
+      options: Options(headers: headers),
     );
     return (resp.data as List).cast<Map<String, dynamic>>();
   }
 
-  Future<List<Map<String, dynamic>>> getGuideOpenRequests() async {
+  /// Guide-specific requests using an explicitly-passed guide token.
+  /// This avoids the static _authToken race when tourist + guide logins interleave.
+  Future<List<Map<String, dynamic>>> getGuideOpenRequests({required String guideToken}) async {
     final resp = await _dioInstance.get(
       '/guides/open-requests',
-      options: Options(headers: _authHeaders),
+      options: Options(headers: {'Authorization': 'Bearer $guideToken'}),
     );
     return (resp.data as List).cast<Map<String, dynamic>>();
   }
 
-  Future<Map<String, dynamic>> acceptGuideRequest(int planId) async {
+  Future<Map<String, dynamic>> acceptGuideRequest(int planId, {required String guideToken}) async {
     final resp = await _dioInstance.post(
       '/guides/open-requests/$planId/accept',
-      options: Options(headers: _authHeaders),
+      options: Options(headers: {'Authorization': 'Bearer $guideToken'}),
     );
     return resp.data as Map<String, dynamic>;
   }
