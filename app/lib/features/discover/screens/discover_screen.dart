@@ -687,7 +687,7 @@ class DiscoverScreen extends ConsumerWidget {
                         child: MatchCard(
                           guide: guide,
                           onTap: () => context.push('/guide/${guide.guideId}'),
-                          onRequest: () => context.push('/confirm-request?guideId=${guide.guideId}'),
+                          onRequest: () => context.push('/guide/${guide.guideId}'),
                         ),
                       );
                     },
