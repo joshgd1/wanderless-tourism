@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../../../core/guide_auth_provider.dart';
 import '../../../../design_system.dart';
+import '../../../trip_plan/providers/trip_plan_providers.dart';
 
 class GuideLoginScreen extends ConsumerStatefulWidget {
   const GuideLoginScreen({super.key});
@@ -33,6 +34,7 @@ class _GuideLoginScreenState extends ConsumerState<GuideLoginScreen> {
           password: _passwordController.text,
         );
     if (success && mounted) {
+      ref.invalidate(openTripPlansProvider);
       context.go('/guide/dashboard');
     }
   }
@@ -45,7 +47,9 @@ class _GuideLoginScreenState extends ConsumerState<GuideLoginScreen> {
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
-        child: isWide ? _buildWideLayout(authState) : _buildMobileLayout(authState),
+        child: isWide
+            ? _buildWideLayout(authState)
+            : _buildMobileLayout(authState),
       ),
     );
   }
@@ -60,9 +64,11 @@ class _GuideLoginScreenState extends ConsumerState<GuideLoginScreen> {
             fit: StackFit.expand,
             children: [
               CachedNetworkImage(
-                imageUrl: 'https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=1200&q=80',
+                imageUrl:
+                    'https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=1200&q=80',
                 fit: BoxFit.cover,
-                errorWidget: (_, __, ___) => Container(color: AppColors.textPrimary),
+                errorWidget: (_, __, ___) =>
+                    Container(color: AppColors.textPrimary),
               ),
               Container(
                 decoration: BoxDecoration(
@@ -159,7 +165,8 @@ class _GuideLoginScreenState extends ConsumerState<GuideLoginScreen> {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Text("Don't have an account? ", style: AppText.bodySmall),
+                          Text("Don't have an account? ",
+                              style: AppText.bodySmall),
                           GestureDetector(
                             onTap: () => context.push('/guide/register'),
                             child: Text(
@@ -259,7 +266,8 @@ class _GuideLoginScreenState extends ConsumerState<GuideLoginScreen> {
             controller: _emailController,
             label: 'Guide Email',
             hint: 'guide@example.com',
-            prefix: const Icon(Icons.mail_outline, size: 18, color: AppColors.textTertiary),
+            prefix: const Icon(Icons.mail_outline,
+                size: 18, color: AppColors.textTertiary),
             keyboardType: TextInputType.emailAddress,
             validator: (v) {
               if (v == null || v.trim().isEmpty) return 'Email is required';
@@ -271,7 +279,8 @@ class _GuideLoginScreenState extends ConsumerState<GuideLoginScreen> {
           AppTextField(
             controller: _passwordController,
             label: 'Password',
-            prefix: const Icon(Icons.lock_outline, size: 18, color: AppColors.textTertiary),
+            prefix: const Icon(Icons.lock_outline,
+                size: 18, color: AppColors.textTertiary),
             obscureText: _obscurePassword,
             suffix: IconButton(
               icon: Icon(
@@ -279,7 +288,8 @@ class _GuideLoginScreenState extends ConsumerState<GuideLoginScreen> {
                 size: 18,
                 color: AppColors.textTertiary,
               ),
-              onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+              onPressed: () =>
+                  setState(() => _obscurePassword = !_obscurePassword),
             ),
             validator: (v) {
               if (v == null || v.isEmpty) return 'Password is required';
@@ -331,7 +341,9 @@ class _GuideLoginScreenState extends ConsumerState<GuideLoginScreen> {
         const SizedBox(height: AppSpacing.md),
         Row(
           children: [
-            Expanded(child: _SocialButton(icon: Icons.g_mobiledata, label: 'Google')),
+            Expanded(
+                child:
+                    _SocialButton(icon: Icons.g_mobiledata, label: 'Google')),
             const SizedBox(width: AppSpacing.md),
             Expanded(child: _SocialButton(icon: Icons.apple, label: 'Apple')),
           ],
@@ -459,7 +471,8 @@ class _SocialButton extends StatelessWidget {
         foregroundColor: AppColors.textPrimary,
         side: BorderSide(color: AppColors.border),
         padding: const EdgeInsets.symmetric(vertical: 14),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.md)),
+        shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppRadius.md)),
       ),
     );
   }

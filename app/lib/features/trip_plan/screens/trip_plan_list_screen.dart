@@ -10,6 +10,7 @@ import '../../../../shared/models/safety_result.dart';
 import '../../../../shared/widgets/safety_score_card.dart';
 import '../../../../design_system.dart';
 import '../../bookings/screens/bookings_screen.dart';
+import '../providers/trip_plan_providers.dart';
 
 // Provider to fetch top matched guides for a destination
 final _matchedGuidesForPlanProvider =
@@ -46,21 +47,6 @@ final _matchedGuidesForPlanProvider =
     langMatch: true,
   );
   return [meiLing, ...guides];
-});
-
-final myTripPlansProvider = FutureProvider<List<TripPlan>>((ref) async {
-  final authState = ref.watch(authProvider);
-  final touristId = authState.touristId;
-  if (touristId == null) return [];
-  final api = ApiClient();
-  final data = await api.getTripPlans(touristId: touristId);
-  return data.map((e) => TripPlan.fromJson(e as Map<String, dynamic>)).toList();
-});
-
-final openTripPlansProvider = FutureProvider<List<TripPlan>>((ref) async {
-  final api = ApiClient();
-  final data = await api.getTripPlans(status: 'OPEN');
-  return data.map((e) => TripPlan.fromJson(e as Map<String, dynamic>)).toList();
 });
 
 final _safetyScoreProvider =
@@ -261,7 +247,7 @@ class TripPlanListScreen extends ConsumerWidget {
 
     try {
       final api = ApiClient();
-      await api.acceptTripPlan(plan.id);
+      await api.acceptGuideRequest(plan.id);
       ref.invalidate(openTripPlansProvider);
       if (context.mounted) {
         Navigator.pop(sheetCtx);
