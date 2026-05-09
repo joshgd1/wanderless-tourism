@@ -1,83 +1,195 @@
-# WanderLess Synthetic Pilot Data
+# WanderLess
 
-Generated: generate_synthetic.py — seed=42
+**ML-powered travel marketplace matching tourists with local guides through compatibility intelligence.**
 
-## Destinations
+Instead of browsing tours by destination, WanderLess matches you with guides based on who you are — your interests, travel style, pace, and personality. The platform then orchestrates the full experience: itinerary optimization, group formation, and satisfaction prediction.
 
-- **TH (Thailand (Chiang Mai)), SG (Singapore)**
+![WanderLess — Where Compatibility Meets Travel](WanderLess%20Logo.png)
 
-## Files
+---
 
-| File | Rows | Description |
-|------|------|-------------|
-| `tourist_profiles.csv` | 400 | Tourist feature vectors |
-| `guide_profiles.csv` | 60 | Guide feature vectors (includes STB license fields for SG) |
-| `synthetic_ratings.csv` | 600 | Tourist-Guide-Rating tuples |
+## Why WanderLess Exists
 
-## Schema: guide_profiles.csv (new Singapore fields)
+Current travel platforms (Klook, GetYourGuide, Viator, Airbnb Experiences) all use the same discovery model: browse by city, sort by popularity, pick from pre-packaged offerings. This has three fundamental failures:
 
-| Column | Type | Description |
-|--------|------|-------------|
-| `license_verified` | bool | Platform-verified credentials |
-| `license_number` | string | STB license number (SG licensed guides) |
-| `license_type` | string | "licensed" \| "verified_expert" \| "community_host" |
-| `license_country` | string | "SG" \| "TH" |
-| `license_expiry` | string | ISO date for STB licenses |
+1. **Time waste** — Travelers spend 3–5 hours researching and still end up disappointed
+2. **Guide invisibility** — You book "an experience," not a person; personality and expertise stay hidden until the tour starts
+3. **Compatibility gap** — Nobody matches by _who_ you are — only _where_ you're going. This is a solved ML problem in every other consumer domain (Netflix, Spotify, Amazon) but not in travel.
 
-## Singapore License Tiers
+Travel is the last major consumer domain where ML-powered recommendation hasn't been applied.
 
-| Tier | STB Verified | Description |
-|------|-------------|-------------|
-| `licensed` | Yes (STB-XXXXXX) | Official STB-licensed tour guide |
-| `verified_expert` | Yes (VXP-XXXXX) | Background-checked local expert / experience host |
-| `community_host` | No | Community host — experience-led activities |
+---
 
-## Rating Model (from Chiang Mai Playbook §Cold Start Data Strategy)
+## Four ML Capabilities
+
+### 1. Interest-Compatibility Matching
+
+Scores tourist-guide compatibility 0–100% using hybrid recommendation:
+
+- **40%** content-based: interest vector cosine similarity
+- **40%** collaborative: matrix factorization on tourist-guide-rating tuples
+- **20%** contextual: time, weather, group size signals
+
+### 2. Group Formation Engine
+
+Clusters like-minded travelers for group tours using K-Means clustering + DBSCAN outlier detection. Groups of 3–8 travelers with measured coherence scores.
+
+### 3. Itinerary Optimization
+
+Sequences tour stops to maximize predicted satisfaction using constraint solvers (CP-SAT + simulated annealing fallback), respecting time windows, travel distance, weather, opening hours, and tourist energy curves.
+
+### 4. Satisfaction Prediction
+
+XGBoost regression predicts expected tour rating before it happens, enabling proactive quality干预. After 10K tours: 85%+ directional accuracy target.
+
+---
+
+## Architecture
 
 ```
-norm_dot = (raw_dot - dot_min) / (dot_max - dot_min)   # [0, 1]
-true_rating = clamp(norm_dot × 6.5 + 1.2 + bonus, 1.0, 5.0)
-bonus = lang_match × 0.30 + (compat − 0.8) × 0.15
-rating = clamp(true_rating × 0.88 + gauss(0, 1.0) × 0.12, 1.0, 5.0)
+┌─────────────────────────────────────────────────────────────┐
+│                    Flutter Mobile App                        │
+│   (tourist onboarding, guide discovery, booking, itinerary) │
+└──────────────────────────┬──────────────────────────────────┘
+                           │  REST API
+┌──────────────────────────▼──────────────────────────────────┐
+│                   Python Backend                            │
+│  ┌─────────────┐  ┌──────────────┐  ┌─────────────────┐  │
+│  │ Kailash SDK │  │ DataFlow    │  │  ML Engine      │  │
+│  │ Nexus API   │  │ SQLite      │  │  (XGBoost,     │  │
+│  │             │  │             │  │   cosine sim)   │  │
+│  └─────────────┘  └──────────────┘  └─────────────────┘  │
+└─────────────────────────────────────────────────────────────┘
 ```
 
-88% genuine compatibility signal + 12% irreducible noise.
+**Tech Stack**
 
-## Poor Experience Rate
+| Layer     | Technology                                                         |
+| --------- | ------------------------------------------------------------------ |
+| Mobile    | Flutter (Android/iOS)                                              |
+| Backend   | Python 3.11+ with Kailash SDK                                      |
+| API       | Kailash Nexus (handler pattern, multi-channel deploy)              |
+| Database  | SQLite (development), PostgreSQL (production) via Kailash DataFlow |
+| ML        | XGBoost, cosine similarity, K-Means/DBSCAN                         |
+| Framework | Kailash Core SDK, Kaizen, DataFlow, Nexus                          |
 
-Threshold: rating < 2.5
-Observed poor rate in this sample: 28/600 (4.7%)
+---
 
-Expected poor rate: 8-15% (Phase 1 Frame target for cold-start pilot data).
-Actual in this sample: 28/600 (4.7%)
+## Getting Started
 
-## Usage
+### Prerequisites
 
-```python
-import pandas as pd
+- Python 3.11+
+- Flutter SDK (for mobile app development)
+- `uv` package manager
 
-ratings = pd.read_csv("data/synthetic_ratings.csv")
-tourists = pd.read_csv("data/tourist_profiles.csv")
-guides   = pd.read_csv("data/guide_profiles.csv")
+### Backend Setup
 
-# Baseline: mean rating
-print(ratings["rating"].describe())
+```bash
+# Clone and enter the project
+git clone https://github.com/joshgd1/wanderless-tourism.git
+cd wanderless-tourism
 
-# Poor experience rate
-print(ratings["is_poor_experience"].mean())
+# Install dependencies
+uv venv
+uv sync
 
-# PSI-ready: bin ratings by predicted vs actual
-ratings["bin"] = pd.cut(ratings["predicted_rating"], bins=5)
-print(ratings.groupby("bin")["rating"].mean())  # calibration check
+# Configure environment
+cp .env.example .env
+# Edit .env with your API keys and configuration
+
+# Run the backend server
+cd backend
+uv run python main.py
 ```
 
-## Limitations
+### Mobile App Setup
 
-- Rating noise is i.i.d. Gaussian — real ratings have temporal correlation,
-  reviewer bias, and guide effort variation not captured here.
-- Language match is binary — real multilingual guides have partial fluency.
-- Guide expertise is mapped to a 3-D interest space — real expertise is higher-dimensional.
-- `is_poor_experience` is rating-based only — Phase 1 Frame includes 48h cancellation
-  as a poor signal, not present in this synthetic dataset.
-- Dot product range is computed from the generated tourist/guide population —
-  with different random seeds or larger populations, the range shifts slightly.
+```bash
+cd app
+flutter pub get
+flutter run
+```
+
+### Synthetic Pilot Data
+
+The project ships with generated pilot data for cold-start ML validation:
+
+| File                    | Rows | Description                                                 |
+| ----------------------- | ---- | ----------------------------------------------------------- |
+| `tourist_profiles.csv`  | 400  | Tourist feature vectors (interests, pace, budget, language) |
+| `guide_profiles.csv`    | 60   | Guide profiles (expertise, personality, STB licensing)      |
+| `synthetic_ratings.csv` | 600  | Tourist-guide-rating tuples                                 |
+
+Rating model: `88%` genuine compatibility signal + `12%` irreducible noise, calibrated against a 1–5 scale.
+
+---
+
+## Project Structure
+
+```
+wanderless-tourism/
+├── backend/               # Python API server
+│   ├── main.py           # Nexus app entry point
+│   ├── models.py         # SQLAlchemy models
+│   ├── matching.py        # Compatibility scoring engine
+│   ├── ml/               # ML components (XGBoost, clustering)
+│   └── database.py       # DataFlow database setup
+├── app/                  # Flutter mobile application
+│   ├── lib/
+│   │   ├── features/     # Feature modules (auth, matching, booking)
+│   │   ├── shared/       # Shared widgets, theme, utilities
+│   │   └── main.dart
+│   └── pubspec.yaml
+├── specs/                # Detailed product specifications
+│   ├── matching-engine.md
+│   ├── itinerary-optimizer.md
+│   ├── group-formation.md
+│   ├── satisfaction-predictor.md
+│   └── *_profile.md
+├── data/                 # Synthetic pilot datasets
+├── tests/                # Test suites
+└── docs/                 # Architecture decision records
+```
+
+---
+
+## Singapore Licensing (STB)
+
+WanderLess supports Singapore Tourism Board (STB) licensing tiers for guides operating in Singapore:
+
+| Tier              | License    | Description                                       |
+| ----------------- | ---------- | ------------------------------------------------- |
+| `licensed`        | STB-XXXXXX | Official STB-licensed tour guide                  |
+| `verified_expert` | VXP-XXXXX  | Background-checked local expert / experience host |
+| `community_host`  | —          | Community host — experience-led activities        |
+
+---
+
+## Business Model
+
+| Revenue Stream            | Rate      | Trigger           |
+| ------------------------- | --------- | ----------------- |
+| Booking commission        | 15–18%    | Tourist pays      |
+| Guide premium tools       | $14.99/mo | After 20 bookings |
+| Business partner referral | 5–10%     | Pay-per-visit     |
+
+**Unit Economics**: Tourist LTV $45–90 / CAC $5–15 / payback in 1 trip. Guide LTV $600–1,200/year / CAC $0 / payback in 1–2 months.
+
+---
+
+## Contributing
+
+Contributions are welcome. Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+
+This project is licensed under **Apache 2.0** — see [LICENSE](LICENSE) for details.
+
+---
+
+## Security
+
+For vulnerability disclosures, please contact [security@terrene.foundation](mailto:security@terrene.foundation). See [SECURITY.md](SECURITY.md) for our disclosure policy and scope.
+
+---
+
+_WanderLess is a research and development project exploring ML-powered travel matching. Built with the [Kailash SDK](https://github.com/terrene-foundation/kailash-py) by the Terrene Foundation._
