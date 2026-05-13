@@ -1,13 +1,13 @@
 {
   "name": "wanderless-tourism",
   "version": "1.0.0",
-  "description": "Generated: generate_synthetic.py — seed=42",
+  "description": "ML-powered travel marketplace matching tourists with local guides through compatibility intelligence",
   "main": "index.js",
   "directories": {
     "test": "tests"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Flutter/Node E2E tests not configured in this project\""
   },
   "repository": {
     "type": "git",

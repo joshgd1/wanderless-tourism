@@ -915,7 +915,7 @@ async def register_business(data: dict, db: Session = Depends(get_db)):
     if not password or len(password) < 6:
         raise HTTPException(status_code=400, detail="Password must be at least 6 characters")
     if not name:
-        raise HTTPException(status_code=400, detail="Your name is required")
+        raise HTTPException(status_code=400, detail="Owner personal name is required (separate from business name)")
     if not business_name:
         raise HTTPException(status_code=400, detail="Business name is required")
 

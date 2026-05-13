@@ -2,7 +2,11 @@
 
 ## Overview
 
-The Itinerary Optimizer sequences tour stops to maximize predicted tourist satisfaction while respecting physical and temporal constraints. Uses constraint optimization with simulated annealing fallback.
+The Itinerary Optimizer sequences tour stops to maximize predicted tourist satisfaction while respecting physical and temporal constraints.
+
+**Current implementation**: Greedy construction + 2-opt local search (prototype).
+
+**Future production upgrade**: CP-SAT constraint solver and simulated annealing are described in this document as planned production enhancements.
 
 ## Problem Definition
 
@@ -81,9 +85,138 @@ soft_constraints = {
 }
 ```
 
-## Algorithm: Constraint Propagation + Simulated Annealing
+## Algorithm: Greedy Construction + 2-opt Local Search
 
-### Phase 1: Constraint Propagation (Fast)
+### Phase 1: Greedy Construction (Implemented)
+
+```python
+def fast_optimize(stops, constraints, context):
+    """
+    Greedy construction — builds initial route by iteratively adding
+    the highest-satisfaction feasible stop.
+    Returns: ordered route
+    """
+    # Prune stops that violate hard constraints
+    feasible_stops = [
+        stop for stop in stops
+        if all(c(stop) for c in hard_constraints.values())
+    ]
+
+    # Greedy ordering by satisfaction/time ratio
+    ordered = greedy_sequence(feasible_stops, context)
+
+    return ordered
+```
+
+### Phase 2: 2-opt Local Search (Implemented)
+
+```python
+def two_opt_improve(route, constraints, context):
+    """
+    2-opt: iteratively improves route by reversing segments.
+    Continues until no improvement found or max iterations reached.
+    """
+    improved = True
+    while improved:
+        improved = False
+        for i in range(len(route) - 1):
+            for j in range(i + 2, len(route)):
+                new_route = route[:i+1] + route[i+1:j][::-1] + route[j:]
+                if score(new_route) > score(route):
+                    route = new_route
+                    improved = True
+    return route
+```
+
+### Phase 3: CP-SAT + Simulated Annealing (Future Production Upgrade)
+
+The following algorithms are **planned for future production upgrade** — not currently implemented.
+
+#### Constraint Propagation (Future)
+
+```python
+def fast_optimize(stops, constraints, context):
+    """
+    Quick feasibility search using constraint propagation
+    Returns: ordered route or None if infeasible
+    """
+    # Prune stops that violate hard constraints
+    feasible_stops = [
+        stop for stop in stops
+        if all(c(stop) for c in hard_constraints.values())
+    ]
+
+    # Greedy ordering by satisfaction/time ratio
+    ordered = greedy_sequence(feasible_stops, context)
+
+    if satisfies_all(ordered, hard_constraints):
+        return ordered
+
+    return None  # Fall through to SA
+```
+
+#### Simulated Annealing (Future)
+
+```python
+def simulated_annealing(route, constraints, context):
+    """
+    SA for harder instances — planned production upgrade
+    """
+    current = route[:]
+    best = current[:]
+    T = 10000  # Initial temperature
+    T_min = 1
+
+    while T > T_min:
+        # Generate neighbor
+        neighbor = swap_or_reorder(current)
+
+        # Calculate delta
+        current_score = score(current, constraints, context)
+        neighbor_score = score(neighbor, constraints, context)
+        delta = neighbor_score - current_score
+
+        # Accept or reject
+        if delta > 0 or random() < exp(delta / T):
+            current = neighbor
+
+            if score(current) > score(best):
+                best = current[:]
+
+        T *= 0.9995  # Cooling rate
+
+    return best
+```
+
+#### Greedy Fallback (Future)
+
+```python
+def greedy_fallback(stops, context):
+    """
+    Last resort when SA doesn't converge — planned production upgrade
+    """
+    remaining = stops[:]
+    ordered = []
+    current_time = context.start_time
+    current_location = context.start_location
+
+    while remaining:
+        best = None
+        best_score = -inf
+
+        for stop in remaining:
+            score = evaluate_stop(stop, current_location, current_time, context)
+            if score > best_score:
+                best = stop
+                best_score = score
+
+        ordered.append(best)
+        remaining.remove(best)
+        current_time += best.duration
+        current_location = best.location
+
+    return ordered
+```
 
 ```python
 def fast_optimize(stops, constraints, context):
@@ -169,7 +302,9 @@ def greedy_fallback(stops, context):
     return ordered
 ```
 
-## Tourist Energy Curve
+## Tourist Energy Curve (Planned — Not Implemented)
+
+**Status**: Energy curve modeling is **planned for future production** — not currently implemented in the prototype.
 
 ```
 # Default energy curve (normalized 0-1, 6AM-10PM)
@@ -197,7 +332,9 @@ energy_curve = {
 # Algorithm penalizes high-energy activities during low-energy periods
 ```
 
-## Weather Integration
+## Weather Integration (Planned — Not Implemented)
+
+**Status**: Weather-based stop scoring is **planned for future production** — the prototype does not make weather API calls. Current itinerary respects only time windows, budget, and distance.
 
 ```python
 weather_adjustments = {

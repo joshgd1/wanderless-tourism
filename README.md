@@ -27,8 +27,8 @@ Travel is the last major consumer domain where ML-powered recommendation hasn't 
 Scores tourist-guide compatibility 0–100% using hybrid recommendation:
 
 - **40%** content-based: interest vector cosine similarity
-- **40%** collaborative: matrix factorization on tourist-guide-rating tuples
-- **20%** contextual: time, weather, group size signals
+- **40%** collaborative: TruncatedSVD matrix factorization on tourist-guide-rating tuples
+- **20%** contextual: destination affinity boost (time/weather signals described for future production upgrade)
 
 ### 2. Group Formation Engine
 
@@ -36,11 +36,11 @@ Clusters like-minded travelers for group tours using K-Means clustering + DBSCAN
 
 ### 3. Itinerary Optimization
 
-Sequences tour stops to maximize predicted satisfaction using constraint solvers (CP-SAT + simulated annealing fallback), respecting time windows, travel distance, weather, opening hours, and tourist energy curves.
+Sequences tour stops using greedy construction + 2-opt local search, respecting time windows, travel distance, budgets, and meal breaks. (CP-SAT constraint solver described in architecture for production upgrade.)
 
 ### 4. Satisfaction Prediction
 
-XGBoost regression predicts expected tour rating before it happens, enabling proactive quality干预. After 10K tours: 85%+ directional accuracy target.
+XGBoost regression model (prototype) predicts expected tour rating before it happens. Model exists in `backend/ml/review_intelligence.py`; not yet wired to the recommendation API endpoint. Accuracy targets (85%+ directional accuracy) are architecture-stage estimates requiring real-data validation.
 
 ---
 
@@ -56,22 +56,22 @@ XGBoost regression predicts expected tour rating before it happens, enabling pro
 │                   Python Backend                            │
 │  ┌─────────────┐  ┌──────────────┐  ┌─────────────────┐  │
 │  │ Kailash SDK │  │ DataFlow    │  │  ML Engine      │  │
-│  │ Nexus API   │  │ SQLite      │  │  (XGBoost,     │  │
-│  │             │  │             │  │   cosine sim)   │  │
-│  └─────────────┘  └──────────────┘  └─────────────────┘  │
+│  │ Nexus API   │  │ SQLite      │  │  (cosine sim, │  │
+│  │             │  │             │  │   TruncatedSVD,│  │
+│  │             │  │             │  │   K-Means/DBSCAN)│  │
 └─────────────────────────────────────────────────────────────┘
 ```
 
 **Tech Stack**
 
-| Layer     | Technology                                                         |
-| --------- | ------------------------------------------------------------------ |
-| Mobile    | Flutter (Android/iOS)                                              |
-| Backend   | Python 3.11+ with Kailash SDK                                      |
-| API       | Kailash Nexus (handler pattern, multi-channel deploy)              |
-| Database  | SQLite (development), PostgreSQL (production) via Kailash DataFlow |
-| ML        | XGBoost, cosine similarity, K-Means/DBSCAN                         |
-| Framework | Kailash Core SDK, Kaizen, DataFlow, Nexus                          |
+| Layer     | Technology                                                                                                                                            |
+| --------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Mobile    | Flutter (Android/iOS)                                                                                                                                 |
+| Backend   | Python 3.11+ with Kailash SDK                                                                                                                         |
+| API       | Kailash Nexus (handler pattern, multi-channel deploy)                                                                                                 |
+| Database  | SQLite (development), PostgreSQL (production) via Kailash DataFlow                                                                                    |
+| ML        | Cosine similarity, TruncatedSVD (collaborative filtering), K-Means/DBSCAN (group formation); XGBoost satisfaction model (prototype, not wired to API) |
+| Framework | Kailash Core SDK, Kaizen, DataFlow, Nexus                                                                                                             |
 
 ---
 
@@ -133,7 +133,7 @@ wanderless-tourism/
 │   ├── main.py           # Nexus app entry point
 │   ├── models.py         # SQLAlchemy models
 │   ├── matching.py        # Compatibility scoring engine
-│   ├── ml/               # ML components (XGBoost, clustering)
+│   ├── ml/               # ML components (cosine sim, TruncatedSVD, K-Means/DBSCAN; XGBoost prototype not wired to API)
 │   └── database.py       # DataFlow database setup
 ├── app/                  # Flutter mobile application
 │   ├── lib/
@@ -149,7 +149,10 @@ wanderless-tourism/
 │   └── *_profile.md
 ├── data/                 # Synthetic pilot datasets
 ├── tests/                # Test suites
-└── docs/                 # Architecture decision records
+└── docs/                 # Decision records and guides
+    ├── COC_DECISION_LOG_A_PLUS.md    # Team decision log with rubric mapping
+    ├── ML_CLAIMS_IMPLEMENTATION_MATRIX.md  # ML claim verification matrix
+    └── PRESENTATION_GUIDE.md          # Demo script and Q&A guide
 ```
 
 ---

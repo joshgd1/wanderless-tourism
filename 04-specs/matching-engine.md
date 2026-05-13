@@ -10,9 +10,9 @@ The Matching Engine is WanderLess's core ML capability. It predicts tourist-guid
 
 ```
 compatibility_score(tourist, guide) =
-    0.40 * content_score(tourist, guide) +
-    0.40 * collaborative_score(tourist, guide) +
-    0.20 * contextual_score(tourist, guide, context)
+    0.45 * content_score(tourist, guide) +
+    0.45 * collaborative_score(tourist, guide) +
+    0.10 * contextual_score(tourist, guide, context)
 ```
 
 ## 1. Content-Based Score (40%)
@@ -21,14 +21,14 @@ compatibility_score(tourist, guide) =
 
 ```
 tourist_vector = embed(primary_interests + demographics + preferences)
-# Output: normalized float[64]
+# Output: normalized float[5] (food, culture, adventure, pace, budget)
 ```
 
 ### Guide Expertise Vector
 
 ```
 guide_vector = embed(expertise + personality + languages + availability)
-# Output: normalized float[64]
+# Output: normalized float[5] (food, culture, adventure, pace, budget)
 ```
 
 ### Cosine Similarity
@@ -111,34 +111,31 @@ context_score = model.predict(context_features × interaction_terms)
 # Example: Food guide at lunch time gets context_score > 0.7
 ```
 
-## Confidence Interval
+## Implementation Status
 
-### Calculation
+### Implemented
 
-```
-# Bootstrap sampling for confidence
-n_bootstrap = 100
-bootstrap_scores = []
+| Component             | Status          | Notes                                                                          |
+| --------------------- | --------------- | ------------------------------------------------------------------------------ |
+| Content-based scoring | **Implemented** | Cosine similarity on 5-dim tourist/guide vectors via `ContentBasedRecommender` |
+| Collaborative scoring | **Implemented** | TruncatedSVD (scipy `svds`) on rating matrix; NOT ALS                          |
+| Destination affinity  | **Implemented** | Hardcoded 10% boost; not time/weather/group-size signals                       |
+| Cold-start fallback   | **Implemented** | Global mean rating for tourists with <5 ratings                                |
+| Hybrid weighting      | **Implemented** | Fixed 45/45/10 weights; not A/B tunable                                        |
 
-for _ in range(n_bootstrap):
-    # Resample training data
-    sample = resample(training_data)
-    model_sample = train(sample)
-    score_sample = model_sample.predict(tourist, guide)
-    bootstrap_scores.append(score_sample)
+### Planned / Not Wired
 
-confidence_lower = percentile(bootstrap_scores, 2.5)
-confidence_upper = percentile(bootstrap_scores, 97.5)
-confidence_width = confidence_upper - confidence_lower
-```
+| Component                 | Status      | Notes                                                                                  |
+| ------------------------- | ----------- | -------------------------------------------------------------------------------------- |
+| Confidence intervals      | **Planned** | Bootstrap CI described in spec; not implemented in code                                |
+| SHAP explanations         | **Planned** | Not implemented in prototype                                                           |
+| Feature interaction terms | **Planned** | Described in `satisfaction-predictor.md`; not in matching engine                       |
+| A/B-tunable weights       | **Planned** | Weights are fixed constants; production would expose as parameters                     |
+| 64-dimensional vectors    | **Planned** | Current implementation uses 5-dimensional vectors (food/culture/adventure/pace/budget) |
 
-### Confidence Levels
+### Collaborative Filtering Clarification
 
-```
-confidence_width < 0.1:  "HIGH"   # Green indicator
-confidence_width < 0.2:  "MEDIUM" # Yellow indicator
-confidence_width >= 0.2: "LOW"    # Red indicator
-```
+The collaborative filtering implementation uses **TruncatedSVD** (`scipy.sparse.linalg.svds`) on the tourist×guide rating matrix — NOT Alternating Least Squares (ALS). Architecture documentation that references "ALS" or the `implicit` library is incorrect.
 
 ## Matching Output
 

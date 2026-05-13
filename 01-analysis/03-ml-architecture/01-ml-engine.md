@@ -116,7 +116,7 @@ content_score = cosine_similarity(tourist_interest_vec, guide_specialty_vec)
 
 #### 2.3.2 Collaborative Filtering Component (40%)
 
-**Model**: Matrix Factorization (ALS or SVD) on tourist-guide-rating tuples
+**Model**: TruncatedSVD matrix factorization on tourist-guide-rating tuples
 
 ```python
 # Latent factor model
@@ -128,10 +128,10 @@ collab_score = (predicted_rating - 1) / 4 × 100  # Normalize 1-5 → 0-100%
 
 **Implementation**:
 
-- Framework: `implicit` library (ALS) or `surprise` (SVD)
-- Latent factors: 50-100 dimensions
-- Regularization: L2 regularization λ=0.1 (tuned via validation set)
-- Update frequency: Weekly batch retraining; daily incremental updates for new ratings
+- Framework: `scipy.sparse.linalg.svds` (TruncatedSVD) + `sklearn.neighbors.NearestNeighbors` for k-NN fallback
+- Latent factors: 10 dimensions (n_factors=10, lower than architecture's 50-100 target)
+- Regularization: implicit via SVD's numerical properties; no explicit λ tuning in prototype
+- Update frequency: Model retrained on app restart (no automated retraining pipeline in prototype)
 
 **Rationale**: Collaborative filtering captures non-obvious compatibility patterns (e.g., certain age groups consistently prefer specific guide styles). The 40% weight reflects the core value proposition—personalization from collective intelligence.
 
@@ -1092,15 +1092,18 @@ final_prediction = 0.7 * global_model.predict(features) + 0.3 * tourist_destinat
 
 ### ADR-002: Collaborative Filtering Algorithm
 
-**Decision**: Alternating Least Squares (ALS) over SVD or neural collaborative filtering
+**Decision**: TruncatedSVD matrix factorization (scipy `svds`) over Alternating Least Squares (ALS) or neural collaborative filtering
 
 **Rationale**:
 
-- ALS: Handles implicit feedback (views, clicks) naturally; scales to 1M users
-- SVD: More accurate on explicit ratings but slower; sensitive to missing data
-- NCF: Better accuracy but requires GPU for real-time inference
+- TruncatedSVD: CPU-friendly, works with sparse matrices, straightforward implementation with scipy/sklearn. Chosen for the prototype implementation.
+- ALS: Handles implicit feedback (views, clicks) naturally; scales to 1M users. Planned for production upgrade when rating matrix density increases.
+- SVD (full): More accurate on explicit ratings but slower; sensitive to missing data. Not used.
+- NCF: Better accuracy but requires GPU for real-time inference. Not used.
 
-**Consequences**: ALS is CPU-friendly and enables nightly retraining without specialized hardware.
+**Consequences**: TruncatedSVD with 10 latent factors is the current implementation. ALS is the planned production upgrade when the collaborative filtering model requires handling implicit feedback signals or larger user/item matrices.
+
+**Implementation note**: The current code uses `scipy.sparse.linalg.svds` (TruncatedSVD), NOT the `implicit` library's ALS. This ADR should be updated to ADR-002b if ALS is implemented.
 
 ### ADR-003: Group Size Bounds
 
@@ -1161,33 +1164,33 @@ None at time of writing. All cross-references validated against draft documents.
 
 ## Appendix A: Glossary
 
-| Term                 | Definition                                                                                  |
-| -------------------- | ------------------------------------------------------------------------------------------- |
-| **ALS**              | Alternating Least Squares — matrix factorization algorithm for collaborative filtering      |
-| **CF**               | Collaborative Filtering — recommendation technique using user-item interaction history      |
-| **CI Lower/Upper**   | Confidence Interval bounds (95%) for compatibility scores                                   |
-| **CP-SAT**           | Constraint Programming with SAT solver — optimization technique for constraint satisfaction |
-| **DBSCAN**           | Density-Based Spatial Clustering of Applications with Noise                                 |
-| **Interest Vector**  | Compressed representation of tourist preferences (64-dim)                                   |
-| **MAE**              | Mean Absolute Error — average prediction error magnitude                                    |
-| **SHAP**             | SHapley Additive exPlanations — model interpretability technique                            |
-| **Silhouette Score** | Cluster quality metric (-1 to 1, higher is better)                                          |
-| **Specialty Vector** | Compressed representation of guide expertise (64-dim)                                       |
+| Term                 | Definition                                                                                                                                   |
+| -------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| **ALS**              | Alternating Least Squares — matrix factorization algorithm for collaborative filtering. Planned for production; prototype uses TruncatedSVD. |
+| **CF**               | Collaborative Filtering — recommendation technique using user-item interaction history                                                       |
+| **CI Lower/Upper**   | Confidence Interval bounds (95%) for compatibility scores                                                                                    |
+| **CP-SAT**           | Constraint Programming with SAT solver — optimization technique for constraint satisfaction                                                  |
+| **DBSCAN**           | Density-Based Spatial Clustering of Applications with Noise                                                                                  |
+| **Interest Vector**  | Compressed representation of tourist preferences (64-dim)                                                                                    |
+| **MAE**              | Mean Absolute Error — average prediction error magnitude                                                                                     |
+| **SHAP**             | SHapley Additive exPlanations — model interpretability technique                                                                             |
+| **Silhouette Score** | Cluster quality metric (-1 to 1, higher is better)                                                                                           |
+| **Specialty Vector** | Compressed representation of guide expertise (64-dim)                                                                                        |
 
 ---
 
 ## Appendix B: Technology Stack
 
-| Component               | Recommended Stack             | Alternative               |
-| ----------------------- | ----------------------------- | ------------------------- |
-| Feature Store           | Redis + Postgres (JSON)       | Pinecone (vectors)        |
-| Embedding Model         | sentence-transformers (mpnet) | OpenAI embeddings         |
-| Collaborative Filtering | implicit (ALS)                | Surprise (SVD)            |
-| Gradient Boosting       | XGBoost                       | LightGBM                  |
-| Constraint Solving      | OR-Tools CP-SAT               | Google Optimization Suite |
-| Model Serving           | TorchServe / ONNX Runtime     | AWS SageMaker             |
-| Experiment Platform     | Statsig / Optimizely          | Homegrown A/B             |
-| Monitoring              | Grafana + Prometheus          | Datadog                   |
+| Component               | Recommended Stack              | Alternative               |
+| ----------------------- | ------------------------------ | ------------------------- |
+| Feature Store           | Redis + Postgres (JSON)        | Pinecone (vectors)        |
+| Embedding Model         | sentence-transformers (mpnet)  | OpenAI embeddings         |
+| Collaborative Filtering | scipy TruncatedSVD (prototype) | implicit (ALS) (planned)  |
+| Gradient Boosting       | XGBoost                        | LightGBM                  |
+| Constraint Solving      | OR-Tools CP-SAT                | Google Optimization Suite |
+| Model Serving           | TorchServe / ONNX Runtime      | AWS SageMaker             |
+| Experiment Platform     | Statsig / Optimizely           | Homegrown A/B             |
+| Monitoring              | Grafana + Prometheus           | Datadog                   |
 
 ---
 

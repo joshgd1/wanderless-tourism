@@ -44,11 +44,11 @@ ML recommendation systems transformed:
 
 **Architecture**:
 
-- 40% Content-based: Interest vector cosine similarity
-- 40% Collaborative: Matrix factorization on tourist-guide-rating tuples
-- 20% Contextual: Time, weather, group size signals
+- 45% Content-based: Interest vector cosine similarity (5-dimensional profile vectors)
+- 45% Collaborative: TruncatedSVD matrix factorization on tourist-guide-rating tuples
+- 10% Contextual: Destination affinity boost (time/weather/group-size signals described for future production upgrade)
 
-**Output**: Compatibility score with confidence interval + key matching factors
+**Output**: Compatibility score (no confidence interval in prototype) + key matching factors
 
 ### 2. Group Formation Engine (Unsupervised Learning)
 
@@ -68,9 +68,9 @@ ML recommendation systems transformed:
 
 **Architecture**:
 
-- Constraint solver maximizing predicted satisfaction
-- Constraints: time windows, travel distance, weather, opening hours, tourist energy curve
-- Simulated annealing + greedy fallback
+- Greedy construction + 2-opt local search (CP-SAT constraint solver described in architecture as future production upgrade)
+- Constraints: time windows, travel distance, opening hours, meal breaks, budget ceiling
+- Energy curve modeling and weather integration described in architecture; not implemented in prototype
 
 **Output**: Optimized stop sequence with timing
 
@@ -80,11 +80,11 @@ ML recommendation systems transformed:
 
 **Architecture**:
 
-- XGBoost regression on tourist-guide feature interaction terms
-- Trained on post-tour ratings
-- After 10K tours: 85%+ directional accuracy target
+- XGBoost regression (prototype) in `backend/ml/review_intelligence.py`; **not wired to recommendation API endpoint**
+- Trained on synthetic data; requires real post-tour ratings for production validation
+- Target accuracy (85%+ directional) is an architecture-stage estimate; requires real-data validation after sufficient completed tours
 
-**Output**: Predicted rating (1-5) + key contributing factors
+**Output**: Predicted rating (1-5) in prototype; not currently exposed as recommendation signal
 
 ---
 

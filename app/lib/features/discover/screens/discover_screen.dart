@@ -553,7 +553,7 @@ class DiscoverScreen extends ConsumerWidget {
                   ),
                   const SizedBox(width: 8),
                   Text(
-                    isSmart ? 'AI-Guided Matches' : 'Top Guides',
+                    isSmart ? 'Personalized ML Matches' : 'Top Guides',
                     style: AppText.h3,
                   ),
                   const Spacer(),

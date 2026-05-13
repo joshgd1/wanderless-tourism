@@ -95,12 +95,12 @@ WanderLess is an ML-powered three-sided marketplace connecting tourists, local g
 
 ## Completed Specs
 
-| Spec                        | Status   | Key Content                                                                      |
-| --------------------------- | -------- | -------------------------------------------------------------------------------- |
-| `tourist-profile.md`        | Complete | 64-dim interest vector, 5-slider onboarding, profile completeness scoring        |
-| `guide-profile.md`          | Complete | TAT licensing, expertise vector, tier system (Free/Pro/Expert), lifecycle states |
-| `booking-transaction.md`    | Complete | State machine, Stripe escrow, commission rates, cancellation policies            |
-| `matching-engine.md`        | Complete | 40/40/20 hybrid architecture, content/collaborative/contextual scoring           |
-| `group-formation.md`        | Complete | K-Means/DBSCAN, 3-8 tourist groups, lifecycle states                             |
-| `itinerary-optimizer.md`    | Complete | CP-SAT + SA + greedy fallback, energy curves, weather integration                |
-| `satisfaction-predictor.md` | Complete | XGBoost regression, feature interactions, SHAP explanations                      |
+| Spec                        | Status   | Key Content                                                                                                   |
+| --------------------------- | -------- | ------------------------------------------------------------------------------------------------------------- |
+| `tourist-profile.md`        | Complete | 5-dim interest vector (food/culture/adventure/pace/budget), 5-slider onboarding, profile completeness scoring |
+| `guide-profile.md`          | Complete | TAT licensing, expertise vector, tier system (Free/Pro/Expert), lifecycle states                              |
+| `booking-transaction.md`    | Complete | State machine, Stripe escrow, commission rates, cancellation policies                                         |
+| `matching-engine.md`        | Complete | 45/45/10 hybrid (content/collab/destination), 5-dim vectors, TruncatedSVD; confidence intervals planned       |
+| `group-formation.md`        | Complete | K-Means/DBSCAN, 3-8 tourist groups, silhouette-score optimal k                                                |
+| `itinerary-optimizer.md`    | Complete | Greedy + 2-opt (prototype); CP-SAT/SA planned for production; energy/weather not implemented                  |
+| `satisfaction-predictor.md` | Complete | XGBoost prototype in review_intelligence.py; NOT wired to recommendation endpoint; SHAP planned               |

@@ -3,11 +3,11 @@ requires = ["setuptools>=65.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "my-kailash-project"  # TODO: Replace with your project name
+name = "wanderless-tourism"
 version = "0.1.0"
-description = "A Kailash SDK project"  # TODO: Replace with your project description
+description = "ML-powered travel marketplace matching tourists with local guides through compatibility intelligence"
 authors = [
-    {name = "Your Name", email = "your.email@example.com"}  # TODO: Replace with your info
+    {name = "WanderLess MGMT655 Team", email = "wanderless@example.com"}
 ]
 readme = "README.md"
 requires-python = ">=3.11"
@@ -67,9 +67,8 @@ dev = [
 ]
 
 [project.urls]
-# TODO: Replace with your project URLs
-# "Homepage" = "https://github.com/your-org/your-project"
-# "Bug Tracker" = "https://github.com/your-org/your-project/issues"
+Homepage = "https://github.com/joshgd1/wanderless-tourism"
+"Bug Tracker" = "https://github.com/joshgd1/wanderless-tourism/issues"
 
 [tool.setuptools.packages.find]
 where = ["."]
