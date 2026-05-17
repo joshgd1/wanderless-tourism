@@ -112,7 +112,23 @@ class GuideAuthNotifier extends StateNotifier<GuideAuthState> {
       await _saveToStorage();
       return true;
     } catch (e) {
-      state = state.copyWith(isLoading: false, error: e.toString());
+      String msg = e.toString();
+      if (msg.toLowerCase().contains('connection') || msg.toLowerCase().contains('network')) {
+        msg = 'Cannot connect to server. Check your internet connection.';
+      } else if (msg.contains('DioException')) {
+        if (msg.contains('401') || msg.toLowerCase().contains('unauthorized')) {
+          msg = 'Invalid email or password.';
+        } else if (msg.contains('404')) {
+          msg = 'Server not found. Please try again later.';
+        } else if (msg.contains('SocketException') || msg.contains('connection')) {
+          msg = 'Cannot connect to server. Check your internet connection.';
+        } else if (msg.contains('connection timeout') || msg.contains('receive timeout')) {
+          msg = 'Connection timed out. Please try again.';
+        } else {
+          msg = 'Login failed. Please try again.';
+        }
+      }
+      state = state.copyWith(isLoading: false, error: msg);
       return false;
     }
   }
