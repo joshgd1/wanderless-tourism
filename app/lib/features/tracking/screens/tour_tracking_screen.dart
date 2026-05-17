@@ -338,51 +338,56 @@ class _StaticMapView extends StatelessWidget {
     this.touristLocation,
   });
 
-  String get _staticMapUrl {
-    // Build markers parameter for OpenStreetMap static map
-    final markers = <String>[];
-    if (guideLocation != null) {
-      markers.add('blue,1,${guideLocation!.latitude},${guideLocation!.longitude}');
-    }
-    if (touristLocation != null) {
-      markers.add('green,1,${touristLocation!.latitude},${touristLocation!.longitude}');
-    }
-    final markerParam = markers.isNotEmpty ? '&markers=${markers.join('|')}' : '';
-    // bbox: center point with ~5km radius
-    final lat = center.latitude.toStringAsFixed(6);
-    final lng = center.longitude.toStringAsFixed(6);
-    return 'https://staticmap.openstreetmap.de/staticmap.php'
-        '?center=$lat,$lng'
-        '&zoom=13'
-        '&size=600x400'
-        '&maptype=mapnik'
-        '$markerParam';
-  }
-
   @override
   Widget build(BuildContext context) {
     return Container(
       color: AppColors.surface,
       child: Center(
-        child: CachedNetworkImage(
-          imageUrl: _staticMapUrl,
-          fit: BoxFit.contain,
-          placeholder: (context, url) => Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const CircularProgressIndicator(strokeWidth: 2),
-              const SizedBox(height: 16),
-              Text('Loading map...', style: AppText.caption),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.map_outlined, size: 64, color: AppColors.textSecondary),
+            const SizedBox(height: 16),
+            Text('Location Preview', style: AppText.h4),
+            const SizedBox(height: 8),
+            if (guideLocation != null) ...[
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
+                    width: 12,
+                    height: 12,
+                    decoration: const BoxDecoration(
+                      color: AppColors.info,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Text('Guide: ${guideLocation!.latitude.toStringAsFixed(4)}, ${guideLocation!.longitude.toStringAsFixed(4)}', style: AppText.caption),
+                ],
+              ),
+              const SizedBox(height: 4),
             ],
-          ),
-          errorWidget: (context, url, error) => Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(Icons.map_outlined, size: 64, color: AppColors.textSecondary),
-              const SizedBox(height: 12),
-              Text('Map unavailable', style: AppText.caption),
+            if (touristLocation != null) ...[
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
+                    width: 12,
+                    height: 12,
+                    decoration: const BoxDecoration(
+                      color: AppColors.success,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Text('Tourist: ${touristLocation!.latitude.toStringAsFixed(4)}, ${touristLocation!.longitude.toStringAsFixed(4)}', style: AppText.caption),
+                ],
+              ),
             ],
-          ),
+            const SizedBox(height: 16),
+            Text('Live tracking available when connected', style: AppText.caption.copyWith(color: AppColors.textSecondary)),
+          ],
         ),
       ),
     );

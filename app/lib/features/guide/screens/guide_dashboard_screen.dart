@@ -989,9 +989,10 @@ class _PendingTab extends ConsumerWidget {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Something went wrong. Please try again.'),
+            content: Text('Error: ${e.toString()}'),
             backgroundColor: AppColors.error,
             behavior: SnackBarBehavior.floating,
+            duration: const Duration(seconds: 5),
             shape:
                 RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.sm)),
           ),
