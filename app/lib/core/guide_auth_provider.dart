@@ -64,10 +64,12 @@ class GuideAuthNotifier extends StateNotifier<GuideAuthState> {
     final name = prefs.getString(_nameKey);
     final email = prefs.getString(_emailKey);
     if (token != null && id != null) {
+      // Demo: guide@wanderless.com always shows as Mei Ling
+      final resolvedName = email == 'guide@wanderless.com' ? 'Mei Ling' : name;
       state = GuideAuthState(
         token: token,
         guideId: id,
-        guideName: name,
+        guideName: resolvedName,
         email: email,
       );
       // Set on the singleton so cold-start guide API calls use the restored token.
