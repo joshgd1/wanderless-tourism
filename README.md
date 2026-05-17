@@ -14,7 +14,7 @@ This is not a generic itinerary generator. The product wedge is **compatibility 
 
 ## Final Report
 
-**Read this first:** [FINAL_INDIVIDUAL_ASSIGNMENT_REPORT.md](FINAL_INDIVIDUAL_ASSIGNMENT_REPORT.md)
+**Read this first:** [FINAL_GROUP_ASSIGNMENT_REPORT.md](FINAL_GROUP_ASSIGNMENT_REPORT.md)
 
 The 8-page final report is written for three audiences:
 
@@ -22,7 +22,7 @@ The 8-page final report is written for three audiences:
 2. a **user of the app**
 3. a **fellow developer** taking over the app
 
-It covers: product overview, problem and market need, user journey, AI/ML design, business model, technical architecture, individual contributions, and validation.
+It covers: product overview, problem and market need, user journey, AI/ML design, business model, technical architecture, team contributions, and validation.
 
 **Repository:** https://github.com/joshgd1/wanderless-tourism
 Professor Hong has been granted repository access. Access will be removed after grading.
