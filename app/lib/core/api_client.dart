@@ -307,13 +307,16 @@ class ApiClient {
     return resp.data as Map<String, dynamic>;
   }
 
-  Future<Map<String, dynamic>> updateBookingStatus(int bookingId, String status, {String? cancelledBy}) async {
+  Future<Map<String, dynamic>> updateBookingStatus(int bookingId, String status, {String? cancelledBy, String? guideToken}) async {
     final data = <String, dynamic>{'status': status};
     if (cancelledBy != null) data['cancelled_by'] = cancelledBy;
+    final headers = guideToken != null
+        ? {'Authorization': 'Bearer $guideToken'}
+        : _authHeaders;
     final resp = await _dioInstance.put(
       '/bookings/$bookingId/status',
       data: data,
-      options: Options(headers: _authHeaders),
+      options: Options(headers: headers),
     );
     return resp.data as Map<String, dynamic>;
   }

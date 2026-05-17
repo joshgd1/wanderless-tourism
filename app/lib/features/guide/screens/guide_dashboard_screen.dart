@@ -825,7 +825,8 @@ class _PendingTab extends ConsumerWidget {
   ) async {
     try {
       final api = ApiClient();
-      await api.updateBookingStatus(bookingId, status);
+      final guideAuth = ref.read(guideAuthProvider);
+      await api.updateBookingStatus(bookingId, status, guideToken: guideAuth.token);
       ref.refresh(guideBookingsProvider);
       if (status == 'CONFIRMED' && context.mounted) {
         // Show beautiful success dialog

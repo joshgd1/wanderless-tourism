@@ -721,9 +721,10 @@ class _BookingRowState extends ConsumerState<_BookingRow> {
 
   Future<void> _accept() async {
     final id = widget.booking['id'];
+    final guideAuth = ref.read(guideAuthProvider);
     setState(() => _loading = true);
     try {
-      await ApiClient().updateBookingStatus(id, 'CONFIRMED');
+      await ApiClient().updateBookingStatus(id, 'CONFIRMED', guideToken: guideAuth.token);
       ref.invalidate(guideBookingsProvider);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -753,15 +754,16 @@ class _BookingRowState extends ConsumerState<_BookingRow> {
 
   Future<void> _decline() async {
     final id = widget.booking['id'];
+    final guideAuth = ref.read(guideAuthProvider);
     setState(() => _loading = true);
     try {
-      await ApiClient().updateBookingStatus(id, 'CANCELLED', cancelledBy: 'guide');
+      await ApiClient().updateBookingStatus(id, 'CANCELLED', cancelledBy: 'guide', guideToken: guideAuth.token);
       ref.invalidate(guideBookingsProvider);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: const Text('Booking declined'),
-            backgroundColor: AppColors.error,
+            backgroundColor: AppColors.success,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.sm)),
           ),

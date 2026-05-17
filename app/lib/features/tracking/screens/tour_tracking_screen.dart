@@ -188,19 +188,12 @@ class _TourTrackingScreenState extends ConsumerState<TourTrackingScreen> {
                           Expanded(
                             child: Stack(
                               children: [
-                                if (_isDemoMode)
-                                  _StaticMapView(
-                                    center: _center,
-                                    guideLocation: _guideLocation,
-                                    touristLocation: _touristLocation,
-                                  )
-                                else
-                                  _LiveMapView(
-                                    center: _center,
-                                    zoom: _zoom,
-                                    guideLocation: _guideLocation,
-                                    touristLocation: _touristLocation,
-                                  ),
+                                _LiveMapView(
+                                  center: _center,
+                                  zoom: _zoom,
+                                  guideLocation: _guideLocation,
+                                  touristLocation: _touristLocation,
+                                ),
                                 if (_isDemoMode)
                                   Positioned(
                                     top: 12,
@@ -219,7 +212,7 @@ class _TourTrackingScreenState extends ConsumerState<TourTrackingScreen> {
                                             const Icon(Icons.map_outlined, color: Colors.white, size: 16),
                                             const SizedBox(width: 6),
                                             Text(
-                                              'Static Map — Location access unavailable',
+                                              'Preview — Sample tour for illustration',
                                               style: AppText.captionBold.copyWith(color: Colors.white),
                                             ),
                                           ],
