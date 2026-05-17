@@ -6,7 +6,7 @@ The pitch deck treats geographic expansion as city-by-city with isolated network
 
 ## The Insight
 
-A tourist's interest profile (64-dimensional vector) is **portable across cities**. A "food adventurer" from Bangkok who visits Chiang Mai carries the same interest vector. This means:
+A tourist's interest profile (5-dimensional vector: food, culture, adventure, pace, budget) is **portable across cities**. A "food adventurer" from Singapore who visits Luang Prabang carries the same interest vector. This means:
 
 1. Guide expertise learned in city A helps matching in city B
 2. Tourist segments created in city A transfer to city B
@@ -29,7 +29,7 @@ The expansion strategy should:
 If true, this means:
 
 - First city selection matters less than initially thought
-- Chiang Mai + Bangkok + Penang creates compounding faster than 3x Chiang Mai
+- Luang Prabang + Singapore + Hoi An creates compounding faster than 3x Luang Prabang
 - A tourist who visits 3 WanderLess cities generates 3x the training data value
 
 ## Source

@@ -8,9 +8,9 @@ Unlike catalog-first platforms (Klook, Viator, GetYourGuide) where travelers bro
 
 ## 1. Executive Thesis
 
-Travel is the last major consumer domain where ML-powered recommendation hasn't been applied at the matching layer. Every major OTA lets you search "tours in Bangkok" and sort by popularity. WanderLess asks: _who are you, where have you been, how do you travel_ — and shows you the guides who are most likely to deliver an exceptional experience for someone like you.
+Travel remains more catalog-first than compatibility-first at the guide-matching layer. Every major OTA lets you search "tours in Luang Prabang" and sort by popularity. WanderLess asks: _who are you, where have you been, how do you travel_ — and shows you the guides who are most likely to deliver an exceptional experience for someone like you.
 
-The core insight: **compatibility is a solved ML problem in every consumer domain except travel**, because travel platforms are catalog-first, not compatibility-first. WanderLess closes that gap.
+The core insight: **compatibility matching has been proven in other consumer domains but remains largely uncaptured in travel**, particularly for local guide matching. WanderLess closes that gap.
 
 ---
 
@@ -161,7 +161,7 @@ The platform must balance two sides: tourists want more guide choice; guides wan
 
 This is an academic team project demonstrating ML system design for a local tourism marketplace. The following limitations are explicitly acknowledged:
 
-**ML model maturity:** The satisfaction prediction (XGBoost) and advanced itinerary optimization (CP-SAT) are described in the architecture documentation but not fully implemented. The production-ready ML system consists of the hybrid recommender (content + collaborative) and the group formation engine.
+**ML model maturity:** The satisfaction prediction (XGBoost) and advanced itinerary optimization (CP-SAT) are described in the architecture documentation but not fully implemented. The implemented ML system consists of the hybrid recommender (content + collaborative) and the group formation engine.
 
 **Training data:** Real tourist-guide compatibility data does not yet exist. The collaborative filtering model is trained on synthetic ratings generated to match distributions observed in comparable platforms. Model accuracy metrics reported in documentation are extrapolated from similar-domain research, not from WanderLess-specific validation.
 
@@ -169,7 +169,7 @@ This is an academic team project demonstrating ML system design for a local tour
 
 **Scale:** The system has been tested with synthetic data (400 tourists, 60 guides, 600 ratings) and in-memory processing. No production-scale infrastructure has been deployed.
 
-**Regulatory:** Singapore STB licensing tiers are modeled in the data schema but no actual STB license verification is implemented. Any commercial deployment would require genuine licensing compliance.
+**Regulatory:** Laos has a formal tourism administration under the Ministry of Information, Culture and Tourism (MICT). Credential tiers are modeled in the data schema but no actual MICT license verification is implemented. Any commercial deployment in Laos would require genuine licensing compliance with applicable Lao PDR tourism regulations.
 
 **Not a production system:** This prototype demonstrates ML architecture and system design. It has not been security-audited, load-tested, or validated for commercial deployment.
 
@@ -193,11 +193,11 @@ The $300B local tourism market is underserved by existing recommendation technol
 
 ## Appendix: Synthetic Data Summary
 
-| Dataset                 | Records | Purpose                                                           |
-| ----------------------- | ------- | ----------------------------------------------------------------- |
-| `tourist_profiles.csv`  | 400     | Tourist feature vectors (interests, pace, budget, language)       |
-| `guide_profiles.csv`    | 60      | Guide profiles (expertise, personality, STB licensing tier)       |
-| `synthetic_ratings.csv` | 600     | Tourist-guide-rating tuples for collaborative filtering bootstrap |
+| Dataset                 | Records | Purpose                                                                         |
+| ----------------------- | ------- | ------------------------------------------------------------------------------- |
+| `tourist_profiles.csv`  | 400     | Tourist feature vectors (interests, pace, budget, language)                     |
+| `guide_profiles.csv`    | 60      | Guide profiles (expertise, personality, licensing tier for Laos MICT framework) |
+| `synthetic_ratings.csv` | 600     | Tourist-guide-rating tuples for collaborative filtering bootstrap               |
 
 Synthetic rating model: `4.2 mean, 0.8 std, 0.65 guide-rating correlation, log nonlinear interest match`
 
@@ -214,4 +214,8 @@ _WanderLess is a MGMT655 Machine Learning for Decision Making team project. Not 
 | [docs/COC_DECISION_LOG_A_PLUS.md](docs/COC_DECISION_LOG_A_PLUS.md)                 | Team decision log: every major choice, alternatives considered, trade-offs accepted, rubric mapping |
 | [docs/ML_CLAIMS_IMPLEMENTATION_MATRIX.md](docs/ML_CLAIMS_IMPLEMENTATION_MATRIX.md) | ML claim verification: every AI/ML claim mapped to implementation status with code citations        |
 | [docs/PRESENTATION_GUIDE.md](docs/PRESENTATION_GUIDE.md)                           | Demo script: 10-minute flow, must-say lines, Q&A for tough questions, cURL fallback commands        |
+| [docs/BUSINESS_MODEL_ASSUMPTIONS.md](docs/BUSINESS_MODEL_ASSUMPTIONS.md)           | Business model assumptions: benchmarks, team estimates, prototype simulations, validation targets   |
 | [04-specs/safety-trust.md](04-specs/safety-trust.md)                               | Safety & trust spec: decision-support scoring, escalation paths, prototype status                   |
+| [04-specs/auth-identity.md](04-specs/auth-identity.md)                             | Authentication & identity: prototype registration, planned KYC, role-based access                   |
+| [04-specs/payment-escrow.md](04-specs/payment-escrow.md)                           | Payment & escrow: state machine, commission collection, prototype status                            |
+| [04-specs/commission-settlement.md](04-specs/commission-settlement.md)             | Commission settlement: guide payout, tier-based rates, prototype status                             |

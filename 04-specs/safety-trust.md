@@ -26,7 +26,7 @@ The platform needs systematic safety controls without making every safety decisi
 
 During onboarding, tourists can indicate:
 
-- **License requirement**: "I only want to see STB-licensed guides in Singapore"
+- **License requirement**: "I only want to see MICT-licensed guides in Laos"
 - **Experience threshold**: "I prefer guides with 10+ completed tours"
 - **Verification level**: "I want to see background-check status"
 
@@ -36,15 +36,15 @@ These preferences are stored in the tourist profile and used to filter or score 
 
 When a guide appears in search or recommendation results, the following signals are shown:
 
-| Signal           | Source            | Display                                            |
-| ---------------- | ----------------- | -------------------------------------------------- |
-| STB license tier | Guide profile     | Badge: Licensed / Verified Expert / Community Host |
-| Completion rate  | Booking history   | "95% tour completion rate"                         |
-| Guide since      | Account age       | "Guide since 2023"                                 |
-| Average rating   | Post-tour ratings | Stars (1-5)                                        |
-| Total tours      | Booking history   | "127 tours completed"                              |
-| Response rate    | Messaging system  | "Responds within 2 hours"                          |
-| Incident history | Internal review   | Shown only to platform ops                         |
+| Signal            | Source            | Display                                            |
+| ----------------- | ----------------- | -------------------------------------------------- |
+| MICT license tier | Guide profile     | Badge: Licensed / Verified Expert / Community Host |
+| Completion rate   | Booking history   | "95% tour completion rate"                         |
+| Guide since       | Account age       | "Guide since 2023"                                 |
+| Average rating    | Post-tour ratings | Stars (1-5)                                        |
+| Total tours       | Booking history   | "127 tours completed"                              |
+| Response rate     | Messaging system  | "Responds within 2 hours"                          |
+| Incident history  | Internal review   | Shown only to platform ops                         |
 
 ### 3. Safety Score (Prototype)
 
@@ -87,7 +87,7 @@ These cases are flagged in an internal dashboard for platform ops review. They a
 
 | Input                 | Source                               | Prototype Status |
 | --------------------- | ------------------------------------ | ---------------- |
-| License tier          | Guide profile (STB licensing)        | Simulated        |
+| License tier          | Guide profile (MICT licensing)       | Simulated        |
 | Total tours completed | Booking history                      | Implemented      |
 | Tour completion rate  | Booking cancellations vs completions | Implemented      |
 | Average rating        | Post-tour ratings                    | Implemented      |
@@ -156,7 +156,7 @@ The safety score is presented to tourists as one data point among many (compatib
 | --------------------------- | --------------- | ---------------------------------------- |
 | Safety score calculation    | **Implemented** | Simple weighted sum in `safety_score.py` |
 | Safety score display        | **Implemented** | Returned in API responses                |
-| License tier display        | **Implemented** | STB tiers in guide profile               |
+| License tier display        | **Implemented** | MICT tiers in guide profile              |
 | Tourist safety preferences  | **Implemented** | Filtered in matching pipeline            |
 | Incident flagging           | **Planned**     | Manual platform ops process              |
 | Real-time area alerts       | **Planned**     | External API integration                 |
@@ -184,7 +184,7 @@ The safety score is presented to tourists as one data point among many (compatib
 
 **Mitigation**:
 
-- Safety score is shown alongside specific signals (e.g., "No STB license on file" or "97% completion rate")
+- Safety score is shown alongside specific signals (e.g., "No MICT license on file" or "97% completion rate")
 - Explanations accompany low scores explaining the contributing factors
 - Score is framed as "safety signal" not "safety guarantee"
 
@@ -262,4 +262,4 @@ The current safety score is a simple weighted sum — not sophisticated ML. This
 | `backend/ml/safety_score.py` | Weighted safety scoring                    | Implemented   |
 | `backend/models.py`          | Guide.license_verified, Guide.license_type | Implemented   |
 | `backend/models.py`          | Booking.cancellation_reason                | Schema exists |
-| `backend/main.py`            | `/api/safety-score` endpoint               | Implemented   |
+| `backend/main.py`            | `/api/safety/score` endpoint               | Implemented   |

@@ -101,7 +101,7 @@ class _NotificationList extends StatelessWidget {
         icon: Icons.card_travel,
         color: AppColors.textSecondary,
         title: 'Trip plan updated',
-        subtitle: 'Guide responded to your Doi Suthep Day Trip proposal.',
+        subtitle: 'Guide responded to your Mount Phousi Day Trip proposal.',
         time: '3 days ago',
         unread: false,
       ),

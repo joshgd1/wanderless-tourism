@@ -1,6 +1,7 @@
 # Python
 __pycache__/
 *.py[cod]
+*.pyc
 *$py.class
 *.so
 .Python
@@ -24,6 +25,9 @@ wheels/
 *.egg
 MANIFEST
 
+# Dependencies
+node_modules/
+
 # Virtual environments
 .env
 .venv
@@ -46,13 +50,25 @@ output.txt
 # Testing
 .coverage
 htmlcov/
+coverage/
 .pytest_cache/
 .mypy_cache/
+playwright-report/
+test-results/
+
+# Flutter/Dart
+.dart_tool/
+app/build/
+
+# macOS
+__MACOSX/
 
 # Secrets
 *.pem
 *.key
 secrets/
+outputs/.env
+.claude/settings.local.json
 
 # Workspace session notes (per-session, not versioned)
 **/.session-notes

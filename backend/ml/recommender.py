@@ -44,16 +44,16 @@ DESTINATIONS = {
         "tagline": "The Lion City",
         "tag": "Supertrees at Gardens by the Bay",
     },
-    "Chiang Mai": {
-        "tags": ["culture", "temples", "food", "nature", "trekking"],
+    "Luang Prabang": {
+        "tags": ["culture", "temples", "food", "nature", "river"],
         "budget": "budget",
         "pace": 0.4,
-        "description": "Land of Smiles — ancient temples in the mountains with "
-        "vibrant night markets and legendary street food",
+        "description": "UNESCO World Heritage town — ancient Buddhist temples on the Mekong, "
+        "night markets, Tatmajod monastery, and serene natural beauty",
         "image_url": "https://images.unsplash.com/photo-1598935898639-81586f7d2129?w=800&q=80",
-        "country": "Thailand",
-        "tagline": "Land of Smiles",
-        "tag": "Doi Suthep Temple",
+        "country": "Laos",
+        "tagline": "City of Fried Gold",
+        "tag": "Wat Xieng Thong Temple",
     },
     "Hoi An": {
         "tags": ["culture", "history", "food", "shopping", "photography"],
@@ -601,9 +601,22 @@ _recommender: Optional[HybridRecommender] = None
 
 
 def get_recommender() -> HybridRecommender:
+    """Return the singleton recommender, auto-fitting on first call if needed."""
     global _recommender
     if _recommender is None:
         _recommender = HybridRecommender()
+        # Lazily fit if called before lifespan startup (e.g., via TestClient)
+        try:
+            from database import get_db
+            from models import Tourist, Guide, Rating
+            db = next(get_db())
+            tourists = db.query(Tourist).all()
+            guides = db.query(Guide).all()
+            ratings = db.query(Rating).all()
+            _recommender.fit(tourists, guides, ratings)
+            logger.info("hybrid_recommender.fitted_and_ready")
+        except Exception:
+            pass  # Will be fitted by lifespan startup; silently skip if DB unavailable
     return _recommender
 
 

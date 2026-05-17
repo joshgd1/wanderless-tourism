@@ -74,7 +74,7 @@ WanderLess is an ML-powered compatibility engine that matches travelers with loc
 
 **Type**: Hybrid Recommendation System (Supervised + Collaborative Filtering)
 
-The matching engine produces a compatibility score (0-100%) with confidence interval for each tourist-guide pair, combining three signal sources.
+The matching engine produces a compatibility score (0–100%) for each tourist-guide pair, combining three signal sources. Confidence intervals on compatibility scores are planned for production.
 
 ### 2.2 Input Features
 
@@ -87,7 +87,7 @@ The matching engine produces a compatibility score (0-100%) with confidence inte
 
 **Feature Dimensionality**:
 
-- Interest vector: 64-128 dimensions (compressed from ~200 survey items via PCA/autoencoder)
+- Interest vector: 5 dimensions (food, culture, adventure, pace, budget — built directly from survey responses; no dimensionality reduction)
 - Demographic: 15-20 raw features
 - Behavioral: 8-12 raw features
 - Contextual: 10-15 features
@@ -95,10 +95,10 @@ The matching engine produces a compatibility score (0-100%) with confidence inte
 ### 2.3 Model Architecture
 
 ```
-Compatibility Score = 0.40 × ContentScore + 0.40 × CollabScore + 0.20 × ContextScore
+Compatibility Score = 0.45 × ContentScore + 0.45 × CollabScore + 0.10 × ContextScore
 ```
 
-#### 2.3.1 Content-Based Component (40%)
+#### 2.3.1 Content-Based Component (45%)
 
 **Model**: Cosine similarity on interest vectors
 
@@ -112,9 +112,9 @@ content_score = cosine_similarity(tourist_interest_vec, guide_specialty_vec)
 - Guide specialty vector: Aggregated from past tour tags, guide self-description, verified expertise badges
 - Vector construction: Pre-trained sentence embeddings (e.g.,mpnet, all-MiniLM-L6-v2) on text, averaged per interest category
 
-**Rationale**: Content-based scoring handles cold-start tourists who lack collaborative history. The fixed 40% weight ensures baseline relevance even without historical data.
+**Rationale**: Content-based scoring handles cold-start tourists who lack collaborative history. The fixed 45% weight ensures baseline relevance even without historical data.
 
-#### 2.3.2 Collaborative Filtering Component (40%)
+#### 2.3.2 Collaborative Filtering Component (45%)
 
 **Model**: TruncatedSVD matrix factorization on tourist-guide-rating tuples
 
@@ -133,11 +133,11 @@ collab_score = (predicted_rating - 1) / 4 × 100  # Normalize 1-5 → 0-100%
 - Regularization: implicit via SVD's numerical properties; no explicit λ tuning in prototype
 - Update frequency: Model retrained on app restart (no automated retraining pipeline in prototype)
 
-**Rationale**: Collaborative filtering captures non-obvious compatibility patterns (e.g., certain age groups consistently prefer specific guide styles). The 40% weight reflects the core value proposition—personalization from collective intelligence.
+**Rationale**: Collaborative filtering captures non-obvious compatibility patterns (e.g., certain age groups consistently prefer specific guide styles). The 45% weight reflects the core value proposition—personalization from collective intelligence.
 
-#### 2.3.3 Contextual Component (20%)
+#### 2.3.3 Destination Affinity Component (10%)
 
-**Model**: Gradient-boosted classifiers (XGBoost) on contextual features
+**Model**: Destination affinity boost — hardcoded bonus when guide's primary destination matches tourist's top destination choice
 
 ```python
 context_features = [
@@ -223,18 +223,18 @@ Groups 3-8 travelers with compatible characteristics for shared experiences whil
 
 ### 3.2 Input Features
 
-| Feature                      | Type        | Range                                    | Source                |
-| ---------------------------- | ----------- | ---------------------------------------- | --------------------- |
-| Interest vector (compressed) | Continuous  | 64-dim embedding                         | Onboarding survey     |
-| Pace preference              | Ordinal     | 1-5 (leisure → active)                   | Onboarding survey     |
-| Budget tier                  | Ordinal     | 1-5 ($ → $$$$)                           | Booking data          |
-| Age group                    | Categorical | [18-25, 26-35, 36-45, 46-55, 56-65, 65+] | Profile               |
-| Language                     | Categorical | ISO 639-1 codes                          | Profile               |
-| Trip duration                | Continuous  | days                                     | Booking data          |
-| Group size preference        | Ordinal     | 1-5 (solo → large group)                 | Onboarding survey     |
-| Flexibility score            | Continuous  | 0-1                                      | Past booking behavior |
+| Feature                      | Type        | Range                                                    | Source                |
+| ---------------------------- | ----------- | -------------------------------------------------------- | --------------------- |
+| Interest vector (compressed) | Continuous  | 5-dim embedding (food, culture, adventure, pace, budget) | Onboarding survey     |
+| Pace preference              | Ordinal     | 1-5 (leisure → active)                                   | Onboarding survey     |
+| Budget tier                  | Ordinal     | 1-5 ($ → $$$$)                                           | Booking data          |
+| Age group                    | Categorical | [18-25, 26-35, 36-45, 46-55, 56-65, 65+]                 | Profile               |
+| Language                     | Categorical | ISO 639-1 codes                                          | Profile               |
+| Trip duration                | Continuous  | days                                                     | Booking data          |
+| Group size preference        | Ordinal     | 1-5 (solo → large group)                                 | Onboarding survey     |
+| Flexibility score            | Continuous  | 0-1                                                      | Past booking behavior |
 
-**Total features**: 74 dimensions (64 interest + 10 behavioral/demographic)
+**Total features**: 19 dimensions (5 interest + 10 behavioral/demographic) + 4 contextual
 
 ### 3.3 Model Architecture
 
@@ -523,7 +523,7 @@ def compute_energy_curve(preference_profile, start_hour=9):
 
 ### 5.1 Problem Formulation
 
-**Type**: Supervised Regression (XGBoost)
+**Type**: Supervised Regression (XGBoost prototype)
 
 Predict expected post-tour rating (1-5 scale) before the tour occurs, using tourist-guide-feature interaction terms.
 
@@ -607,13 +607,13 @@ predicted_satisfaction_pct = (predicted_rating - 1) / 4 * 100
 
 ### 5.4 Success Metrics
 
-| Metric                        | Target                 | Measurement                            |
-| ----------------------------- | ---------------------- | -------------------------------------- |
-| MAE (Mean Absolute Error)     | <0.4                   | (Predicted rating - Actual rating)     |
-| RMSE (Root Mean Square Error) | <0.6                   | Squared error penalty for large misses |
-| Directional accuracy          | >85%                   | Predicted > 3.5 AND actual > 3.5       |
-| Calibration                   | R² > 0.65              | Variance explained                     |
-| Feature importance stability  | Top-10 features stable | Comparing week-over-week SHAP values   |
+| Metric                        | Target                 | Measurement                                                    |
+| ----------------------------- | ---------------------- | -------------------------------------------------------------- |
+| MAE (Mean Absolute Error)     | <0.4                   | (Predicted rating - Actual rating)                             |
+| RMSE (Root Mean Square Error) | <0.6                   | Squared error penalty for large misses                         |
+| Directional accuracy          | >85%                   | Architecture-stage target; requires real post-tour ratings     |
+| Calibration                   | R² > 0.65              | Variance explained; planned production metric                  |
+| Feature importance stability  | Top-10 features stable | Planned production metric; SHAP planned for production upgrade |
 
 ### 5.5 Failure Modes
 
@@ -640,17 +640,17 @@ predicted_satisfaction_pct = (predicted_rating - 1) / 4 * 100
     │
     ▼
 ┌─────────────────┐
-│ Survey Parser   │  Parse 200 Likert items → raw feature vector
+│ Survey Parser   │  Parse Likert items → 5-dim feature vector
 └────────┬────────┘
          │
          ▼
 ┌─────────────────┐
-│ Interest Encoder│  Pre-trained embedding (mpnet/sentence-transformers)
+│ Interest Encoder│  Direct mapping to 5-dim vector (food, culture, adventure, pace, budget)
 └────────┬────────┘
          │
          ▼
 ┌─────────────────┐
-│ PCA/Autoencoder │  200-dim → 64-dim interest vector
+│ Profile Builder │  Combine 5-dim interest vector + demographics + preferences
 └────────┬────────┘
          │
          ▼
@@ -669,7 +669,7 @@ predicted_satisfaction_pct = (predicted_rating - 1) / 4 * 100
 ```python
 tourist_profile = {
     'tourist_id': 'uuid',
-    'interest_vector': np.array([...], dtype=np.float32),  # 64-dim
+    'interest_vector': np.array([...], dtype=np.float32),  # 5-dim: [food, culture, adventure, pace, budget]
     'demographics': {
         'age_group': '26-35',
         'nationality': 'US',
@@ -765,12 +765,12 @@ tourist_profile = {
 
 **Solution Stack**:
 
-| Stage      | Approach                              | Weight Distribution              |
-| ---------- | ------------------------------------- | -------------------------------- |
-| 0 tours    | Content-based (interest vectors only) | 100% content, 0% CF              |
-| 1-5 tours  | Blended                               | 70% content, 30% CF              |
-| 6-20 tours | Increasing CF weight                  | Linear interpolation             |
-| 20+ tours  | Full hybrid                           | 40% content, 40% CF, 20% context |
+| Stage      | Approach                              | Weight Distribution                        |
+| ---------- | ------------------------------------- | ------------------------------------------ |
+| 0 tours    | Content-based (interest vectors only) | 100% content, 0% CF                        |
+| 1-5 tours  | Blended                               | 70% content, 30% CF                        |
+| 6-20 tours | Increasing CF weight                  | Linear interpolation                       |
+| 20+ tours  | Full hybrid                           | 45% content, 45% CF, 10% destination boost |
 
 **Synthetic Data for Launch**:
 
@@ -1080,15 +1080,15 @@ final_prediction = 0.7 * global_model.predict(features) + 0.3 * tourist_destinat
 
 ### ADR-001: Interest Vector Dimensionality
 
-**Decision**: 64-dimensional interest vectors (compressed from 200-dim survey via PCA)
+**Decision**: 5-dimensional interest vectors (food, culture, adventure, pace, budget — built directly from survey responses)
 
 **Rationale**:
 
-- 128-dim: Higher fidelity but 2x storage and marginal accuracy gain (+1.2%)
-- 32-dim: Storage efficient but loses non-linear combinations (-3.5% accuracy)
-- 64-dim: Optimal trade-off; validated via ablation study
+- 5-dim: Direct mapping from survey responses; interpretable and explainable
+- Higher dimensionality (64–128) planned for production when more survey data is available
+- Cosine similarity on 5-dim vectors is computationally cheap and sufficient for prototype
 
-**Consequences**: Storage cost is negligible; compute savings compound across millions of similarity computations.
+**Consequences**: Storage cost is minimal; compute savings compound across similarity computations.
 
 ### ADR-002: Collaborative Filtering Algorithm
 
@@ -1117,17 +1117,18 @@ final_prediction = 0.7 * global_model.predict(features) + 0.3 * tourist_destinat
 
 **Consequences**: DBSCAN parameters tuned to identify ~7% of tourists as solo-preferred at launch.
 
-### ADR-004: Itinerary Solver Primary
+### ADR-004: Itinerary Solver
 
-**Decision**: OR-Tools CP-SAT as primary; simulated annealing as fallback
+**Current implementation**: Greedy construction + 2-opt local search (prototype)
 
-**Rationale**:
+**Planned production upgrade**: OR-Tools CP-SAT as primary; simulated annealing as fallback
 
-- CP-SAT: Optimal or near-optimal solutions; explainable constraints
-- SA: Accepts any solution even when constraints unsatisfiable; faster for large POI sets
-- Hybrid: CP-SAT tries first; if infeasible after 30s, SA provides best-effort
+**Rationale for prototype**:
 
-**Consequences**: 98%+ of itineraries solved optimally; <2% use SA fallback.
+- Greedy + 2-opt is scipy-native (no external dependency), works for demo-scale POI sets
+- CP-SAT requires ortools dependency; appropriate for production scale
+
+**Consequences**: Prototype uses greedy + 2-opt for all itineraries. CP-SAT planned when production deployment requires optimal solutions for large POI sets.
 
 ---
 
@@ -1150,15 +1151,15 @@ None at time of writing. All cross-references validated against draft documents.
 
 ## 14. Success Criteria Summary
 
-| Phase   | Criterion                          | Measurement                                  |
-| ------- | ---------------------------------- | -------------------------------------------- |
-| Phase 1 | Content-based matching functional  | 100% of tourists matched via interest vector |
-| Phase 2 | CF model improves match acceptance | >10% lift in acceptance rate vs content-only |
-| Phase 2 | Satisfaction prediction accurate   | MAE < 0.5 on holdout set                     |
-| Phase 3 | Itinerary optimization deployed    | >90% of planned itineraries use CP-SAT       |
-| Phase 3 | Retraining automated               | Zero manual intervention in weekly retrain   |
-| Phase 4 | Compounding flywheel visible       | Repeat booking rate > 25% after 10K tours    |
-| Phase 4 | Data moat defensible               | Competitor requires 6+ months to replicate   |
+| Phase   | Criterion                          | Measurement                                                    |
+| ------- | ---------------------------------- | -------------------------------------------------------------- |
+| Phase 1 | Content-based matching functional  | 100% of tourists matched via interest vector                   |
+| Phase 2 | CF model improves match acceptance | >10% lift in acceptance rate vs content-only                   |
+| Phase 2 | Satisfaction prediction accurate   | MAE < 0.5 on holdout set                                       |
+| Phase 3 | Itinerary optimization deployed    | >90% of planned itineraries use greedy + 2-opt; CP-SAT planned |
+| Phase 3 | Retraining automated               | Zero manual intervention in weekly retrain                     |
+| Phase 4 | Compounding flywheel visible       | Repeat booking rate > 25% after 10K tours                      |
+| Phase 4 | Data moat defensible               | Competitor requires 6+ months to replicate                     |
 
 ---
 
@@ -1171,26 +1172,26 @@ None at time of writing. All cross-references validated against draft documents.
 | **CI Lower/Upper**   | Confidence Interval bounds (95%) for compatibility scores                                                                                    |
 | **CP-SAT**           | Constraint Programming with SAT solver — optimization technique for constraint satisfaction                                                  |
 | **DBSCAN**           | Density-Based Spatial Clustering of Applications with Noise                                                                                  |
-| **Interest Vector**  | Compressed representation of tourist preferences (64-dim)                                                                                    |
+| **Interest Vector**  | Tourist preference vector (5-dim: food, culture, adventure, pace, budget)                                                                    |
 | **MAE**              | Mean Absolute Error — average prediction error magnitude                                                                                     |
 | **SHAP**             | SHapley Additive exPlanations — model interpretability technique                                                                             |
 | **Silhouette Score** | Cluster quality metric (-1 to 1, higher is better)                                                                                           |
-| **Specialty Vector** | Compressed representation of guide expertise (64-dim)                                                                                        |
+| **Specialty Vector** | Guide expertise vector (5-dim: food, culture, adventure, pace, budget)                                                                       |
 
 ---
 
 ## Appendix B: Technology Stack
 
-| Component               | Recommended Stack              | Alternative               |
-| ----------------------- | ------------------------------ | ------------------------- |
-| Feature Store           | Redis + Postgres (JSON)        | Pinecone (vectors)        |
-| Embedding Model         | sentence-transformers (mpnet)  | OpenAI embeddings         |
-| Collaborative Filtering | scipy TruncatedSVD (prototype) | implicit (ALS) (planned)  |
-| Gradient Boosting       | XGBoost                        | LightGBM                  |
-| Constraint Solving      | OR-Tools CP-SAT                | Google Optimization Suite |
-| Model Serving           | TorchServe / ONNX Runtime      | AWS SageMaker             |
-| Experiment Platform     | Statsig / Optimizely           | Homegrown A/B             |
-| Monitoring              | Grafana + Prometheus           | Datadog                   |
+| Component               | Recommended Stack                          | Alternative               |
+| ----------------------- | ------------------------------------------ | ------------------------- |
+| Feature Store           | Redis + Postgres (JSON)                    | Pinecone (vectors)        |
+| Embedding Model         | sentence-transformers (mpnet)              | OpenAI embeddings         |
+| Collaborative Filtering | scipy TruncatedSVD (prototype)             | implicit (ALS) (planned)  |
+| Gradient Boosting       | XGBoost                                    | LightGBM                  |
+| Constraint Solving      | Greedy + 2-opt (prototype); CP-SAT planned | Google Optimization Suite |
+| Model Serving           | TorchServe / ONNX Runtime                  | AWS SageMaker             |
+| Experiment Platform     | Statsig / Optimizely                       | Homegrown A/B             |
+| Monitoring              | Grafana + Prometheus                       | Datadog                   |
 
 ---
 

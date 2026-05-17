@@ -38,8 +38,6 @@ _WEIGHTS = {
 # In production this would come from an external safety API or database
 _DESTINATION_SAFETY: dict[str, float] = {
     "singapore": 95,
-    "bangkok": 72,
-    "chiang mai": 85,
     "kuala lumpur": 78,
     "bali": 80,
     "tokyo": 95,
@@ -52,12 +50,9 @@ _DESTINATION_SAFETY: dict[str, float] = {
     "phnom penh": 62,
     "luang prabang": 82,
     "siem reap": 75,
-    "patong": 78,
-    "pattaya": 70,
-    "krabi": 83,
-    "koh samui": 85,
     "penang": 81,
     "johor bahru": 65,
+    "hoi an": 80,
 }
 
 # Transport mode risk profile (0–100, higher = safer)
@@ -68,7 +63,6 @@ _TRANSPORT_SAFETY: dict[str, float] = {
     "bus": 72,
     "minibus": 68,
     "songthaew": 65,
-    "tuk_tuk": 60,
     "motorcycle": 45,
     "bicycle": 55,
     "walking": 70,
@@ -285,7 +279,7 @@ def _weather_score(tour_date_start: str | None, destination: str | None) -> floa
             dest_lower = (destination or "").lower()
 
             # Monsoon season adjustments
-            if dest_lower in ("bangkok", "chiang mai", "pattaya", "patong", "krabi", "koh samui", "bali"):
+            if dest_lower in ("bali", "luang prabang", "hoi an", "siem reap"):
                 if month in (5, 6, 7, 8, 9, 10):
                     base = 65.0  # Monsoon season
                 elif month in (11, 12, 1, 2, 3, 4):

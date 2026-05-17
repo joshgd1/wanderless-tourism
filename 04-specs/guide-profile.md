@@ -17,7 +17,7 @@ guide_profile = {
     bio: string[max_500_chars],
 
     # Credentials (Required)
-    tat_license: string,  # Tourism Authority of Thailand license
+    mict_license: string,  # Ministry of Information, Culture and Tourism license (Laos)
     license_verified: boolean,
     license_expiry: date,
 
@@ -89,23 +89,23 @@ guide_profile = {
 }
 ```
 
-## TAT License Verification
+## MICT License Verification
 
-### Thailand Guide Licensing
+### Laos Guide Licensing
 
 ```
-Thailand requires tour guides to hold a TAT (Tourism Authority of Thailand) license.
+Laos requires tour guides to hold a MICT (Ministry of Information, Culture and Tourism) license.
 Types:
-- Thai Guide License: For Thai nationals
+- Lao Guide License: For Lao nationals
 - Guide License (Foreigner): For foreign guides with work permits
 ```
 
 ### Verification Flow
 
 ```
-1. Guide uploads TAT license image
+1. Guide uploads MICT license image
 2. System extracts license number via OCR
-3. Validate against TAT database (mock for Phase 1)
+3. Validate against MICT database (mock for Phase 1)
 4. Check expiry date (must be > 6 months)
 5. Mark as verified or flag for manual review
 
@@ -125,7 +125,7 @@ Verification Status:
 Screen: "Join WanderLess as a Guide"
 
 Requirements:
-✓ TAT License (Tourism Authority of Thailand)
+✓ MICT License (Ministry of Information, Culture and Tourism)
 ✓ Smartphone with camera
 ✓ Bank account for payouts
 ✓ 18+ years old
@@ -138,9 +138,9 @@ Requirements:
 ```
 Screen: "Verify Your Credentials"
 
-TAT License Number: [Text field]
+MICT License Number: [Text field]
 Upload License Photo: [Camera/Gallery]
-Upload ID Photo: [Passport or Thai ID]
+Upload ID Photo: [Passport or National ID]
 
 Processing time: Up to 48 hours
 ```
@@ -175,14 +175,14 @@ Maximum Group Size: [5 ▼] (1-12)
 ```
 Screen: "Where Do You Offer Tours?"
 
-Primary City: [Chiang Mai ▼]
+Primary City: [Luang Prabang ▼]
 
 Neighborhoods/Areas (select all):
-[✓] Old City
-[✓] Nimman
-[ ] Doi Suthep
-[ ] Night Bazaar
-[ ] Santithan
+[✓] UNESCO Old Town
+[✓] Night Market Area
+[ ] Wat Xieng Thong
+[ ] Mount Phousi
+[ ] Mekong River
 [ ] Other: [Text field]
 
 Base Location: [Pin on map]
@@ -244,7 +244,7 @@ Verification ETA: 24-48 hours
 │  Your Performance (Last 30 Days)                │
 ├─────────────────────────────────────────────────┤
 │  Tours Completed          │  12                   │
-│  This Month's Earnings   │  ฿ 8,450              │
+│  This Month's Earnings   │  $ 345               │
 │  Average Rating          │  4.8 ★                │
 │  Response Rate           │  98%                  │
 │  Repeat Tourists         │  23%                  │
@@ -330,7 +330,7 @@ ONBOARDING → ACTIVE → SUSPENDED → TERMINATED
 
 ### Active Requirements
 
-- TAT license current
+- MICT license current
 - Response rate > 80%
 - Cancellation rate < 10%
 - Minimum 1 completed tour per quarter

@@ -365,8 +365,8 @@ def weather_score(stop, forecast):
       {
         "order": 1,
         "stop_id": "stop_456",
-        "name": "Pad Thai Cooking Class",
-        "location": {"lat": 18.7883, "lng": 98.9853},
+        "name": "Lao Cooking Class",
+        "location": {"lat": 19.8845, "lng": 102.1350},
         "arrival_time": "09:00",
         "departure_time": "11:30",
         "duration_minutes": 150,
@@ -378,15 +378,15 @@ def weather_score(stop, forecast):
       {
         "order": 2,
         "stop_id": "stop_789",
-        "name": "Warorot Market",
-        "location": {"lat": 18.7867, "lng": 98.9872},
+        "name": "Luang Prabang Night Market",
+        "location": {"lat": 19.8850, "lng": 102.1347},
         "arrival_time": "12:00",
         "departure_time": "14:00",
         "duration_minutes": 120,
         "satisfaction_score": 0.78,
         "interest_tags": ["food", "culture"],
         "weather_suitability": "indoor_preferred",
-        "notes": "Lunch at market - try Khao Soi"
+        "notes": "Lunch at market - try Lao BBQ"
       }
     ],
     "total_duration_hours": 5.0,

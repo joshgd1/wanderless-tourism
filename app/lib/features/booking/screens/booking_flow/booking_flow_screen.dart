@@ -17,8 +17,8 @@ final _guideBudgetProvider = FutureProvider.family<String, String>((ref, guideId
   return guide['budget_tier'] as String? ?? 'mid';
 });
 
-// Daily rates in THB (8-hour day 기준)
-final _dailyRates = {'budget': 1500.0, 'mid': 3000.0, 'premium': 6000.0};
+// Daily rates in LAK (8-hour day 기준)
+final _dailyRates = {'budget': 1500000.0, 'mid': 3000000.0, 'premium': 6000000.0};
 
 class BookingFlowScreen extends ConsumerStatefulWidget {
   final String guideId;

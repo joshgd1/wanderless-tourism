@@ -1,109 +1,23 @@
-# WanderLess
+# Wanderless Laos — MGMT655 Team Project
 
-**ML-powered travel marketplace matching tourists with local guides through compatibility intelligence.**
+## 1. Executive Summary
 
-Instead of browsing tours by destination, WanderLess matches you with guides based on who you are — your interests, travel style, pace, and personality. The platform then orchestrates the full experience: itinerary optimization, group formation, and satisfaction prediction.
-
-![WanderLess — Where Compatibility Meets Travel](WanderLess%20Logo.png)
+Wanderless Laos is an AI/ML decision-support product for local guided tourism in Luang Prabang. Instead of generating generic itineraries, it matches tourists to compatible local guides and travel groups based on travel style, risk preference, language, budget, cultural interests, and itinerary constraints. The current prototype uses synthetic but structured tourism data to demonstrate compatibility scoring, clustering, itinerary logic, safety indicators, and booking simulation. The product is designed for travel platforms, local tour operators, and destination-management partners seeking higher-trust guide matching.
 
 ---
 
-## Why WanderLess Exists
+## 2. Live Demo / How to Run
 
-Current travel platforms (Klook, GetYourGuide, Viator, Airbnb Experiences) all use the same discovery model: browse by city, sort by popularity, pick from pre-packaged offerings. This has three fundamental failures:
-
-1. **Time waste** — Travelers spend 3–5 hours researching and still end up disappointed
-2. **Guide invisibility** — You book "an experience," not a person; personality and expertise stay hidden until the tour starts
-3. **Compatibility gap** — Nobody matches by _who_ you are — only _where_ you're going. This is a solved ML problem in every other consumer domain (Netflix, Spotify, Amazon) but not in travel.
-
-Travel is the last major consumer domain where ML-powered recommendation hasn't been applied.
-
----
-
-## Four ML Capabilities
-
-### 1. Interest-Compatibility Matching
-
-Scores tourist-guide compatibility 0–100% using hybrid recommendation:
-
-- **40%** content-based: interest vector cosine similarity
-- **40%** collaborative: TruncatedSVD matrix factorization on tourist-guide-rating tuples
-- **20%** contextual: destination affinity boost (time/weather signals described for future production upgrade)
-
-### 2. Group Formation Engine
-
-Clusters like-minded travelers for group tours using K-Means clustering + DBSCAN outlier detection. Groups of 3–8 travelers with measured coherence scores.
-
-### 3. Itinerary Optimization
-
-Sequences tour stops using greedy construction + 2-opt local search, respecting time windows, travel distance, budgets, and meal breaks. (CP-SAT constraint solver described in architecture for production upgrade.)
-
-### 4. Satisfaction Prediction
-
-XGBoost regression model (prototype) predicts expected tour rating before it happens. Model exists in `backend/ml/review_intelligence.py`; not yet wired to the recommendation API endpoint. Accuracy targets (85%+ directional accuracy) are architecture-stage estimates requiring real-data validation.
-
----
-
-## Architecture
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│                    Flutter Mobile App                        │
-│   (tourist onboarding, guide discovery, booking, itinerary) │
-└──────────────────────────┬──────────────────────────────────┘
-                           │  REST API
-┌──────────────────────────▼──────────────────────────────────┐
-│                   Python Backend                            │
-│  ┌─────────────┐  ┌──────────────┐  ┌─────────────────┐  │
-│  │ Kailash SDK │  │ DataFlow    │  │  ML Engine      │  │
-│  │ Nexus API   │  │ SQLite      │  │  (cosine sim, │  │
-│  │             │  │             │  │   TruncatedSVD,│  │
-│  │             │  │             │  │   K-Means/DBSCAN)│  │
-└─────────────────────────────────────────────────────────────┘
-```
-
-**Tech Stack**
-
-| Layer     | Technology                                                                                                                                            |
-| --------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Mobile    | Flutter (Android/iOS)                                                                                                                                 |
-| Backend   | Python 3.11+ with Kailash SDK                                                                                                                         |
-| API       | Kailash Nexus (handler pattern, multi-channel deploy)                                                                                                 |
-| Database  | SQLite (development), PostgreSQL (production) via Kailash DataFlow                                                                                    |
-| ML        | Cosine similarity, TruncatedSVD (collaborative filtering), K-Means/DBSCAN (group formation); XGBoost satisfaction model (prototype, not wired to API) |
-| Framework | Kailash Core SDK, Kaizen, DataFlow, Nexus                                                                                                             |
-
----
-
-## Getting Started
-
-### Prerequisites
-
-- Python 3.11+
-- Flutter SDK (for mobile app development)
-- `uv` package manager
-
-### Backend Setup
+**Backend:**
 
 ```bash
-# Clone and enter the project
-git clone https://github.com/joshgd1/wanderless-tourism.git
-cd wanderless-tourism
-
-# Install dependencies
-uv venv
-uv sync
-
-# Configure environment
-cp .env.example .env
-# Edit .env with your API keys and configuration
-
-# Run the backend server
 cd backend
-uv run python main.py
+pip install -r requirements.txt
+pytest
+python main.py
 ```
 
-### Mobile App Setup
+**Frontend:**
 
 ```bash
 cd app
@@ -111,88 +25,88 @@ flutter pub get
 flutter run
 ```
 
-### Synthetic Pilot Data
-
-The project ships with generated pilot data for cold-start ML validation:
-
-| File                    | Rows | Description                                                 |
-| ----------------------- | ---- | ----------------------------------------------------------- |
-| `tourist_profiles.csv`  | 400  | Tourist feature vectors (interests, pace, budget, language) |
-| `guide_profiles.csv`    | 60   | Guide profiles (expertise, personality, STB licensing)      |
-| `synthetic_ratings.csv` | 600  | Tourist-guide-rating tuples                                 |
-
-Rating model: `88%` genuine compatibility signal + `12%` irreducible noise, calibrated against a 1–5 scale.
+Backend runs on `http://localhost:8000`. API docs at `http://localhost:8000/docs`.
 
 ---
 
-## Project Structure
+## 3. Key Deliverables
 
-```
-wanderless-tourism/
-├── backend/               # Python API server
-│   ├── main.py           # Nexus app entry point
-│   ├── models.py         # SQLAlchemy models
-│   ├── matching.py        # Compatibility scoring engine
-│   ├── ml/               # ML components (cosine sim, TruncatedSVD, K-Means/DBSCAN; XGBoost prototype not wired to API)
-│   └── database.py       # DataFlow database setup
-├── app/                  # Flutter mobile application
-│   ├── lib/
-│   │   ├── features/     # Feature modules (auth, matching, booking)
-│   │   ├── shared/       # Shared widgets, theme, utilities
-│   │   └── main.dart
-│   └── pubspec.yaml
-├── specs/                # Detailed product specifications
-│   ├── matching-engine.md
-│   ├── itinerary-optimizer.md
-│   ├── group-formation.md
-│   ├── satisfaction-predictor.md
-│   └── *_profile.md
-├── data/                 # Synthetic pilot datasets
-├── tests/                # Test suites
-└── docs/                 # Decision records and guides
-    ├── COC_DECISION_LOG_A_PLUS.md    # Team decision log with rubric mapping
-    ├── ML_CLAIMS_IMPLEMENTATION_MATRIX.md  # ML claim verification matrix
-    └── PRESENTATION_GUIDE.md          # Demo script and Q&A guide
-```
+| Deliverable          | Path                                 |
+| -------------------- | ------------------------------------ |
+| Executive Summary    | `SUBMISSION_EXECUTIVE_SUMMARY_4P.md` |
+| Market & Problem     | `MARKET_PROBLEM.md`                  |
+| Business Model       | `BUSINESS_MODEL.md`                  |
+| Model Card           | `MODEL_CARD.md`                      |
+| AI/ML Architecture   | `AI_ML_ARCHITECTURE.md`              |
+| COC Decision Log     | `docs/COC_DECISION_LOG_A_PLUS.md`    |
+| Demo Script          | `DEMO_SCRIPT.md`                     |
+| Demo API Commands    | `DEMO_API_COMMANDS.md`               |
+| Validation Report    | `VALIDATION_REPORT.md`               |
+| Rubric Alignment     | `FINAL_RUBRIC_ALIGNMENT.md`          |
+| Submission Checklist | `SUBMISSION_CHECKLIST.md`            |
+| Backend              | `backend/`                           |
+| Frontend             | `app/`                               |
+| Data                 | `data/`                              |
 
 ---
 
-## Singapore Licensing (STB)
+## 4. Rubric Mapping
 
-WanderLess supports Singapore Tourism Board (STB) licensing tiers for guides operating in Singapore:
-
-| Tier              | License    | Description                                       |
-| ----------------- | ---------- | ------------------------------------------------- |
-| `licensed`        | STB-XXXXXX | Official STB-licensed tour guide                  |
-| `verified_expert` | VXP-XXXXX  | Background-checked local expert / experience host |
-| `community_host`  | —          | Community host — experience-led activities        |
-
----
-
-## Business Model
-
-| Revenue Stream            | Rate      | Trigger           |
-| ------------------------- | --------- | ----------------- |
-| Booking commission        | 15–18%    | Tourist pays      |
-| Guide premium tools       | $14.99/mo | After 20 bookings |
-| Business partner referral | 5–10%     | Pay-per-visit     |
-
-**Unit Economics**: Tourist LTV $45–90 / CAC $5–15 / payback in 1 trip. Guide LTV $600–1,200/year / CAC $0 / payback in 1–2 months.
+| Rubric Area      | Where to Find Evidence                                    | What We Demonstrate                                                                 |
+| ---------------- | --------------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| Market & Problem | `MARKET_PROBLEM.md`, `SUBMISSION_EXECUTIVE_SUMMARY_4P.md` | Clear Luang Prabang beachhead, guide trust and compatibility gap                    |
+| Product & Demo   | `app/`, `backend/`, `DEMO_SCRIPT.md`                      | Working UI, matching flow, safety view, itinerary and booking simulation            |
+| Business Model   | `BUSINESS_MODEL.md`                                       | Commission model, pilot metrics, unit-economics assumptions                         |
+| Team & Execution | `docs/COC_DECISION_LOG_A_PLUS.md`, `VALIDATION_REPORT.md` | Structured decisions, rejected options, validation evidence                         |
+| AI/ML Depth      | `MODEL_CARD.md`, `backend/ml/`                            | Compatibility scoring, dimensionality reduction, clustering, optimization heuristic |
 
 ---
 
-## Contributing
+## 5. What Is Implemented vs Not Implemented
 
-Contributions are welcome. Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
-
-This project is licensed under **Apache 2.0** — see [LICENSE](LICENSE) for details.
+| Capability                 | Status               | Notes                                                                       |
+| -------------------------- | -------------------- | --------------------------------------------------------------------------- |
+| Tourist onboarding         | Implemented          | UI flow in `app/lib/features/onboarding/`                                   |
+| Guide matching             | Implemented          | Cosine similarity + TruncatedSVD hybrid in `backend/ml/recommender.py`      |
+| Group matching             | Implemented          | K-Means + DBSCAN clustering in `backend/ml/group_formation.py`              |
+| Itinerary suggestion       | Implemented          | Greedy + 2-opt heuristic in `backend/ml/itinerary.py`                       |
+| Safety indicator           | Implemented          | Rule-based scoring in `backend/ml/safety_score.py`                          |
+| Dynamic pricing            | Implemented          | Rule-based pricing in `backend/ml/pricing.py`                               |
+| Booking/payment            | Simulated            | State machine demo; no real payment                                         |
+| Real users                 | Not yet              | Pilot proposed                                                              |
+| Real production deployment | Not yet              | Prototype only                                                              |
+| XGBoost satisfaction model | Prototype, not wired | Code exists in `backend/ml/review_intelligence.py` but not connected to API |
+| CP-SAT solver              | Not implemented      | Greedy + 2-opt used instead; CP-SAT described as future production upgrade  |
+| LLM/RAG                    | Not implemented      | Not used in current implementation                                          |
+| Real-time GPS              | Not implemented      | Not in current scope                                                        |
+| Live booking/payments      | Not implemented      | Booking simulation only                                                     |
 
 ---
 
-## Security
+## 6. Test Status
 
-For vulnerability disclosures, please contact [security@terrene.foundation](mailto:security@terrene.foundation). See [SECURITY.md](SECURITY.md) for our disclosure policy and scope.
+**Backend tests passed: 14/14**
+Date: 2026-05-17
+
+Test command: `pytest tests/`
+All tests pass with no failures.
 
 ---
 
-_WanderLess is a research and development project exploring ML-powered travel matching. Built with the [Kailash SDK](https://github.com/terrene-foundation/kailash-py) by the Terrene Foundation._
+## 7. Known Limitations
+
+- **Synthetic data**: All matching results use synthetic tourist/guide profiles and ratings
+- **Fixed feature weights**: ML weights are hardcoded, not learned from real outcomes
+- **No live marketplace integration**: Prototype not connected to real booking systems
+- **No real payment processing**: Booking simulation only
+- **No field validation**: Pilot with real users is planned post-submission
+
+---
+
+## 8. Demo Fallback
+
+If Flutter frontend fails to start:
+
+1. Run `pytest tests/` — 14/14 pass
+2. Use `DEMO_API_COMMANDS.md` to test API endpoints via curl
+3. Screenshots available in `docs/demo_screenshots/`

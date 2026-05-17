@@ -55,12 +55,12 @@ final _staticDestinations = [
     tag: 'Supertrees at Gardens by the Bay',
   ),
   _Destination(
-    name: 'Chiang Mai',
-    country: 'Thailand',
-    tagline: 'Land of Smiles',
-    imageUrl: 'https://images.unsplash.com/photo-1598935898639-81586f7d2129?w=800&q=80', // Doi Suthep temple
-    guideCount: 67,
-    tag: 'Doi Suthep Temple',
+    name: 'Luang Prabang',
+    country: 'Laos',
+    tagline: 'Jade River & Temple Towns',
+    imageUrl: 'https://images.unsplash.com/photo-1552832230-c0197dd311b5?w=800&q=80', // Mount Phousi
+    guideCount: 42,
+    tag: 'Mount Phousi',
   ),
   _Destination(
     name: 'Hoi An',

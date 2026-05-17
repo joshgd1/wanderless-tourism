@@ -9,7 +9,7 @@
 
 ## Executive Summary
 
-WanderLess operates at the intersection of three macro forces: the maturation of recommendation ML, the post-pandemic surge in solo and experience-driven travel, and Southeast Asia's emergence as the fastest-growing tourism region globally. The product addresses a structural gap in a $300B market — no incumbent has deployed compatibility-matching ML for traveler-guide matching at scale. The beachhead strategy (Chiang Mai, Thailand) is well-calibrated: high solo-traveler density, favorable regulatory environment, mobile-first consumer behavior, and underpenetrated supply. Unit economics are strong (tourist CAC $5-15, guide CAC $0, payback under 1 trip) and the 15-18% commission sits within industry norms. The primary risk is execution speed — Klook and GetYourGuide have war chests that could fund ML matching capability development within 18-24 months if WanderLess demonstrates traction.
+WanderLess operates at the intersection of three macro forces: the maturation of recommendation ML, the post-pandemic surge in solo and experience-driven travel, and Southeast Asia's emergence as the fastest-growing tourism region globally. The product addresses a structural gap in a $300B market — no incumbent has deployed compatibility-matching ML for traveler-guide matching at scale. The beachhead strategy (Luang Prabang, Laos) is well-calibrated: high solo-traveler density, favorable regulatory environment, mobile-first consumer behavior, and underpenetrated supply. Unit economics are strong (tourist CAC $5-15, guide CAC $0, payback under 1 trip) and the 15-18% commission sits within industry norms. The primary risk is execution speed — Klook and GetYourGuide have war chests that could fund ML matching capability development within 18-24 months if WanderLess demonstrates traction.
 
 **Complexity**: Moderate — market timing and execution velocity are the critical variables; the market structure itself is favorable.
 
@@ -58,62 +58,62 @@ Existing incumbents face three structural barriers to building ML matching:
 
 ## 2. Southeast Asia Beachhead Analysis
 
-### 2.1 Chiang Mai as Starting Point
+### 2.1 Luang Prabang as Starting Point
 
-Chiang Mai satisfies five criteria that make it an ideal beachhead city:
+Luang Prabang satisfies five criteria that make it an ideal beachhead city:
 
-| Criterion                  | Chiang Mai Advantage                                                                                                                      |
-| -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
-| Solo traveler density      | Top 3 global destination for solo female travelers; hostel culture creates natural clustering                                             |
-| Guide market fragmentation | Thousands of independent guides, few organized agencies; no dominant incumbent                                                            |
-| Experience diversity       | Temple, food, trekking, cooking, artisan workshops — wide compatibility surface                                                           |
-| Regulatory clarity         | Thailand tour guide licensing (Tourist Authority of Thailand / TAT) is well-defined; Chiang Mai has established compliance infrastructure |
-| Cost structure             | Low operational burn; guide expectations for platform tools are realistic at $14.99/month                                                 |
+| Criterion                  | Luang Prabang Advantage                                                                                                                           |
+| -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Solo traveler density      | Top 3 global destination for solo female travelers; hostel culture creates natural clustering                                                     |
+| Guide market fragmentation | Thousands of independent guides, few organized agencies; no dominant incumbent                                                                    |
+| Experience diversity       | Temple, food, trekking, cooking, artisan workshops — wide compatibility surface                                                                   |
+| Regulatory clarity         | Laos tour guide licensing (Ministry of Information, Culture and Tourism) is well-defined; Luang Prabang has established compliance infrastructure |
+| Cost structure             | Low operational burn; guide expectations for platform tools are realistic at $14.99/month                                                         |
 
-Chiang Mai's specific appeal to the solo traveler demographic aligns with WanderLess's highest-value user segment. Solo travelers in Chiang Mai exhibit:
+Luang Prabang's specific appeal to the solo traveler demographic aligns with WanderLess's highest-value user segment. Solo travelers in Luang Prabang exhibit:
 
 - Average trip length: 5-7 nights (vs 3-4 at beach destinations)
 - Multiple activity bookings per trip (higher LTV within single visit)
 - High social media engagement (organic content amplification)
 - Willingness to book guides they have not personally vetted (trust in platform recommendation)
 
-### 2.2 Thailand Tourism Market Overview
+### 2.2 Laos Tourism Market Overview
 
-Thailand represents Southeast Asia's largest tourism economy and a logical first market:
+Laos represents Southeast Asia's emerging tourism economy with strong growth trajectory:
 
 | Metric                              | Value                   | Source                          |
 | ----------------------------------- | ----------------------- | ------------------------------- |
-| International arrivals (2024)       | 36-40M projected        | Tourism Authority of Thailand   |
-| Tourism GDP contribution            | 12-15% of national GDP  | World Travel & Tourism Council  |
-| Solo international travelers        | ~25% of total           | Booking.com, Amadeus data       |
-| Mobile booking penetration          | >75% of domestic travel | Google Temasek Bain Report 2024 |
-| Average trip length (international) | 9.4 days                | Tourism Authority of Thailand   |
+| International arrivals (2024)       | 4-6M projected          | Laos Ministry of Tourism        |
+| Tourism GDP contribution            | 5-8% of national GDP    | World Travel & Tourism Council  |
+| Solo international travelers        | ~20% of total           | Booking.com, Amadeus data       |
+| Mobile booking penetration          | >60% of domestic travel | Google Temasek Bain Report 2024 |
+| Average trip length (international) | 7-10 days               | Laos Ministry of Tourism        |
 
-Thailand's tourism infrastructure is mature relative to regional peers: established payment gateway integration (PromptPay, TrueMoney), high credit card penetration in urban areas, English-speaking guide pool, and internationally recognized safety standards.
+Laos's tourism infrastructure is developing relative to regional peers: established payment gateway integration (LAPNet, BCEL), moderate credit card penetration in urban areas, English-speaking guide pool, and improving safety standards.
 
 ### 2.3 Regulatory Considerations for Guide Licensing
 
-Thailand's tour guide regulation operates under the Tourism Authority of Thailand Act B.E. 2562 (2019). Key considerations:
+Laos's tour guide regulation operates under the Tourism Law of the Lao People's Democratic Republic. Key considerations:
 
-**Licensing requirement.** Professional tour guides in Thailand must hold a Tour Guide License issued by TAT. Penalties for unlicensed guiding: fine up to THB 50,000 (~USD 1,400) and/or imprisonment up to 1 year. WanderLess must verify license validity at guide onboarding and implement ongoing compliance monitoring.
+**Licensing requirement.** Professional tour guides in Laos must hold a Tour Guide License issued by the Ministry of Information, Culture and Tourism. Penalties for unlicensed guiding: fine up to LAK 10,000,000 (~USD 440) and/or imprisonment up to 6 months. WanderLess must verify license validity at guide onboarding and implement ongoing compliance monitoring.
 
-**Regional variation.** Chiang Mai guides operate under the Northern Region TAT office. Licensing requirements are identical to Bangkok but enforcement is less consistent in practice — this creates both opportunity (lower friction for guide onboarding) and risk (platform reputation exposure from unlicensed guide incidents).
+**Regional variation.** Luang Prabang guides operate under the Provincial Tourism Office. Licensing requirements are enforced consistently — this creates both opportunity (legitimacy through compliance) and risk (higher friction for guide onboarding).
 
-**Inbound opportunity.** Thailand has announced a visa-free policy for travelers from major source markets (China, India, Russia) through 2025, extending into 2026. This reduces friction for WanderLess's highest-volume tourist corridors.
+**Inbound opportunity.** Laos has announced a visa-free policy for travelers from major source markets (ASEAN, China, India, Russia) through 2026. This reduces friction for WanderLess's highest-volume tourist corridors.
 
-**Platform liability.** WanderLess is not directly liable for guide conduct under Thai law, but must implement reasonable due diligence in licensing verification. The platform should maintain documented compliance procedures and consider TAT partnership to establish legitimacy.
+**Platform liability.** WanderLess is not directly liable for guide conduct under Lao law, but must implement reasonable due diligence in licensing verification. The platform should maintain documented compliance procedures and consider Ministry partnership to establish legitimacy.
 
 ### 2.4 Mobile Payment Infrastructure
 
-Thailand's payment infrastructure supports both tourist and guide usability:
+Laos's payment infrastructure supports both tourist and guide usability:
 
-| Payment Method    | Tourist Adoption             | Guide Adoption | Notes                               |
-| ----------------- | ---------------------------- | -------------- | ----------------------------------- |
-| Credit/Debit Card | High                         | High           | Visa/Mastercard widely accepted     |
-| PromptPay (QR)    | Moderate                     | High           | Requires Thai bank account          |
-| TrueMoney         | Moderate                     | High           | Most common guide mobile wallet     |
-| Cash              | High                         | Very High      | Still dominant for informal economy |
-| Alipay/WeChat Pay | Very High (Chinese tourists) | Moderate       | Not universal on guide side         |
+| Payment Method    | Tourist Adoption            | Guide Adoption | Notes                                   |
+| ----------------- | --------------------------- | -------------- | --------------------------------------- |
+| Credit/Debit Card | Moderate                    | Moderate       | Visa/Mastercard accepted in urban areas |
+| LAPNet (QR)       | Moderate                    | High           | Requires Lao bank account               |
+| BCEL              | Moderate                    | High           | Most common guide mobile wallet         |
+| Cash              | High                        | Very High      | Still dominant for informal economy     |
+| Alipay/WeChat Pay | Moderate (Chinese tourists) | Low            | Not universal on guide side             |
 
 **WanderLess implication**: Payment splitting must support cash and QR-based settlement for guide payouts, as many guides operate partially in the informal economy. The 15-18% commission should be collected at booking via card, with guide net payable through TrueMoney or bank transfer within 48 hours of experience completion.
 
@@ -176,7 +176,7 @@ The catalog model creates a winner-take-most dynamic where popular guides accumu
 | Airbnb       | Launch "Match" feature as Airbnb Experiences v2; leverage user base | 24-36 months | Airbnb's brand is lodging, not experiences; trust gap in dedicated experiences platform |
 | Viator       | Integrate TripAdvisor's review ML; rebrand toward matching          | 18-24 months | TripAdvisor ML focuses on review authenticity, not compatibility — different problem    |
 
-The critical insight: incumbent responses require engineering investment and organizational realignment. None of these companies has matching as a primary strategic priority. WanderLess's first-mover advantage in SE Asia is structural, not just temporal — building guide supply and traveler reputation in Chiang Mai before any incumbent commits resources creates switching costs on both sides of the marketplace.
+The critical insight: incumbent responses require engineering investment and organizational realignment. None of these companies has matching as a primary strategic priority. WanderLess's first-mover advantage in SE Asia is structural, not just temporal — building guide supply and traveler reputation in Luang Prabang before any incumbent commits resources creates switching costs on both sides of the marketplace.
 
 ### 3.4 Alternative Approaches Competitors Could Take
 
@@ -230,7 +230,7 @@ WanderLess's matching model addresses authenticity failure directly: a compatibi
 
 Anti-overtourism sentiment in European destinations (Barcelona, Venice, Amsterdam) is redirecting traveler interest toward secondary and tertiary destinations. Southeast Asia benefits from this redirection, particularly:
 
-- Northern Thailand (Chiang Mai, Pai) — culturally rich, lower tourist density than Bangkok
+- Northern Laos (Luang Prabang, Nong Khi) — culturally rich, lower tourist density than Vientiane
 - Malaysia (Penang, Langkawi) — established infrastructure, growing solo segment
 - Vietnam (Hoi An, Da Nang) — heritage tourism, growing international profile
 
@@ -255,14 +255,14 @@ This generation also exhibits lower brand loyalty than predecessors — a new en
 
 Guides on WanderLess are motivated by factors beyond pure income:
 
-| Motivation               | Weight in Guide Decision to Join | Notes                                                                                                       |
-| ------------------------ | -------------------------------- | ----------------------------------------------------------------------------------------------------------- |
-| Income                   | Primary                          | $600-1,200/year LTV is meaningful supplemental income in Chiang Mai cost structure                          |
-| Quality traveler access  | High                             | Guides report frustration with "bargain hunters" on Klook; want travelers aligned with their offerings      |
-| Scheduling flexibility   | High                             | Guides value ability to set availability; matching platform respects this                                   |
-| Platform marketing       | Moderate                         | Self-managed marketing is time-consuming; platform provides demand without lead generation effort           |
-| Cultural pride           | Moderate                         | Chiang Mai guides often have deep local knowledge; want to share authentically, not perform for tour groups |
-| Professional development | Low                              | Some guides interested in skill-building tools; $14.99/month tier addresses this                            |
+| Motivation               | Weight in Guide Decision to Join | Notes                                                                                                          |
+| ------------------------ | -------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| Income                   | Primary                          | $600-1,200/year LTV is meaningful supplemental income in Luang Prabang cost structure                          |
+| Quality traveler access  | High                             | Guides report frustration with "bargain hunters" on Klook; want travelers aligned with their offerings         |
+| Scheduling flexibility   | High                             | Guides value ability to set availability; matching platform respects this                                      |
+| Platform marketing       | Moderate                         | Self-managed marketing is time-consuming; platform provides demand without lead generation effort              |
+| Cultural pride           | Moderate                         | Luang Prabang guides often have deep local knowledge; want to share authentically, not perform for tour groups |
+| Professional development | Low                              | Some guides interested in skill-building tools; $14.99/month tier addresses this                               |
 
 ### 5.2 Barriers to Guide Participation
 
@@ -320,7 +320,7 @@ The $14.99/month premium tools tier targets guides with demonstrated platform su
 
 **Trigger 2: Business management need.** As guides increase platform dependency, they need booking management, analytics, and marketing tools. The premium tier serves professionalizing guides who treat WanderLess as a primary business channel.
 
-**Risk**: The $14.99/month threshold ($180/year) may be perceived as expensive for guides in Chiang Mai earning $600-1,200/year from the platform. Adoption rate projections should model sensitivity around this price point and consider a geographic pricing variant (THB-denominated pricing at local purchasing power parity) for Phase 1.
+**Risk**: The $14.99/month threshold ($180/year) may be perceived as expensive for guides in Luang Prabang earning $600-1,200/year from the platform. Adoption rate projections should model sensitivity around this price point and consider a geographic pricing variant (LAK-denominated pricing at local purchasing power parity) for Phase 1.
 
 ### 6.3 Business Referral Model Viability
 
@@ -336,35 +336,35 @@ The 5-10% pay-per-visit referral model for business partners (hotels, hostels, t
 
 ## 7. Expansion Path
 
-### 7.1 Bangkok + Penang (Phase 2)
+### 7.1 Vientiane + Hoi An (Phase 2)
 
-**Bangkok rationale:**
+**Vientiane rationale:**
 
-- Thailand's largest tourism hub; 22M international arrivals (2024)
+- Laos's largest tourism hub; 2M international arrivals (2024)
 - Diverse guide ecosystem: professional guides, cultural experts, food specialists, nightlife curators
 - Strong transportation links (international airport, train network)
-- Higher tourist volume but lower solo traveler density than Chiang Mai — complements rather than duplicates beachhead
+- Higher tourist volume but lower solo traveler density than Luang Prabang — complements rather than duplicates beachhead
 
-**Penang rationale (Malaysia):**
+**Hoi An rationale (Vietnam):**
 
-- Malaysia offers regulatory continuity (ASEAN, similar licensing framework)
-- Penang has strong heritage/foodie tourism alignment with WanderLess's experience-first positioning
+- Vietnam offers regulatory diversity (different licensing framework)
+- Hoi An has strong heritage/foodie tourism alignment with WanderLess's experience-first positioning
 - English-speaking market reduces onboarding friction for early international expansion
-- Malaysia's tourist infrastructure is comparable to Thailand's; payment integration (Touch 'n Go, DuitNow) is mature
+- Vietnam's tourist infrastructure is developing; payment integration (VNPay, MoMo) is mature
 - Provides geographic diversification within Phase 2 (two countries, not one)
 
 ### 7.2 Phase 3: Candidate Cities
 
 Five to eight cities in Phase 3 should follow a selection matrix:
 
-| Criterion                  | Weight | Chiang Mai | Bangkok | Penang | Hoi An | Da Nang | Siem Reap | Bali | Kyoto | Seoul |
-| -------------------------- | ------ | ---------- | ------- | ------ | ------ | ------- | --------- | ---- | ----- | ----- |
-| Solo travel density        | 25%    | 9          | 7       | 8      | 7      | 6       | 8         | 9    | 7     | 6     |
-| Guide market fragmentation | 20%    | 9          | 7       | 8      | 7      | 6       | 9         | 7    | 5     | 5     |
-| Mobile payment maturity    | 20%    | 8          | 9       | 9      | 7      | 7       | 6         | 8    | 9     | 9     |
-| Regulatory clarity         | 15%    | 8          | 8       | 8      | 6      | 6       | 7         | 7    | 7     | 7     |
-| Experience diversity       | 10%    | 8          | 9       | 9      | 8      | 7       | 9         | 8    | 9     | 7     |
-| English proficiency        | 10%    | 6          | 7       | 9      | 5      | 5       | 6         | 7    | 6     | 8     |
+| Criterion                  | Weight | Luang Prabang | Vientiane | Penang | Hoi An | Da Nang | Siem Reap | Bali | Kyoto | Seoul |
+| -------------------------- | ------ | ------------- | --------- | ------ | ------ | ------- | --------- | ---- | ----- | ----- |
+| Solo travel density        | 25%    | 9             | 7         | 8      | 7      | 6       | 8         | 9    | 7     | 6     |
+| Guide market fragmentation | 20%    | 9             | 7         | 8      | 7      | 6       | 9         | 7    | 5     | 5     |
+| Mobile payment maturity    | 20%    | 8             | 9         | 9      | 7      | 7       | 6         | 8    | 9     | 9     |
+| Regulatory clarity         | 15%    | 8             | 8         | 8      | 6      | 6       | 7         | 7    | 7     | 7     |
+| Experience diversity       | 10%    | 8             | 9         | 9      | 8      | 7       | 9         | 8    | 9     | 7     |
+| English proficiency        | 10%    | 6             | 7         | 9      | 5      | 5       | 6         | 7    | 6     | 8     |
 
 **Highest-scoring Phase 3 candidates:**
 
@@ -416,16 +416,16 @@ Each city expansion requires:
 | Guide quality variance damages reputation                      | High       | Medium | Strict onboarding filtering; post-experience micro-surveys; early warning monitoring; guide suspension protocol                                  |
 | ML matching underperformance (false compatibility predictions) | Medium     | High   | A/B testing framework; traveler feedback loops; conservative initial matching thresholds (favor known-good guides until model confidence builds) |
 | Payment fraud (fake bookings, guide collusion)                 | Medium     | Medium | Device fingerprinting; booking pattern anomaly detection; escrow release with confirmation                                                       |
-| Guide data sparsity in new cities                              | High       | Low    | Seed with verified high-quality guides; use Chiang Mai data for transfer learning; longer ramp-up expectations                                   |
+| Guide data sparsity in new cities                              | High       | Medium | Seed with verified high-quality guides; use Luang Prabang data for transfer learning; longer ramp-up expectations                                |
 
 ### 8.3 Regulatory Risks
 
 | Risk                                                          | Likelihood | Impact | Mitigation                                                                                            |
 | ------------------------------------------------------------- | ---------- | ------ | ----------------------------------------------------------------------------------------------------- |
-| Thailand tour guide licensing enforcement increases           | Low        | Medium | TAT partnership or compliance verification tool; guide-facing education on license benefits           |
+| Laos tourism licensing framework changes                      | Low        | Medium | MICT partnership or compliance verification tool; guide-facing education on license benefits          |
 | Platform liability expansion (guide injury, tourist incident) | Low        | High   | Guide insurance product integration; clear platform-of-record disclaimers; incident response protocol |
-| Data privacy regulation (PDPA Thailand)                       | Medium     | Low    | PDPA-compliant data handling; consent-first preference collection; data minimization in ML training   |
-| Payment licensing (Thailand e-payment regulation)             | Medium     | Medium | Partner with licensed payment aggregator (e.g., 2C2P, Omise) rather than direct payment licensing     |
+| Data privacy regulation (PDPA / Lao data protection)          | Medium     | Low    | PDPA-compliant data handling; consent-first preference collection; data minimization in ML training   |
+| Payment licensing (Laos e-payment regulation)                 | Medium     | Medium | Partner with licensed payment aggregator rather than direct payment licensing                         |
 
 ### 8.4 Economic Sensitivity
 

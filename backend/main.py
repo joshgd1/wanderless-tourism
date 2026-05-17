@@ -172,7 +172,7 @@ def _get_or_create_wallet(db: Session, owner_id: str, owner_type: str) -> models
         owner_id=owner_id,
         owner_type=owner_type,
         balance=0.0,
-        currency="THB",
+        currency="USD",
     )
     db.add(wallet)
     db.commit()
@@ -636,7 +636,7 @@ async def register_guide(data: dict, db: Session = Depends(get_db)):
         pace_style=0.5,
         group_size_preferred=4,
         budget_tier="mid",
-        location_coverage="Chiang Mai",
+        location_coverage="Luang Prabang",
         availability={},
         rating_history=0.0,
         rating_count=0,
@@ -1352,7 +1352,7 @@ async def create_booking(
     b = models.Booking(
         tourist_id=tourist_id,
         guide_id=guide_id,
-        destination=data.get("destination", "Chiang Mai"),
+        destination=data.get("destination", "Luang Prabang"),
         tour_date=data["tour_date"],
         duration_hours=duration,
         group_size=group_size,
@@ -1650,7 +1650,7 @@ async def get_itinerary(booking_id: int, db: Session = Depends(get_db)):
             "stops": [
                 {"name": "Old City Temple Visit", "order": 1, "duration_hours": 1.5},
                 {"name": "Local Market Lunch", "order": 2, "duration_hours": 1.0},
-                {"name": "Doi Suthep Temple", "order": 3, "duration_hours": 2.0},
+                {"name": "Mount Phousi", "order": 3, "duration_hours": 2.0},
             ],
             "status": "proposed",
         }
@@ -2320,16 +2320,12 @@ async def api_safety_score(
     else:
         raise HTTPException(status_code=400, detail="Either plan_id or plan_data is required")
 
-    logger.info("safety_score.start", tourist_id=tourist_id, destination=plan_data.get("destination"))
+    logger.info(f"safety_score.start tourist_id={tourist_id} destination={plan_data.get('destination')}")
 
     result = compute_safety_score(plan_data)
 
     logger.info(
-        "safety_score.ok",
-        tourist_id=tourist_id,
-        destination=plan_data.get("destination"),
-        total_score=result["total_score"],
-        level=result["level"],
+        f"safety_score.ok tourist_id={tourist_id} destination={plan_data.get('destination')} total_score={result['total_score']} level={result['level']}"
     )
 
     return result
@@ -2363,7 +2359,7 @@ async def api_form_groups(
     if min_size < 1 or max_size < 1:
         raise HTTPException(status_code=400, detail="group sizes must be positive")
 
-    logger.info("groups.form.start", tourist_id=tourist_id, destination=destination, min_size=min_size, max_size=max_size)
+    logger.info(f"groups.form.start tourist_id={tourist_id} destination={destination} min_size={min_size} max_size={max_size}")
 
     # Fetch tourists with OPEN trip plans at this destination
     rows = db.execute(
@@ -2452,8 +2448,7 @@ async def api_form_groups(
 
     db.commit()
 
-    logger.info("groups.form.complete", tourist_id=tourist_id, destination=destination,
-                n_groups=len(group_summaries))
+    logger.info(f"groups.form.complete tourist_id={tourist_id} destination={destination} n_groups={len(group_summaries)}")
     return {
         "groups": group_summaries,
         "solo_travelers": result.get("solo_travelers", []),
@@ -2504,7 +2499,7 @@ async def api_list_groups(
             "guide_id": g.guide_id,
         })
 
-    logger.info("groups.list", tourist_id=tourist_id, destination=destination, n=len(result))
+    logger.info(f"groups.list tourist_id={tourist_id} destination={destination} n={len(result)}")
     return result
 
 
@@ -2626,7 +2621,7 @@ async def api_join_group(
         db.rollback()
         raise HTTPException(status_code=409, detail="Already a member of this group")
 
-    logger.info("groups.join", tourist_id=tourist_id, group_id=group_id)
+    logger.info(f"groups.join tourist_id={tourist_id} group_id={group_id}")
     return {"status": "joined", "group_id": group_id, "member_status": "PENDING"}
 
 
@@ -2664,7 +2659,7 @@ async def api_leave_group(
     membership.status = "LEFT"
     db.commit()
 
-    logger.info("groups.leave", tourist_id=tourist_id, group_id=group_id)
+    logger.info(f"groups.leave tourist_id={tourist_id} group_id={group_id}")
     return {"status": "left", "group_id": group_id}
 
 
@@ -2693,7 +2688,7 @@ async def api_claim_group(
     g.status = "CONFIRMED"
     db.commit()
 
-    logger.info("groups.claim", guide_id=guide_id, group_id=group_id)
+    logger.info(f"groups.claim guide_id={guide_id} group_id={group_id}")
     return {"status": "confirmed", "group_id": group_id, "guide_id": guide_id}
 
 
@@ -2736,7 +2731,7 @@ async def api_create_group(
     db.add(models.TravelGroupMember(group_id=group.id, tourist_id=tourist_id, status="CONFIRMED"))
     db.commit()
 
-    logger.info("groups.create", tourist_id=tourist_id, plan_id=plan_id, group_id=group.id)
+    logger.info(f"groups.create tourist_id={tourist_id} plan_id={plan_id} group_id={group.id}")
     return {"id": group.id, "destination": group.destination, "status": group.status}
 
 

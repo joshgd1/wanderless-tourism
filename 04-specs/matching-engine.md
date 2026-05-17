@@ -15,7 +15,7 @@ compatibility_score(tourist, guide) =
     0.10 * contextual_score(tourist, guide, context)
 ```
 
-## 1. Content-Based Score (40%)
+## 1. Content-Based Score (45%)
 
 ### Tourist Interest Vector
 
@@ -49,7 +49,7 @@ content_score = cosine_similarity(tourist_vector, guide_vector)
 | Pace preference   | pace slider                            | guide_avg_tour_pace                       |
 | Budget alignment  | budget slider                          | guide_avg_tour_price                      |
 
-## 2. Collaborative Score (40%)
+## 2. Collaborative Score (45%)
 
 ### Matrix Factorization
 

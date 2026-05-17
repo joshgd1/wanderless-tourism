@@ -122,9 +122,9 @@ def _seed_test_business(db: Session) -> None:
     """Ensure business@wanderless.com exists with the test password hash."""
     existing = db.query(BusinessOwner).filter_by(email="business@wanderless.com").first()
     if existing:
-        existing.business_name = "Chiang Mai Adventures"
+        existing.business_name = "Luang Prabang Experiences"
         existing.commission_rate = 0.15
-        existing.phone = "+66 81 234 5678"
+        existing.phone = "+856 20 234 5678"
         db.commit()
         return
 
@@ -133,9 +133,9 @@ def _seed_test_business(db: Session) -> None:
         email="business@wanderless.com",
         password_hash=_TEST_PASSWORD_HASH,
         name="Business Owner",
-        business_name="Chiang Mai Adventures",
+        business_name="Luang Prabang Experiences",
         commission_rate=0.15,
-        phone="+66 81 234 5678",
+        phone="+856 20 234 5678",
     )
     db.add(owner)
     db.commit()
@@ -197,7 +197,7 @@ def _migrate_bookings_schema(db: Session) -> None:
     if "platform_commission_pct" not in existing_cols:
         db.execute(text("ALTER TABLE bookings ADD COLUMN platform_commission_pct REAL DEFAULT 0.15"))
 
-    # Guide schema migrations (license fields for Singapore STB compliance)
+    # Guide schema migrations (license fields for Laos/Singapore MICT compliance)
     guide_result = db.execute(text("PRAGMA table_info(guides)")).fetchall()
     guide_cols = {row[1] for row in guide_result}
     if "license_number" not in guide_cols:

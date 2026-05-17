@@ -4,35 +4,35 @@ Generated: generate_synthetic.py — seed=42
 
 ## Destinations
 
-- **TH (Thailand (Chiang Mai)), SG (Singapore)**
+- **LA (Laos (Luang Prabang)), SG (Singapore)**
 
 ## Files
 
-| File | Rows | Description |
-|------|------|-------------|
-| `tourist_profiles.csv` | 400 | Tourist feature vectors |
-| `guide_profiles.csv` | 60 | Guide feature vectors (includes STB license fields for SG) |
-| `synthetic_ratings.csv` | 600 | Tourist-Guide-Rating tuples |
+| File                    | Rows | Description                                                    |
+| ----------------------- | ---- | -------------------------------------------------------------- |
+| `tourist_profiles.csv`  | 400  | Tourist feature vectors                                        |
+| `guide_profiles.csv`    | 60   | Guide feature vectors (includes MICT license fields for LA/SG) |
+| `synthetic_ratings.csv` | 600  | Tourist-Guide-Rating tuples                                    |
 
-## Schema: guide_profiles.csv (new Singapore fields)
+## Schema: guide_profiles.csv (Laos and Singapore MICT fields)
 
-| Column | Type | Description |
-|--------|------|-------------|
-| `license_verified` | bool | Platform-verified credentials |
-| `license_number` | string | STB license number (SG licensed guides) |
-| `license_type` | string | "licensed" | "verified_expert" | "community_host" |
-| `license_country` | string | "SG" | "TH" |
-| `license_expiry` | string | ISO date for STB licenses |
+| Column             | Type   | Description                                       |
+| ------------------ | ------ | ------------------------------------------------- |
+| `license_verified` | bool   | Platform-verified credentials                     |
+| `license_number`   | string | MICT license number (LA/SG licensed guides)       |
+| `license_type`     | string | "licensed" / "verified_expert" / "community_host" |
+| `license_country`  | string | "LA" / "SG"                                       |
+| `license_expiry`   | string | ISO date for MICT licenses                        |
 
-## Singapore License Tiers
+## Laos / Singapore License Tiers
 
-| Tier | STB Verified | Description |
-|------|-------------|-------------|
-| `licensed` | Yes (STB-XXXXXX) | Official STB-licensed tour guide |
-| `verified_expert` | Yes (VXP-XXXXX) | Background-checked local expert / experience host |
-| `community_host` | No | Community host — experience-led activities |
+| Tier              | MICT Verified     | Description                                       |
+| ----------------- | ----------------- | ------------------------------------------------- |
+| `licensed`        | Yes (MICT-XXXXXX) | Official MICT-licensed tour guide                 |
+| `verified_expert` | Yes (VXP-XXXXX)   | Background-checked local expert / experience host |
+| `community_host`  | No                | Community host — experience-led activities        |
 
-## Rating Model (from Chiang Mai Playbook §Cold Start Data Strategy)
+## Rating Model (from Luang Prabang Playbook §Cold Start Data Strategy)
 
 ```
 norm_dot = (raw_dot - dot_min) / (dot_max - dot_min)   # [0, 1]

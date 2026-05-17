@@ -17,21 +17,21 @@ The flat +0.30 bonus for language match creates a perverse incentive:
 
 **Guide A** — Monolingual authentic local:
 
-- `language_pairs = "en→th"` (learned English serving tourists over 20 years)
+- `language_pairs = "en→lo"` (learned English serving tourists over 20 years)
 - Deep local knowledge, third-generation local
 - **Gets +0.30 language bonus**
 
 **Guide B** — Multilingual tourist-oriented:
 
-- `language_pairs = "en→th|ru→th|de→th|es→th|zh→th"`
-- Certified international guide, learned Thai from textbooks
+- `language_pairs = "en→lo|ru→lo|de→lo|es→lo|zh→lo"`
+- Certified international guide, learned Lao from textbooks
 - **Gets +0.30 language bonus** (same as Guide A)
 
 The bonus doesn't reward:
 
 - Depth of local residency
 - How the guide acquired the language
-- Whether Thai is native vs. learned
+- Whether Lao is native vs. learned
 
 But it does reward:
 
@@ -44,7 +44,7 @@ But it does reward:
 **Fix options**:
 
 1. Replace flat bonus with tiered: native speaker = 0.30, fluent = 0.20, conversational = 0.10
-2. Add source-language quality weight: how the guide acquired Thai (native vs. learned)
+2. Add source-language quality weight: how the guide acquired Lao (native vs. learned)
 3. Combine language bonus with authenticity signal: local + bilingual > tourist-oriented + multilingual
 4. Use `language_pairs` as a filter (guide must speak tourist's language) not a scorer
 

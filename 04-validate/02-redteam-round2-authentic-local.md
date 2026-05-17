@@ -73,7 +73,7 @@ The algorithm produces identical scores for two fundamentally different guide pr
 
 ```
 name: "Kem S."
-bio: "I grew up in Chiang Mai's old city, third-generation guide.
+bio: "I grew up in Luang Prabang's old town, third-generation guide.
       My family has lived here for 80 years — I know every neighborhood."
 expertise_tags: "food|culture|temples"
 rating_history: 4.9
@@ -105,7 +105,7 @@ The `bio` field — the most authentic signal of local knowledge — is stored b
 
 1. Parse `bio` for locality indicators ("born here", "grew up", "local family", "neighborhood")
 2. Weight `rating_count` as a proxy for sustained local practice
-3. Add `is_locally_verified` flag (TAT license + local residency verification)
+3. Add `is_locally_verified` flag (MICT license + local residency verification)
 4. Distinguish `expertise_tags` that indicate authentic local ("markets", "rural", "cooking") from tourist-oriented ("nightlife", "shopping")
 
 ---
@@ -130,7 +130,7 @@ The +0.30 flat bonus for language match means:
 
 - A guide with `language_pairs = "en→th"` who is a third-generation local with deep local expertise
 
-The language bonus doesn't account for **how the guide acquired the language**. A local who learned English serving tourists gets the same bonus as a local who grew up bilingual. An international guide who learned Thai from books gets the same bonus as someone who has lived in Thailand for 30 years.
+The language bonus doesn't account for **how the guide acquired the language**. A local who learned English serving tourists gets the same bonus as a local who grew up bilingual. An international guide who learned Lao from books gets the same bonus as someone who has lived in Laos for 30 years.
 
 **Inverted incentive**: Guides are rewarded for adding more language pairs (to capture the bonus) rather than deepening local expertise. A guide who speaks 5 languages and caters to tourists gets a higher language bonus than a guide who speaks 1 language fluently and has authentic local knowledge.
 
@@ -169,7 +169,7 @@ The accept flow (POST `/api/trip-plans/{id}/accept`) accepts any guide_id from t
 - `rating_count` minimum threshold
 - Local residency / coverage area
 
-The user flow spec (01-user-flows.md:621) requires TAT license verification for guide onboarding, but this is never checked at accept time.
+The user flow spec (01-user-flows.md:621) requires MICT license verification for guide onboarding, but this is never checked at accept time.
 
 **Status**: Documented in journal `0001-RISK-no-guide-auth.md` as known MVP limitation.
 
@@ -197,7 +197,7 @@ A tourist who specifies high Food interest and says they want authentic local ex
 
 The user flow spec shows the guide profile displaying the bio prominently:
 
-> "I grew up in Chiang Mai's old city and have been guiding for 8 years. I specialize in food tours that take you beyond the night market — into family kitchens and local morning markets."
+> "I grew up in Luang Prabang's old town and have been guiding for 8 years. I specialize in food tours that take you beyond the night market — into family kitchens and local morning markets."
 
 But `matching.py` never reads the `bio` field. A guide with "I grew up here" in their bio gets the same match score as a guide with "Certified international guide" — if their expertise_tags are the same.
 

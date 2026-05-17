@@ -16,7 +16,7 @@ type: risk
 
 ## Spec Basis
 
-`04-specs/guide-profile.md` § Active Requirements: TAT license current required for active guiding.
+`04-specs/guide-profile.md` § Active Requirements: MICT license current required for active guiding.
 
 Prior session (session notes) explicitly listed "Guide impersonation on accept — added `license_verified` + `rating_count>=5` check" as a critical finding that was supposedly fixed. The checks exist in TripPlan accept (`main.py:1275-1278`) but NOT in the direct booking status endpoint.
 

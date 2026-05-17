@@ -25,14 +25,14 @@ final _syntheticGroups = [
   ),
   TravelGroup(
     id: 2,
-    destination: 'Chiang Mai',
+    destination: 'Luang Prabang',
     status: 'RECRUITING',
     coherence: 'moderate_coherence',
     proposedDate: '2026-06-05',
     proposedDuration: 4.0,
     minSize: 3,
     maxSize: 8,
-    memberCount: 6,
+    memberCount: 4,
     members: [
       TravelGroupMember(initials: 'AN', colorHex: '#4A90D9', status: 'JOINED'),
       TravelGroupMember(initials: 'BE', colorHex: '#50C878', status: 'JOINED'),
@@ -60,7 +60,7 @@ final _syntheticGroups = [
   ),
   TravelGroup(
     id: 4,
-    destination: 'Bangkok',
+    destination: 'Vientiane',
     status: 'RECRUITING',
     coherence: 'low_coherence',
     proposedDate: '2026-07-01',
@@ -100,7 +100,7 @@ class _GroupsScreenState extends ConsumerState<GroupsScreen> {
   String? _selectedDestination;
   bool _isFindingMatches = false;
 
-  static const _destinations = ['Singapore', 'Chiang Mai', 'Bangkok', 'Bali'];
+  static const _destinations = ['Singapore', 'Luang Prabang', 'Vientiane', 'Bali'];
 
   Future<void> _findMatches() async {
     if (_isFindingMatches) return;

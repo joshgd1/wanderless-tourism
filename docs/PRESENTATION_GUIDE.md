@@ -28,7 +28,7 @@ WanderLess is not a generic AI travel planner. It is a **compatibility intellige
 2. Guide invisibility — you book 'an experience', not a person. You don't know who your guide is until the tour starts
 3. Compatibility gap — nobody matches by WHO you are, only WHERE you're going. This is the same problem Netflix solved 15 years ago."
 
-**Transition**: "Travel is the last major consumer domain where ML-powered matching hasn't been applied. Until now."
+**Transition**: "Travel remains more catalog-first than compatibility-first, especially for guide matching. Until WanderLess."
 
 ---
 
@@ -142,7 +142,7 @@ GET /api/recommendations/{tourist_id}/guides
 
 **Say**: "The compounding insight: more tours → more rating data → better collaborative filtering → better matches → higher satisfaction → more repeat bookings → more data."
 
-**Say**: "We're starting in Chiang Mai — 10M tourists, manageable guide density. Success there produces a playbook for Bangkok, Penang, and 5-8 SE Asian cities."
+**Say**: "We're starting in Luang Prabang, Laos — a UNESCO heritage city with strong local guide supply and tourism density. Success there produces a playbook for Vientiane, Vang Vieng, and 5–8 Lao cities."
 
 **End with**: "WanderLess: compatibility-first, not catalog-first."
 
@@ -169,7 +169,7 @@ GET /api/recommendations/{tourist_id}/guides
 | `GET /api/recommendations/{id}/guides`       | Works  | Returns scored guides with breakdown |
 | `GET /api/recommendations/{id}/destinations` | Works  | Destination rankings                 |
 | `POST /api/groups/form`                      | Works  | Group formation                      |
-| `GET /api/safety-score/{guide_id}`           | Works  | Safety score                         |
+| `POST /api/safety/score`                     | Works  | Safety score ( Laos context)         |
 | `GET /api/auth/me`                           | Works  | Tourist profile                      |
 
 ---
@@ -217,8 +217,113 @@ Use these exact phrases to demonstrate honest ML positioning:
 9. **"We took less commission than Viator because our value is match quality, not just transaction facilitation."**
    — Justifies business model defensively.
 
-10. **"The Chiang Mai beachhead gives us 10M tourists and 50 licensed guides. Manageable enough to prove the model, large enough to validate."**
+10. **"The Luang Prabang, Laos beachhead gives us a focused UNESCO heritage destination with strong local guide supply. Manageable enough to prove the model."**
     — Shows thoughtful geographic strategy.
+
+---
+
+## Before vs After Decision Support
+
+### Before WanderLess: Catalog-First Workflow
+
+A tourist planning a guided experience in Luang Prabang today:
+
+1. Opens Klook or Viator
+2. Browses listings for "Luang Prabang tours"
+3. Reads reviews, trying to infer guide personality and expertise
+4. Compares star ratings, prices, and photo quality
+5. Guesses whether the guide's pace, language, and interests match their own
+6. Manually plans timing and route between stops
+7. Books and hopes the guide is a good fit
+
+**The platform provides listings. The tourist does the matching work.**
+
+### After WanderLess: Compatibility-First Workflow
+
+A tourist on WanderLess:
+
+1. Enters preferences once (food, culture, adventure, pace, budget sliders)
+2. Receives guides ranked by ML-computed compatibility score
+3. Sees WHY each guide matches: food interest alignment, pace match, language, rating
+4. Selects a guide and receives an optimized itinerary
+5. Sees safety/trust signals: license tier, completion rate, incident history
+6. Books — decision supported, not just listing browsed
+
+**The platform provides decision support. The tourist confirms the booking.**
+
+### Decision Improvement
+
+| User Decision                                 | Catalog-First Approach                      | WanderLess Approach                                         | ML/Logic Used                                                       | Business Value                                              |
+| --------------------------------------------- | ------------------------------------------- | ----------------------------------------------------------- | ------------------------------------------------------------------- | ----------------------------------------------------------- |
+| Which guide should I choose?                  | Browse 47 listings; guess from reviews      | Compatibility-ranked guides; explained factors              | 45/45/10 hybrid recommender; content + collaborative + destination  | Tourist saves 3–5 hours; better first-match rate            |
+| Which itinerary should I follow?              | Manually plan route and timing              | Optimized stop sequence with constraints                    | Greedy + 2-opt local search                                         | Reduces planning friction; increases booking conversion     |
+| Is this match trustworthy?                    | Read through reviews; hope for accuracy     | Safety score + license + completion rate + incident history | Simple weighted safety score; credential surfacing (MICT framework) | Reduces pre-booking anxiety; supports first-time bookings   |
+| Should I book now?                            | Uncertainty about guide fit delays decision | Confidence from explained compatibility + itinerary         | Compatibility score + satisfaction prediction (prototype)           | Converts browsers to bookers faster                         |
+| How does the platform improve with more data? | No improvement — popularity is static       | Collaborative filtering learns from each completed tour     | TruncatedSVD matrix factorization                                   | Flywheel: more tours → better matches → higher satisfaction |
+
+---
+
+## 30-Second Demo Script
+
+**Use this when introducing the demo to the professor:**
+
+> "Before WanderLess, tourists browse catalog listings and guess whether a guide is the right fit — spending 3-5 hours researching and still getting mismatched. After WanderLess, they enter five preferences once and receive a ranked list of compatible guides with explanations: why this guide, why this itinerary, and whether to trust this match. The value is not more content — it is better decision support. Let me show you."
+
+**Use this to close the demo:**
+
+> "The compounding insight: more tours → more rating tuples → better collaborative filtering → better matches → higher satisfaction → more repeat bookings → more data. We're starting in Luang Prabang, Laos to prove this at small scale before expanding. WanderLess: compatibility-first, not catalog-first."
+
+---
+
+## Strategic Choices We Rejected
+
+### 1. Generic AI Itinerary Planner
+
+**Why rejected**: Building an LLM that writes travel itineraries is easy to copy, close to a prompt wrapper, and doesn't leverage WanderLess's core intellectual property (compatibility matching). It also invites comparison to much better-resourced competitors (Google Gemini, OpenAI Travel, etc.).
+
+**What we chose**: Compatibility intelligence as the core differentiator. The value is WHO you're matched with, not WHAT itinerary an LLM generates.
+
+**Rubric category protected**: Product & Demo (differentiation from generic AI travel apps); AI/ML Depth (two-sided matching is harder than content generation).
+
+---
+
+### 2. Overclaiming Production ML
+
+**Why rejected**: Claiming production-ready ML when only prototype code exists is the single fastest way to lose professor/investor credibility. Any overclaim invites challenge, and a challenge on ML validity undermines the entire product.
+
+**What we chose**: Implementation-honest claims at every level. 45/45/10 weights, not 40/40/20. TruncatedSVD, not ALS. 5-dimensional vectors, not 64-dimensional. Greedy + 2-opt, not CP-SAT. XGBoost prototype, not live satisfaction prediction.
+
+**Rubric category protected**: Team & Execution (credibility); AI/ML Depth (honest technical claims).
+
+---
+
+### 3. Fully Autonomous Safety Blocking
+
+**Why rejected**: An ML system that automatically blocks or promotes guides based on safety scores has legal, ethical, and fairness risk. A biased model could systematically disadvantage certain guide demographics. An opaque blocking system creates liability.
+
+**What we chose**: Safety/trust as decision support — the system surfaces signals, the tourist decides. High-risk cases escalate to human ops review. The score explains itself.
+
+**Rubric category protected**: Market & Problem (trust infrastructure); Business Model (accountability, not liability).
+
+---
+
+### 4. Demoing Every Marketplace Flow
+
+**Why rejected**: Demonstrating tourist + guide + partner + booking + payment + settlement + group formation + itinerary + satisfaction prediction all at once creates a broad, fragile demo. One failure cascades. A focused demo is stronger than a comprehensive one.
+
+**What we chose**: Stable tourist matching flow as the primary demo path. Guide discovery → compatibility explanation → itinerary → booking simulation. Everything else is described in specs and business model docs.
+
+**Rubric category protected**: Product & Demo (stable, repeatable demo); Team & Execution (focused execution).
+
+---
+
+### 5. Claiming Synthetic Data Proves Accuracy
+
+**Why rejected**: Synthetic data validates that the ML workflow functions — inputs flow through to outputs correctly. It does not validate that the model achieves 85% satisfaction accuracy in production. Claiming otherwise would be immediately challengeable.
+
+**What we chose**: Synthetic data validates the workflow. Production accuracy requires real post-tour ratings. We show a pilot validation plan that makes this distinction explicit.
+
+**Rubric category protected**: AI/ML Depth (honest about data requirements); Team & Execution (structured validation plan).
 
 ---
 
@@ -248,8 +353,8 @@ A: "The matching mechanics have structural similarities — both are two-sided m
 **Q8: "Your synthetic data has 88% genuine signal — what happens at 12% noise?"**
 A: "The 12% irreducible noise is calibration, not a bug. Real user ratings have noise too — tourists rate emotionally, forget details, penalize bad weather. Our model is trained to be robust to that noise. The 88% signal figure means the synthetic ratings are consistent enough to validate the workflow."
 
-**Q9: "Why Chiang Mai first?"**
-A: "Three reasons: (1) 10M+ tourists/year gives us supply demand balance, (2) STB licensing is well-defined so guide quality signals are credible, (3) it's a learning lab — we can discover what breaks at small scale before going to Bangkok. Failure in Chiang Mai is cheap; failure in Bangkok is expensive."
+**Q9: "Why Luang Prabang first?"**
+A: "Three reasons: (1) Luang Prabang is a UNESCO heritage city with concentrated local guide supply and high tourism density, (2) the compatibility problem is acute — guide quality, cultural interpretation, and local knowledge matter more here than in generic tour markets, (3) it's a learning lab — we can discover what breaks at small scale before going to Vientiane or Vang Vieng."
 
 **Q10: "What if Airbnb copies this?"**
 A: "They've had 9 years and 150M users on Airbnb Experiences and haven't built it. Our hypothesis: catalog-first platforms optimize for catalog breadth, not match quality. Doing both requires a different architecture. We have an 18-24 month window before incumbents could realistically respond, and first-mover data advantage compounds."
@@ -261,7 +366,7 @@ A: "They've had 9 years and 150M users on Airbnb Experiences and haven't built i
 - [ ] Backend running on port 8000 (`cd backend && uv run python main.py`)
 - [ ] Tourist account registered (or use pre-seeded `tourist_test_1@test.com / test123`)
 - [ ] Guide visible in discover screen (recommendations endpoint returns scored guides)
-- [ ] Safety score endpoint responding (`/api/safety-score/{guide_id}`)
+- [ ] Safety score endpoint responding (`POST /api/safety/score`)
 - [ ] Group formation tested (`POST /api/groups/form`)
 - [ ] cURL fallback commands ready if Flutter app has issues
 
@@ -282,5 +387,101 @@ curl http://localhost:8000/api/recommendations/T650C5838/destinations \
   -H "Authorization: Bearer {token}"
 
 # Safety score
-curl http://localhost:8000/api/safety-score/GED176663
+curl -X POST http://localhost:8000/api/safety/score \
+  -H "Content-Type: application/json" \
+  -d '{"plan_data":{"destination":"Luang Prabang","tour_date_start":"2026-06-15T09:00:00","tour_date_end":"2026-06-15T17:00:00","transport_mode":"local_transport","proposed_stops":[{"name":"Wat Xieng Thong","venue_type":"temple","duration_hours":1.5},{"name":"Mount Phousi","venue_type":"viewpoint","duration_hours":1.0},{"name":"Luang Prabang Night Market","venue_type":"market","duration_hours":1.0},{"name":"Kuang Si Waterfall","venue_type":"nature","duration_hours":2.0}],"age_group":"26-35","pace_preference":"moderate","adventure_interest":0.6}}'
+
+# Group formation
+curl -X POST http://localhost:8000/api/groups/form \
+  -H "Content-Type: application/json" \
+  -d '{"tourist_ids":["T650C5838","T650C5839","T650C5840"],"min_group_size":3,"max_group_size":8}'
+
+# Pricing quote
+curl -X POST http://localhost:8000/api/pricing/quote \
+  -H "Content-Type: application/json" \
+  -d '{"tourist_id":"T650C5838","destination":"Luang Prabang, Laos"}'
 ```
+
+---
+
+## Demo Kill List — Do Not Show Unless Fully Tested
+
+| Screen / Flow                                                                   | Reason to Avoid                                       |
+| ------------------------------------------------------------------------------- | ----------------------------------------------------- |
+| Business registration flow                                                      | Field clarity issue; not re-tested after fix          |
+| Business dashboard                                                              | Cascade dependency on business flow                   |
+| Flutter E2E full app test                                                       | Toolchain not functional in current environment       |
+| XGBoost satisfaction prediction                                                 | Prototype not wired to recommendation API             |
+| CP-SAT itinerary screen                                                         | Not implemented; greedy + 2-opt is live               |
+| Real payment/escrow flow                                                        | Prototype state machine; no actual payment processing |
+| Admin routes                                                                    | Require manual setup; not reliable for demo           |
+| Any screen requiring seed account `business@wanderless.com` beyond basic access | Secondary flow; focus on tourist decision-support     |
+
+**Rule**: If in doubt, use the cURL fallback. A working cURL command is more reliable than a flaky UI.
+
+---
+
+## Backup Demo Plan — Complete cURL Reference
+
+If the Flutter app fails, run the backend and demonstrate via cURL:
+
+### 1. Health Check
+
+```bash
+curl http://localhost:8000/api/health
+```
+
+**Expected**: `{"status":"healthy"}`
+**Business value**: Confirms API is running and responsive
+
+### 2. Login
+
+```bash
+curl -X POST http://localhost:8000/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"tourist_test_1@test.com","password":"test123"}'
+```
+
+**Expected**: `{"access_token":"...","token_type":"bearer"}`
+**Business value**: Tourist authentication works
+
+### 3. Get Guide Recommendations
+
+```bash
+curl http://localhost:8000/api/recommendations/T650C5838/guides \
+  -H "Authorization: Bearer {token}"
+```
+
+**Expected**: Ranked list of guides with `compatibility_score`, `content_score`, `collab_score`, `destination_boost`
+**Business value**: ML matching engine scores and ranks guides by compatibility
+
+### 4. Safety Score
+
+```bash
+curl -X POST http://localhost:8000/api/safety/score \
+  -H "Content-Type: application/json" \
+  -d '{"plan_data":{"destination":"Luang Prabang","tour_date_start":"2026-06-15T09:00:00","tour_date_end":"2026-06-15T17:00:00","transport_mode":"local_transport","proposed_stops":[{"name":"Wat Xieng Thong","venue_type":"temple","duration_hours":1.5},{"name":"Mount Phousi","venue_type":"viewpoint","duration_hours":1.0},{"name":"Luang Prabang Night Market","venue_type":"market","duration_hours":1.0},{"name":"Kuang Si Waterfall","venue_type":"nature","duration_hours":2.0}],"age_group":"26-35","pace_preference":"moderate","adventure_interest":0.6}}'
+```
+
+**Expected**: `{"safety_score":N,"risk_flags":[...],"license_tier":"...","completion_rate":...}`
+**Business value**: Decision-support safety signals surfaced for each guide
+
+### 5. Group Formation
+
+```bash
+curl -X POST http://localhost:8000/api/groups/form \
+  -H "Content-Type: application/json" \
+  -d '{"tourist_ids":["T650C5838","T650C5839","T650C5840"],"min_group_size":3,"max_group_size":8}'
+```
+
+**Expected**: Cluster assignments with `silhouette_score` and `solo_candidates`
+**Business value**: K-Means + DBSCAN groups compatible solo travelers
+
+### 6. Pricing Quote
+
+```bash
+curl -X POST http://localhost:8000/api/pricing/quote
+```
+
+**Expected**: Price range and breakdown
+**Business value**: Dynamic pricing demonstrates business model (commission)

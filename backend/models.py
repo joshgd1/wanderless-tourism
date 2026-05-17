@@ -78,10 +78,10 @@ class Guide(Base):
     rating_count = Column(Integer)
     specialties = Column(String)  # pipe-delimited
     license_verified = Column(Boolean, default=False)
-    # Singapore STB licensing fields
-    license_number = Column(String, nullable=True)  # STB-XXXXXX format
+    # MICT licensing fields (Laos PDR / Singapore)
+    license_number = Column(String, nullable=True)  # MICT-XXXXXX format
     license_type = Column(String, nullable=True)  # "licensed" | "verified_expert" | "community_host"
-    license_country = Column(String, nullable=True)  # "SG" | "TH"
+    license_country = Column(String, nullable=True)  # "LA" | "SG"
     license_expiry = Column(DateTime, nullable=True)
     owner_id = Column(String, ForeignKey("business_owners.id"), nullable=True)  # nullable: independent guides
     created_at = Column(DateTime, default=datetime.utcnow)
@@ -165,7 +165,7 @@ class Wallet(Base):
     owner_id = Column(String, nullable=False)  # tourist_id / guide_id / business_owner_id
     owner_type = Column(String, nullable=False)  # "tourist" | "guide" | "business"
     balance = Column(Float, default=0.0)
-    currency = Column(String, default="THB")
+    currency = Column(String, default="USD")
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
@@ -178,7 +178,7 @@ class WalletTransaction(Base):
     wallet_id = Column(String, ForeignKey("wallets.id"), nullable=False)
     txn_type = Column(String, nullable=False)  # deposit | payment | payout | refund | commission
     amount = Column(Float, nullable=False)  # positive = credit, negative = debit
-    currency = Column(String, default="THB")
+    currency = Column(String, default="USD")
     booking_id = Column(Integer, ForeignKey("bookings.id"), nullable=True)
     description = Column(String, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)

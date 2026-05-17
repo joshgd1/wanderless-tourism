@@ -147,3 +147,39 @@ This document classifies every AI/ML claim made across WanderLess documentation,
 - `backend/ml/satisfaction_model.py` — referenced in architecture, does not exist
 - `backend/ml/itinerary_optimizer.py` (CP-SAT) — referenced in architecture, does not exist
 - `backend/ml/cold_start.py` — referenced in architecture, does not exist
+
+---
+
+## 10. ML Component Deep-Dive
+
+### Primary Live ML Components
+
+| ML Component            | Input Features                                                                                                              | Algorithm                                                                                   | Output                                              | Decision Supported                                | Limitation                                                  |
+| ----------------------- | --------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- | --------------------------------------------------- | ------------------------------------------------- | ----------------------------------------------------------- |
+| **Hybrid recommender**  | Tourist 5-dim preference vector (food, culture, adventure, pace, budget); Guide expertise tags; Tourist-guide rating matrix | 45% cosine similarity + 45% TruncatedSVD collaborative filtering + 10% destination affinity | Ranked guide list with score breakdown              | "Which guide should I choose?"                    | Fixed weights; collaborative filtering needs rating history |
+| **Group formation**     | Tourist feature vectors (preferences, pace, budget, language, group-size preference)                                        | K-Means clustering + DBSCAN outlier detection                                               | Group clusters (3–8 tourists); solo candidate flags | "Which travelers are compatible for group tours?" | Equal feature weights; no interest-weighted clustering      |
+| **Itinerary optimizer** | POI list, time windows, budget, meal constraints, travel distances                                                          | Greedy construction + 2-opt local search                                                    | Ordered stop sequence with times and total duration | "What order should I visit these places?"         | Greedy can miss global optimum; CP-SAT is future upgrade    |
+| **Safety score**        | Guide license tier, completion rate, rating, incident flags                                                                 | Rule-based weighted sum                                                                     | Numeric score (0–100) + risk flag list              | "Can I trust this guide?"                         | Rule-based; not ML model; advisory only                     |
+
+### Prototype / Future Components
+
+| ML Component                | Input Features                                                         | Algorithm                                        | Output                      | Decision Supported                          | Limitation                                      |
+| --------------------------- | ---------------------------------------------------------------------- | ------------------------------------------------ | --------------------------- | ------------------------------------------- | ----------------------------------------------- |
+| **Satisfaction prediction** | Tourist profile, guide profile, interest alignment, pace compatibility | XGBoost regression                               | Predicted tour rating (1–5) | "Will this match be satisfying?" (future)   | Prototype only; not wired to recommendation API |
+| **CP-SAT solver**           | POI list, constraints, distances                                       | OR-Tools CP-SAT                                  | Optimal stop sequence       | "What is the mathematically optimal route?" | Not implemented; greedy + 2-opt is current      |
+| **Weather-aware routing**   | POI list, weather forecast, travel times                               | Constraint optimization with weather constraints | Weather-adapted route       | "How does weather affect my itinerary?"     | Not implemented; production roadmap item        |
+
+---
+
+## 11. Safe Wording Quick Reference
+
+| Claim                   | Unsafe Wording                         | Safe Wording                                                                |
+| ----------------------- | -------------------------------------- | --------------------------------------------------------------------------- |
+| Collaborative filtering | "ALS"                                  | "TruncatedSVD matrix factorization"                                         |
+| Hybrid weights          | "40/40/20"                             | "45% content / 45% collaborative / 10% destination affinity"                |
+| Interest vectors        | "64-dimensional"                       | "5-dimensional (food, culture, adventure, pace, budget)"                    |
+| Itinerary optimizer     | "CP-SAT + simulated annealing"         | "Greedy construction + 2-opt local search (CP-SAT is production upgrade)"   |
+| Satisfaction model      | "XGBoost prediction wired to live API" | "XGBoost prototype model; not yet exposed as recommendation signal"         |
+| UI label                | "AI-Guided Matches"                    | "Compatibility-Scored Matches"                                              |
+| Data moat               | "10,000-tour data moat"                | "Data flywheel improves with scale; 10K tours is an aspirational milestone" |
+| Accuracy                | "85%+ directional accuracy"            | "Target validation metric; not yet measured in production"                  |

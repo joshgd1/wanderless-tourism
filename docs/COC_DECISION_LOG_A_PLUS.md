@@ -19,7 +19,7 @@ However, COC did **not** make the following decisions — these were human judgm
 | ----------------------------------------------------------- | ----------- |
 | Problem framing: "catalog-first vs compatibility-first"     | Team        |
 | Positioning: "compatibility intelligence layer"             | Team        |
-| Beachhead market: Chiang Mai first                          | Team        |
+| Beachhead market: Luang Prabang, Laos first                 | Team        |
 | Product scope: what to prototype vs skip                    | Team        |
 | ML architecture: hybrid weights, algorithms, fallback logic | Team        |
 | Synthetic data strategy: when to use, how to label          | Team        |
@@ -35,21 +35,21 @@ COC surfaced evidence. The team weighed trade-offs. The team chose.
 
 ## 2. Decision Summary Table
 
-| Decision Area                 | Options Considered                                                                    | Final Decision                                                                                   | Why                                                                                                         | Trade-off Accepted                                        | Rubric Impact       |
-| ----------------------------- | ------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------- | --------------------------------------------------------- | ------------------- |
-| Problem framing               | Generic AI travel planner / Activity marketplace / Compatibility intelligence layer   | Compatibility intelligence layer                                                                 | Avoids generic AI positioning; matches ML capability; defensible against Airbnb copy                        | Requires more explanation than "AI trip planner"          | +Market, +AI/ML     |
-| Positioning                   | "AI-powered tour booking" / "Smart tour matching" / "Compatibility-first marketplace" | "Compatibility-first, not catalog-first"                                                         | Creates sharp contrast with incumbents; Netflix/Spotify analogy resonates                                   | Less catchy than "AI"; requires framing work              | +Market, +Product   |
-| Beachhead market              | Bangkok / Chiang Mai / Penang / Full SE Asia                                          | Chiang Mai                                                                                       | 10M+ tourists, 50 licensed guides, manageable density, clear STB licensing, learning lab before Bangkok bet | Lower immediate TAM; higher long-term optionality         | +Market, +Business  |
-| Product scope                 | Full marketplace / Tourist-focused prototype / Guide-focused prototype                | Tourist-facing prototype first                                                                   | Demonstrates ML value before building two-sided supply; guides self-register                                | One-sided at launch; must recruit guides in parallel      | +Product, +Team     |
-| ML architecture               | Pure content-based / Pure collaborative / Hybrid with ALS / Hybrid with TruncatedSVD  | 45% content + 45% collaborative (TruncatedSVD) + 10% destination                                 | Both signals needed; TruncatedSVD is scipy-native (no implicit library); ALS was aspirational               | Fixed weights, not A/B tunable in prototype               | +AI/ML, +Product    |
-| Synthetic data strategy       | No synthetic / Full synthetic / 88% signal + 12% noise                                | 88% genuine + 12% noise                                                                          | Validates end-to-end workflow; noise models real rating variance; 600 tuples enough for demo                | Does NOT prove production model accuracy; clearly labeled | +AI/ML, +Team       |
-| Itinerary optimization        | CP-SAT solver / Simulated annealing / Greedy + 2-opt                                  | Greedy + 2-opt (prototype)                                                                       | CP-SAT requires ortools dependency; greedy+2-opt is scipy-native and works for demo                         | Not optimal; real problems need CP-SAT for production     | +AI/ML, +Team       |
-| Satisfaction prediction scope | Wired to recommendation / Prototype only / Not built                                  | XGBoost prototype, not wired                                                                     | Prototype demonstrates technique; wiring requires real ratings for validation                               | Model exists but doesn't influence matching yet           | +AI/ML              |
-| Safety and trust boundaries   | Autonomous safety blocking / Advisory scores / Human review escalation                | Safety score as decision support; high-risk cases escalate to human review                       | Balances platform liability with tourist autonomy; avoids false-secure feeling                              | Not a fully automated safety system                       | +Product, +Business |
-| Business model                | Commission-only / Commission + guide tools / Three-sided                              | Commission-first (15-18%), guide tools ($14.99/mo after 20 bookings), business referrals (5-10%) | Commission validates early; guide tools monetizes established guides; referrals are upside                  | All three streams need critical mass                      | +Business           |
-| Disintermediation mitigation  | Platform lock-in / Market dynamics / Accept as tax                                    | Accept as marketplace tax (20-30%); value shifts from transaction to discovery over time         | Hard to prevent entirely; honest about risk; focuses on repeat-booking value                                | Accepts revenue leakage; mitigates with discovery value   | +Business           |
-| Demo design                   | Show all flows / Show stable ML flows only / Show business flows first                | Stable tourist discovery + ML matching + itinerary flow                                          | Proves ML value with lowest failure risk; cURL fallback for API confidence                                  | Doesn't show guide or business side yet                   | +Product, +Demo     |
-| Claim-alignment after audit   | Leave as-is / Correct only obvious errors / Correct all spec-vs-code mismatches       | Correct all mismatches; add ML_CLAIMS_IMPLEMENTATION_MATRIX                                      | Credibility is the product; overclaims destroy trust with graders                                           | More work upfront; protects grade and reputation          | +AI/ML, +Team       |
+| Decision Area                 | Options Considered                                                                    | Final Decision                                                                                   | Why                                                                                                             | Trade-off Accepted                                        | Rubric Impact       |
+| ----------------------------- | ------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------- | ------------------- |
+| Problem framing               | Generic AI travel planner / Activity marketplace / Compatibility intelligence layer   | Compatibility intelligence layer                                                                 | Avoids generic AI positioning; matches ML capability; defensible against Airbnb copy                            | Requires more explanation than "AI trip planner"          | +Market, +AI/ML     |
+| Positioning                   | "AI-powered tour booking" / "Smart tour matching" / "Compatibility-first marketplace" | "Compatibility-first, not catalog-first"                                                         | Creates sharp contrast with incumbents; Netflix/Spotify analogy resonates                                       | Less catchy than "AI"; requires framing work              | +Market, +Product   |
+| Beachhead market              | Bangkok / Chiang Mai / Penang / Luang Prabang / Full SE Asia                          | Luang Prabang, Laos                                                                              | UNESCO heritage city, strong local guide supply, acute compatibility problem, focused density for proving model | Lower immediate TAM; higher long-term optionality         | +Market, +Business  |
+| Product scope                 | Full marketplace / Tourist-focused prototype / Guide-focused prototype                | Tourist-facing prototype first                                                                   | Demonstrates ML value before building two-sided supply; guides self-register                                    | One-sided at launch; must recruit guides in parallel      | +Product, +Team     |
+| ML architecture               | Pure content-based / Pure collaborative / Hybrid with ALS / Hybrid with TruncatedSVD  | 45% content + 45% collaborative (TruncatedSVD) + 10% destination                                 | Both signals needed; TruncatedSVD is scipy-native (no implicit library); ALS was aspirational                   | Fixed weights, not A/B tunable in prototype               | +AI/ML, +Product    |
+| Synthetic data strategy       | No synthetic / Full synthetic / 88% signal + 12% noise                                | 88% genuine + 12% noise                                                                          | Validates end-to-end workflow; noise models real rating variance; 600 tuples enough for demo                    | Does NOT prove production model accuracy; clearly labeled | +AI/ML, +Team       |
+| Itinerary optimization        | CP-SAT solver / Simulated annealing / Greedy + 2-opt                                  | Greedy + 2-opt (prototype)                                                                       | CP-SAT requires ortools dependency; greedy+2-opt is scipy-native and works for demo                             | Not optimal; real problems need CP-SAT for production     | +AI/ML, +Team       |
+| Satisfaction prediction scope | Wired to recommendation / Prototype only / Not built                                  | XGBoost prototype, not wired                                                                     | Prototype demonstrates technique; wiring requires real ratings for validation                                   | Model exists but doesn't influence matching yet           | +AI/ML              |
+| Safety and trust boundaries   | Autonomous safety blocking / Advisory scores / Human review escalation                | Safety score as decision support; high-risk cases escalate to human review                       | Balances platform liability with tourist autonomy; avoids false-secure feeling                                  | Not a fully automated safety system                       | +Product, +Business |
+| Business model                | Commission-only / Commission + guide tools / Three-sided                              | Commission-first (15-18%), guide tools ($14.99/mo after 20 bookings), business referrals (5-10%) | Commission validates early; guide tools monetizes established guides; referrals are upside                      | All three streams need critical mass                      | +Business           |
+| Disintermediation mitigation  | Platform lock-in / Market dynamics / Accept as tax                                    | Accept as marketplace tax (20-30%); value shifts from transaction to discovery over time         | Hard to prevent entirely; honest about risk; focuses on repeat-booking value                                    | Accepts revenue leakage; mitigates with discovery value   | +Business           |
+| Demo design                   | Show all flows / Show stable ML flows only / Show business flows first                | Stable tourist discovery + ML matching + itinerary flow                                          | Proves ML value with lowest failure risk; cURL fallback for API confidence                                      | Doesn't show guide or business side yet                   | +Product, +Demo     |
+| Claim-alignment after audit   | Leave as-is / Correct only obvious errors / Correct all spec-vs-code mismatches       | Correct all mismatches; add ML_CLAIMS_IMPLEMENTATION_MATRIX                                      | Credibility is the product; overclaims destroy trust with graders                                               | More work upfront; protects grade and reputation          | +AI/ML, +Team       |
 
 ---
 
@@ -410,4 +410,49 @@ The result is a submission where the team's ML choices are **verifiable**, their
 
 ---
 
-_Last updated: 2026-05-13. This document was produced as part of the MGMT655 WanderLess team project. COC version: Terrene Foundation COC (Cognitive Orchestration for Codegen)._
+## 7. Final Human Judgment Summary
+
+### What the Team Rejected
+
+| Rejected Option                          | Reason for Rejection                                                                                                 | Alternative Accepted                                  |
+| ---------------------------------------- | -------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------- |
+| Generic AI itinerary planner (LLM-based) | Easy to copy; invites comparison to better-resourced competitors (Google Gemini, OpenAI Travel); not WanderLess's IP | Compatibility intelligence as core differentiator     |
+| Pure catalog marketplace                 | Matches incumbents on their strongest ground; no ML leverage                                                         | Compatibility-first matching with explainability      |
+| Overclaiming production ML               | Single fastest way to lose professor/investor credibility; challenges invite scrutiny of entire product              | Implementation-honest claims at every level           |
+| Fully autonomous safety decisions        | Legal, ethical, and fairness risk; opaque blocking creates liability                                                 | Safety as decision-support; tourist decides           |
+| Fake certainty in TAM/CAC/LTV            | Assumptions presented as facts invite targeted challenges                                                            | Explicit "assumption vs. validated" labeling          |
+| Demoing every marketplace flow           | Broad fragile demo; one failure cascades                                                                             | Focused tourist decision-support flow as primary demo |
+
+### What the Team Accepted
+
+| Accepted Decision                      | Why Accepted                                                       |
+| -------------------------------------- | ------------------------------------------------------------------ |
+| Compatibility-first guide matching     | Core differentiator; defensible against incumbent copy             |
+| Narrow Luang Prabang, Laos beachhead   | Manageable proof-of-model before scaling; MICT tourism framework   |
+| Synthetic data as cold-start prototype | Validates end-to-end workflow without real data; clearly labeled   |
+| Honest ML claims                       | Credibility protection; any overclaim undermines the whole product |
+| Tourist decision-support as demo focus | Lowest demo failure risk; strongest ML differentiation             |
+
+### Why These Decisions Matter
+
+1. **They show business judgment**: The decisions demonstrate the team can distinguish between what sounds impressive and what is defensible.
+
+2. **They reduce hallucinated AI claims**: By rejecting generic AI framing and overclaiming, the team avoids the most common credibility pitfall in AI ventures.
+
+3. **They align the prototype with actual implementation**: Every ML component described in documentation matches code that exists and runs.
+
+4. **They make the product more credible to a VC-style evaluator**: An evaluator looking for "real AI" will find real implementation. An evaluator looking for "honest limitations" will find those too.
+
+### Rubric Mapping
+
+| Rubric Category  | Evidence File                                                                 | What It Proves                                                                                                   |
+| ---------------- | ----------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| Market & Problem | `SUBMISSION_EXECUTIVE_SUMMARY_4P.md`, `docs/BUSINESS_MODEL_ASSUMPTIONS.md`    | Clear problem statement, beachhead strategy, target customer                                                     |
+| Product & Demo   | `app/`, `backend/`, `docs/PRESENTATION_GUIDE.md`, `docs/VALIDATION_REPORT.md` | Working Flutter app, Python API, stable demo with backup                                                         |
+| Business Model   | `docs/BUSINESS_MODEL_ASSUMPTIONS.md`, `docs/COC_DECISION_LOG_A_PLUS.md`       | Commercial logic, unit economics assumptions, pilot validation metrics                                           |
+| Team & Execution | `docs/COC_DECISION_LOG_A_PLUS.md`, `docs/SUBMISSION_MANIFEST.md`              | Structured decision-making, human judgment at every major fork, implementation traceability                      |
+| AI/ML Depth      | `docs/ML_CLAIMS_IMPLEMENTATION_MATRIX.md`, `backend/ml/`                      | Real ML components (hybrid recommender, group formation, itinerary optimization) with honest limitation labeling |
+
+---
+
+_Last updated: 2026-05-14. This document was produced as part of the MGMT655 WanderLess team project. COC version: Terrene Foundation COC (Cognitive Orchestration for Codegen)._

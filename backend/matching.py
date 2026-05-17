@@ -47,12 +47,11 @@ AUTHENTICITY_KEYWORDS = [
     "authentic local", "local born",
 ]
 
-# Chiang Mai neighborhoods — used when tourist destination is "Chiang Mai"
-CHIANG_MAI_NEIGHBORHOODS = {
-    "old city", "nimman", "night bazaar", "do inthanon", "doi inthanon",
-    "do suthep", "doi suthep", "do pui", "doi pui", "mae sa valley",
-    "sankamphaeng", "hang dong", "saraphi", "sansai",
-    "santitham", "huay kaew", "maya", "prettpak", "chang moi",
+# Luang Prabang neighborhoods — used when tourist destination is "Luang Prabang"
+LUANG_PRABANG_NEIGHBORHOODS = {
+    "old city", "night market", "mount phousi", "wat xieng thong", "royal palace",
+    "腮佛寺", "湄公河", "mekong river", "kun Chee", "hat khi chan",
+    "sakkaline", "village", "river", "mountain", "UNESCO",
 }
 
 LOCALITY_BONUS = 0.25
@@ -89,9 +88,9 @@ def _bio_authenticity(guide: Guide) -> float:
 
     Signal weights:
     - license_verified: 0.20 (anchor — requires official credential)
-    - neighborhood match (bio mentions "Santitham" + guide covers Chiang Mai
+    - neighborhood match (bio mentions "Wat Xieng Thong" + guide covers Luang Prabang
       neighborhood): 0.20 (requires specific local knowledge)
-    - city match (bio mentions "Chiang Mai" + guide covers it): 0.10
+    - city match (bio mentions "Luang Prabang" + guide covers it): 0.10
     - generic keyword without location claim: 0.05 (weak, capped low)
     """
     if not guide.bio:
@@ -105,14 +104,14 @@ def _bio_authenticity(guide: Guide) -> float:
     )
 
     # Strong: neighborhood in bio + guide covers that neighborhood
-    bio_neighborhoods_found = covered & CHIANG_MAI_NEIGHBORHOODS & set(bio_lower.split())
+    bio_neighborhoods_found = covered & LUANG_PRABANG_NEIGHBORHOODS & set(bio_lower.split())
     if bio_neighborhoods_found:
         # At least one neighborhood appears in bio text
         # This requires the guide to actually mention a specific local area
         return 0.20
 
-    # Moderate: city-level match (bio mentions Chiang Mai + guide covers Chiang Mai)
-    if "chiang mai" in bio_lower and any("chiang mai" in c for c in covered):
+    # Moderate: city-level match (bio mentions Luang Prabang + guide covers Luang Prabang)
+    if "luang prabang" in bio_lower and any("luang prabang" in c for c in covered):
         return 0.10
 
     # Weak fallback: generic keyword presence (capped low)
@@ -126,7 +125,7 @@ def _bio_authenticity(guide: Guide) -> float:
 def _location_match(guide: Guide, destination: str | None) -> float:
     """
     Bonus when guide covers the tourist's destination.
-    For Chiang Mai, matches by neighborhood name in location_coverage.
+    For Luang Prabang, matches by neighborhood name in location_coverage.
     For other destinations, requires exact match.
     """
     if not destination or not guide.location_coverage:
@@ -139,9 +138,9 @@ def _location_match(guide: Guide, destination: str | None) -> float:
     ]
     if dest_lower in covered:
         return LOCALITY_BONUS
-    # Chiang Mai: check if guide covers any Chiang Mai neighborhood
-    if dest_lower == "chiang mai":
-        for neighborhood in CHIANG_MAI_NEIGHBORHOODS:
+    # Luang Prabang: check if guide covers any Luang Prabang neighborhood
+    if dest_lower == "luang prabang":
+        for neighborhood in LUANG_PRABANG_NEIGHBORHOODS:
             if neighborhood in covered:
                 return LOCALITY_BONUS
     return 0.0

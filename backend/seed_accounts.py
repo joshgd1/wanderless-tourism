@@ -27,18 +27,18 @@ def seed_test_business(db: SessionLocal):
     existing = db.query(BusinessOwner).filter_by(email="business@wanderless.com").first()
     if existing:
         print(f"  Business owner already exists: {existing.id} — updating fields")
-        existing.business_name = "Chiang Mai Adventures"
+        existing.business_name = "Luang Prabang Heritage Tours"
         existing.commission_rate = 0.15
-        existing.phone = "+66 81 234 5678"
+        existing.phone = "+856 20 1234 5678"
         db.commit()
         return existing
     owner = BusinessOwner(
         id=f"B{uuid.uuid4().hex[:8].upper()}",
         email="business@wanderless.com",
         password_hash=TEST_PASSWORD_HASH,
-        business_name="Chiang Mai Adventures",
+        business_name="Luang Prabang Heritage Tours",
         commission_rate=0.15,
-        phone="+66 81 234 5678",
+        phone="+856 20 1234 5678",
     )
     db.add(owner)
     db.commit()
@@ -102,11 +102,11 @@ def seed_test_guide(db: SessionLocal):
     if existing:
         print(f"  Guide already exists: {existing.id} — updating fields")
         existing.password_hash = TEST_PASSWORD_HASH
-        existing.name = "Mei Ling"
-        existing.bio = "Passionate Singapore guide specializing in cultural heritage walks through Chinatown, Little India, and Gardens by the Bay. Let me show you the authentic side of Singapore — from hidden hawker stalls to stunning skyline views."
+        existing.name = "Bounmy Phommasak"
+        existing.bio = "Luang Prabang local — alms giving ceremonies, Kuang Si waterfalls, and the peaceful banks of the Mekong. I show visitors the authentic heart of Laos."
         existing.photo_url = "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&h=400&fit=crop&crop=face"
         existing.license_verified = True
-        existing.id = 'GTH268'
+        existing.id = 'GLP001'
         db.commit()
         return existing
     # Bind to an existing seeded guide (first guide in database)
@@ -116,11 +116,11 @@ def seed_test_guide(db: SessionLocal):
         return None
     guide.email = "guide@wanderless.com"
     guide.password_hash = TEST_PASSWORD_HASH
-    guide.name = "Mei Ling"
-    guide.bio = "Passionate Singapore guide specializing in cultural heritage walks through Chinatown, Little India, and Gardens by the Bay. Let me show you the authentic side of Singapore — from hidden hawker stalls to stunning skyline views."
+    guide.name = "Bounmy Phommasak"
+    guide.bio = "Luang Prabang local — alms giving ceremonies, Kuang Si waterfalls, and the peaceful banks of the Mekong. I show visitors the authentic heart of Laos."
     guide.photo_url = "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&h=400&fit=crop&crop=face"
     guide.license_verified = True
-    guide.id = 'GTH268'
+    guide.id = 'GLP001'
     db.commit()
     print(f"  Guide: guide@wanderless.com / wanderless123  (id={guide.id}, name={guide.name})")
     return guide
@@ -133,11 +133,11 @@ def seed_sea_guides(db: SessionLocal):
         {"name": "Wei Ling Tan", "country": "Singapore", "city": "Singapore", "specialty": "City Tours", "language": "en→en", "bio": "Passionate Singaporean guide specializing in cultural heritage walks through Chinatown, Little India, and Kampong Glam."},
         {"name": "Jun Hao Lim", "country": "Singapore", "city": "Singapore", "specialty": "Food Tours", "language": "en→en,zh→en", "bio": "Foodie and storyteller — let me take you through the best hawker centres and Michelin-starred street food."},
         {"name": "Aisha Mohamed", "country": "Singapore", "city": "Singapore", "specialty": "Heritage Sites", "language": "en→en,ms→en", "bio": "Historic Singapore specialist — from colonial architecture to modern gardens and everything in between."},
-        # Thailand
-        {"name": "Manee Prasert", "country": "Thailand", "city": "Chiang Mai", "specialty": "Temples & Culture", "language": "en→th", "bio": "Born and raised in Chiang Mai — I show visitors the real Northern Thailand, from mountain tribes to hidden waterfalls."},
-        {"name": "Siriwan Boom", "country": "Thailand", "city": "Bangkok", "specialty": "Nightlife & Markets", "language": "en→th", "bio": "Bangkok insider — floating markets before dawn, rooftop bars at sunset, and the best pad thai you've ever tasted."},
-        {"name": "Krit Kong", "country": "Thailand", "city": "Phuket", "specialty": "Island Hopping", "language": "en→th", "bio": "Island life expert — private boat tours, hidden beaches, and snorkeling spots only locals know about."},
-        {"name": "Nakorn Sri", "country": "Thailand", "city": "Ayutthaya", "specialty": "Ancient Ruins", "language": "en→th", "bio": "History buff specializing in the ancient Siam capital — temples, Buddha statues, and riverfront sunsets."},
+        # Laos
+        {"name": "Bounmy Phommasak", "country": "Laos", "city": "Luang Prabang", "specialty": "Temple & Heritage Walks", "language": "en→lo", "bio": "Luang Prabang local — alms giving ceremonies, Kuang Si waterfalls, and the peaceful banks of the Mekong. I show visitors the authentic heart of Laos."},
+        {"name": "Souksavath Mom", "country": "Laos", "city": "Luang Prabang", "specialty": "Food & Night Market", "language": "en→lo|fr→lo", "bio": "Food lover and night market guide — Lao BBQ, laap, and the best sticky rice in Luang Prabang's evening stalls."},
+        {"name": "Khamphone Souvannakone", "country": "Laos", "city": "Luang Prabang", "specialty": "Nature & Waterfalls", "language": "en→lo", "bio": "Nature guide specialising in Kuang Si waterfalls, Pak Ou caves, and slow boat journeys along the upper Mekong."},
+        {"name": "Vilavanh Phongsakda", "country": "Laos", "city": "Luang Prabang", "specialty": "Heritage & Textiles", "language": "en→lo|zh→lo", "bio": "Cultural guide focused on traditional Lao weaving, temple etiquette, and the UNESCO heritage old town."},
         # Vietnam
         {"name": "Thi Mai Nguyen", "country": "Vietnam", "city": "Hanoi", "specialty": "Street Food", "language": "en→vi", "bio": "Hanoi native and food lover — join me for a cyclo ride through the Old Quarter's best banh mi and pho spots."},
         {"name": "Minh Tran", "country": "Vietnam", "city": "Ho Chi Minh", "specialty": "War History", "language": "en→vi", "bio": "Historian and guide — I bring Vietnam's modern history alive through its tunnels, museums, and street life."},
@@ -156,8 +156,6 @@ def seed_sea_guides(db: SessionLocal):
         {"name": "Jay Arcilla", "country": "Philippines", "city": "Palawan", "specialty": "Underground River", "language": "en→fil", "bio": "Palawan native — the Puerto Princesa underground river, Kayangan Lake, and El Nido's hidden lagoons."},
         # Myanmar
         {"name": "Khin Thida", "country": "Myanmar", "city": "Yangon", "specialty": "Buddhist Heritage", "language": "en→my", "bio": "Shwedagon Paya caretaker turned guide — ancient pagodas, colonial Yangon, and the warmth of Burmese hospitality."},
-        # Laos
-        {"name": "Bounmy Phommasak", "country": "Laos", "city": "Luang Prabang", "specialty": "Temple & River Life", "language": "en→lo", "bio": "Luang Prabang local — alms giving ceremonies, Kuang Si waterfalls, and the peaceful banks of the Mekong."},
         # Cambodia
         {"name": "Sokha Chan", "country": "Cambodia", "city": "Siem Reap", "specialty": "Angkor Wat", "language": "en→km", "bio": "Angkor specialist — I've guided at the temples for 12 years. Sunrise at Angkor Wat is just the beginning."},
         # Brunei
@@ -204,12 +202,12 @@ def seed_fake_location_tracking(db: SessionLocal, guide: Guide, tourist: Tourist
         return
     loc = LocationTracking(
         booking_id=booking.id,
-        # Guide at a popular temple viewpoint
-        guide_lat=18.8047,
-        guide_lng=98.9219,
+        # Guide at a popular temple viewpoint in Luang Prabang
+        guide_lat=19.885,
+        guide_lng=102.135,
         # Tourist slightly south at a nearby point
-        tourist_lat=18.7923,
-        tourist_lng=98.9853,
+        tourist_lat=19.880,
+        tourist_lng=102.130,
     )
     db.add(loc)
     db.commit()
@@ -225,11 +223,11 @@ def seed_synthetic_bookings(db: SessionLocal, guide: Guide, tourist: Tourist):
         return
 
     destinations = [
-        ("Doi Suthep Temple", 4.0, 2),
-        ("Old City Walking Tour", 3.0, 3),
-        ("Mae Sa Valley Trek", 6.0, 2),
-        ("Night Bazaar Food Tour", 2.5, 4),
-        ("Doi Inthanon National Park", 8.0, 2),
+        ("Wat Xieng Thong Temple", 4.0, 2),
+        ("Mount Phousi Sunset Walk", 3.0, 3),
+        ("Kuang Si Waterfall Trek", 6.0, 2),
+        ("Night Market Food Tour", 2.5, 4),
+        ("Mekong River Village Day Trip", 8.0, 2),
     ]
 
     now = datetime.utcnow()
@@ -297,12 +295,12 @@ def seed_open_trip_plans(db: SessionLocal, tourist: Tourist):
             "avoid_late_night": False,
         },
         {
-            "destination": "Thailand - Chiang Mai",
+            "destination": "Laos - Luang Prabang",
             "interests": "culture|adventure|nature",
             "proposed_stops": [
-                {"name": "Doi Suthep Temple", "duration_hours": 2.0, "notes": "Sunrise visit recommended"},
-                {"name": "Mae Sa Valley", "duration_hours": 4.0, "notes": "Waterfalls trek"},
-                {"name": "Night Bazaar", "duration_hours": 2.0, "notes": "Street food experience"},
+                {"name": "Wat Xieng Thong", "duration_hours": 2.0, "notes": "Heritage temple walk"},
+                {"name": "Kuang Si Waterfall", "duration_hours": 4.0, "notes": "Nature trek and swim"},
+                {"name": "Night Market", "duration_hours": 2.0, "notes": "Street food experience"},
             ],
             "tour_date_start": (datetime.utcnow() + timedelta(days=7)).strftime("%Y-%m-%d"),
             "tour_date_end": (datetime.utcnow() + timedelta(days=9)).strftime("%Y-%m-%d"),

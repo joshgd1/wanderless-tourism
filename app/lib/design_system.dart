@@ -921,8 +921,8 @@ class CountryFlags {
     // Balinese/Indonesian name patterns
     if (_isBalineseName(lower)) return '🇮🇩';
 
-    // Thai name patterns
-    if (_isThaiName(lower)) return '🇹🇭';
+    // Lao name patterns
+    if (_isLaoName(lower)) return '🇱🇦';
 
     // Vietnamese name patterns
     if (_isVietnameseName(lower)) return '🇻🇳';
@@ -955,7 +955,7 @@ class CountryFlags {
     return '🌏';
   }
 
-  /// Get country flag from location string (e.g., "Bangkok", "Bali")
+  /// Get country flag from location string (e.g., "Luang Prabang", "Bali")
   static String fromLocation(String location) {
     final lower = location.toLowerCase();
 
@@ -973,11 +973,10 @@ class CountryFlags {
       return '🇸🇬';
     }
 
-    // Thailand
-    if (lower.contains('bangkok') || lower.contains('chiang mai') ||
-        lower.contains('phuket') || lower.contains('samui') ||
-        lower.contains('pattaya') || lower.contains('krabi')) {
-      return '🇹🇭';
+    // Laos
+    if (lower.contains('luang prabang') || lower.contains('vientiane') ||
+        lower.contains('vang vieng') || lower.contains('pakse')) {
+      return '🇱🇦';
     }
 
     // Vietnam
@@ -1016,7 +1015,7 @@ class CountryFlags {
 
     // Japan
     if (lower.contains('tokyo') || lower.contains('osaka') ||
-        lower.contains('kyoto') || lower.contains('bali')) {
+        lower.contains('kyoto')) {
       return '🇯🇵';
     }
 
@@ -1098,9 +1097,9 @@ class CountryFlags {
     return false;
   }
 
-  static bool _isThaiName(String name) {
-    final thaiPatterns = ['somchai', 'somsri', 'chai', 'suda', 'porntip', 'montri', 'anucha', 'krit', 'kriangsak'];
-    for (final p in thaiPatterns) {
+  static bool _isLaoName(String name) {
+    final laoPatterns = ['somsak', 'khamsone', 'bounmy', 'thongloun', 'phetsavath', 'vongsy', 'malay', 'chanthaphone'];
+    for (final p in laoPatterns) {
       if (name.contains(p)) return true;
     }
     return false;

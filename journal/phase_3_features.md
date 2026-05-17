@@ -147,7 +147,7 @@
 | ----------------------------------------------------------- | ------------------------------- | ---------------------------- |
 | Pilot booking dataset (500+ records)                        | Proxy-drop test, model training | MISSING                      |
 | Label definition validation (1-2 stars OR 48h cancellation) | Target definition               | CONFIRMED from Phase 1 Frame |
-| Chiang Mai average booking price                            | Dollar exposure calculation     | MISSING                      |
+| Luang Prabang average booking price                         | Dollar exposure calculation     | MISSING                      |
 | Poor experience baseline rate                               | Model calibration               | MISSING                      |
 | Age group distribution in pilot data                        | Proxy-drop interpretation       | MISSING                      |
 

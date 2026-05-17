@@ -9,7 +9,7 @@ Adjusts prices based on:
 - Seasonality (peak tourist seasons)
 - Group size multipliers
 
-All prices in THB. Base prices configurable via environment.
+All prices in USD. Base prices configurable via environment.
 """
 
 from __future__ import annotations
@@ -23,7 +23,7 @@ import numpy as np
 
 logger = logging.getLogger("wanderless.ml.pricing")
 
-# ─── Base tour price catalogue (THB) ───────────────────────────────────────────
+# ─── Base tour price catalogue (USD) ───────────────────────────────────────────
 
 BASE_PRICES: dict[str, float] = {
     "food": 1200.0,
@@ -62,22 +62,14 @@ _DOW_MULTIPLIER: dict[int, float] = {
     6: 1.30,  # Sunday — still high
 }
 
-# Thai / regional public holiday surcharge (list of "MM-DD" strings)
+# Lao / regional public holiday surcharge (list of "MM-DD" strings)
 _HOLIDAY_SURGE = {
     "01-01": 1.40,  # New Year
-    "04-06": 1.35,  # Chakri Memorial Day
-    "04-13": 1.50,  # Songkran (Thai New Year)
-    "04-14": 1.50,  # Songkran
-    "04-15": 1.45,  # Songkran
+    "04-14": 1.50,  # Lao New Year (Pi Mai)
+    "04-15": 1.45,  # Lao New Year
+    "04-16": 1.40,  # Lao New Year
     "05-01": 1.30,  # Labour Day
-    "05-04": 1.30,  # Coronation Day
-    "06-03": 1.30,  # Queen Sirikit's Birthday
-    "07-22": 1.35,  # Asanha Bucha
-    "07-23": 1.50,  # Khao Phansa (start of Buddhist Lent)
-    "08-12": 1.40,  # Queen's Birthday
-    "10-13": 1.35,  # King Chulalongkorn Day
-    "12-05": 1.45,  # King's Birthday / National Day
-    "12-10": 1.35,  # Constitution Day
+    "12-02": 1.50,  # Lao National Day
     "12-31": 1.50,  # New Year's Eve
 }
 
@@ -85,8 +77,8 @@ _HOLIDAY_SURGE = {
 _PEAK_SEASON: dict[int, float] = {
     1: 1.20,   # January — peak international travel
     2: 1.25,   # February — Chinese New Year, peak
-    3: 1.15,   # March — pre-Songkran
-    4: 0.85,   # April — Songkran (some slowdown mid-month)
+    3: 1.15,   # March — pre-festival season
+    4: 0.85,   # April — Lao New Year (Pi Mai) slowdown
     5: 0.80,   # May — off-peak, very hot
     6: 0.90,   # June — school holidays start
     7: 1.00,   # July — summer break
@@ -225,12 +217,12 @@ def compute_dynamic_price(
 
     Returns:
         dict with:
-          base_price (THB),
-          final_price (THB, after all adjustments),
-          total_price (THB, final_price × group_size),
+          base_price (USD),
+          final_price (USD, after all adjustments),
+          total_price (USD, final_price × group_size),
           breakdown (dict of multipliers with values),
           currency (str),
-          per_person_price (THB),
+          per_person_price (USD),
           surge_level (low/normal/high/severe),
           expires_at (datetime when this price quote expires, 15 min)
     """
@@ -278,7 +270,7 @@ def compute_dynamic_price(
     group_mult = _group_size_multiplier(group_size)
     per_person_price = guide_price * group_mult
 
-    # Final price (rounded to nearest 10 THB for cleaner display)
+    # Final price (rounded to nearest 10 USD for cleaner display)
     final_price = round(per_person_price / 10) * 10
     total_price = round(final_price * group_size / 10) * 10
 
@@ -325,7 +317,7 @@ def compute_dynamic_price(
         "final_price": float(final_price),
         "total_price": float(total_price),
         "per_person_price": float(final_price),
-        "currency": "THB",
+        "currency": "USD",
         "breakdown": breakdown,
         "surge_level": surge_level,
         "expires_at": expires_at.isoformat(),

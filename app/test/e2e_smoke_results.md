@@ -142,17 +142,22 @@
 
 ```json
 {
-  "id": "GED176663",
-  "email": "guide_test_1@test.com",
-  "name": "Test Guide",
-  "bio": "Local guide ready to show you around!",
-  "photo_url": null,
-  "expertise_tags": ["culture", "food", "adventure"],
-  "language_pairs": ["en→th"],
-  "pace_style": 0.5,
+  "id": "GLP001",
+  "email": "guide@wanderless.com",
+  "name": "Bounmy Phommasak",
+  "bio": "Luang Prabang local — alms giving ceremonies, Kuang Si waterfalls, and the peaceful banks of the Mekong. I show visitors the authentic heart of Laos.",
+  "photo_url": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&h=400&fit=crop&crop=face",
+  "expertise_tags": ["culture", "food", "nature"],
+  "language_pairs": ["en→lo", "ko→lo"],
+  "pace_style": 0.631,
   "group_size_preferred": 4,
-  "budget_tier": "mid",
-  "location_coverage": ["Chiang..."]
+  "budget_tier": "budget",
+  "location_coverage": [
+    "LP:Wat Xieng Thong",
+    "LP:Night Market",
+    "LP:Mekong River",
+    "LP:Kuang Si Waterfall"
+  ]
 }
 ```
 

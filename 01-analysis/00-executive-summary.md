@@ -4,7 +4,7 @@
 
 **WanderLess** is an ML-powered three-sided marketplace that matches travelers with local guides based on _compatibility_ (interests, personality, travel style) rather than the traditional _destination/catalog browsing_ model. The platform connects tourists, local guides, and business partners (stores, restaurants, activity providers) through a compounding intelligence layer.
 
-**Core Thesis**: Travel is the last major consumer domain where ML-powered matching hasn't been applied. WanderLess applies proven recommendation techniques to a $300B market with zero existing competition in compatibility matching.
+**Core Thesis**: Travel remains more catalog-first than compatibility-first, especially for guide matching. WanderLess applies proven recommendation techniques to a $300B market where no competitor uses compatibility matching at the guide-itinerary layer.
 
 ---
 
@@ -48,7 +48,7 @@ ML recommendation systems transformed:
 - 45% Collaborative: TruncatedSVD matrix factorization on tourist-guide-rating tuples
 - 10% Contextual: Destination affinity boost (time/weather/group-size signals described for future production upgrade)
 
-**Output**: Compatibility score (no confidence interval in prototype) + key matching factors
+**Output**: Compatibility score (point estimate; confidence intervals planned for production) + key matching factors
 
 ### 2. Group Formation Engine (Unsupervised Learning)
 
@@ -68,7 +68,7 @@ ML recommendation systems transformed:
 
 **Architecture**:
 
-- Greedy construction + 2-opt local search (CP-SAT constraint solver described in architecture as future production upgrade)
+- Greedy construction + 2-opt local search (CP-SAT constraint solver planned as future production upgrade)
 - Constraints: time windows, travel distance, opening hours, meal breaks, budget ceiling
 - Energy curve modeling and weather integration described in architecture; not implemented in prototype
 
@@ -80,9 +80,9 @@ ML recommendation systems transformed:
 
 **Architecture**:
 
-- XGBoost regression (prototype) in `backend/ml/review_intelligence.py`; **not wired to recommendation API endpoint**
+- XGBoost regression (prototype) in `backend/ml/review_intelligence.py`; **not wired to recommendation API endpoint** — satisfaction prediction not currently exposed as a recommendation signal
 - Trained on synthetic data; requires real post-tour ratings for production validation
-- Target accuracy (85%+ directional) is an architecture-stage estimate; requires real-data validation after sufficient completed tours
+- Target accuracy (85%+ directional) is an architecture-stage estimate; requires real-data validation after sufficient completed tours; synthetic data only
 
 **Output**: Predicted rating (1-5) in prototype; not currently exposed as recommendation signal
 
@@ -108,10 +108,10 @@ ML recommendation systems transformed:
 - Underpenetrated by ML-powered platforms
 - **No competitor uses compatibility matching**
 
-### Why Chiang Mai
+### Why Luang Prabang
 
 - 10M+ tourists/year, manageable density
-- 50 licensed Thai guides available
+- 50 licensed Laos guides available
 - Express booking viable as beachhead
 - Synthetic data for ML cold start
 - Target: 200 bookings/month by month 6
@@ -277,7 +277,7 @@ ML compatibility matching is **proven in every other consumer domain**. Travel i
 
 ## Success Metrics
 
-### Phase 1 (Months 1-9): Chiang Mai Beachhead
+### Phase 1 (Months 1-9): Luang Prabang Beachhead
 
 - 200 bookings/month by month 6
 - NPS 40+
@@ -285,7 +285,7 @@ ML compatibility matching is **proven in every other consumer domain**. Travel i
 - 50 guides activated
 - ML matching accuracy >75%
 
-### Phase 2 (Months 10-18): Bangkok + Penang
+### Phase 2 (Months 10-18): Vientiane + Hoi An
 
 - 1,000+ bookings/month
 - Group formation activated
@@ -323,9 +323,9 @@ Each side has different motivations, friction points, and success metrics. Optim
 
 The tourist interest/profile vector is the fundamental unit of the system. Everything — matching, grouping, prediction — flows from having accurate vectors.
 
-### 6. Chiang Mai Is a Learning Lab
+### 6. Luang Prabang Is a Learning Lab
 
-Success in Chiang Mai produces playbook for global expansion. Failure modes discovered cheaply in small market.
+Success in Luang Prabang produces playbook for global expansion. Failure modes discovered cheaply in small market.
 
 ---
 
@@ -337,7 +337,7 @@ WanderLess addresses a genuine market gap: travel is the only major consumer dom
 
 1. Achieve guide density before tourist scale
 2. Validate matching quality quickly
-3. Execute Chiang Mai playbook flawlessly
+3. Execute Luang Prabang playbook flawlessly
 4. Build data moat before window closes
 
 **Biggest risks**:

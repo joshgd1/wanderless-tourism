@@ -15,7 +15,7 @@ class LanguageScreen extends ConsumerWidget {
     ('de', 'German'),
     ('fr', 'French'),
     ('ru', 'Russian'),
-    ('th', 'Thai'),
+    ('lo', 'Lao'),
   ];
 
   @override

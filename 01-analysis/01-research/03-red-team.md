@@ -29,7 +29,7 @@ WanderLess presents a compelling narrative at the intersection of travel's large
 - A guide (not a ticket or self-guided tour) is the primary deliverable
 - The traveler is solo or small group (not a bus tour)
 - Personal compatibility matters (not just logistics)
-- The traveler is in SE Asia (Chiang Mai, Bangkok, Penang first)
+- The traveler is in SE Asia (Luang Prabang, Vientiane, Penang first)
 
 **Revised addressable market**: A realistic estimate for WanderLess's specific use case (solo/small group guided experiences with personality matching in SE Asia) is **$2-4B**, not $300B. The TAM number is technically defensible but strategically misleading — it inflates the opportunity by 75-100x beyond what WanderLess can actually capture.
 
@@ -151,23 +151,25 @@ The window closes when:
 
 ### 3.2 The Cold Start Problem Is Severely Underestimated
 
-**Tourist cold start**: The system handles tourists with 0 tours via 100% content-based matching. Content-based matching with 64-dimensional interest vectors is essentially "travelers with similar survey answers get similar guide recommendations." This is **not** compatibility matching — it is demographic segmentation at best.
+**Tourist cold start**: The system handles tourists with 0 tours via 100% content-based matching. Content-based matching with 5-dimensional interest vectors is essentially "travelers with similar survey answers get similar guide recommendations." This is **not** sophisticated compatibility matching — it is demographic segmentation at best.
 
 **Guide cold start**: New guides receive a "cold start boost" that upweights their recommendations. This means early tourists are **guinea pigs** for new guide matching. If early matches are poor, those tourists don't return — the entire retention thesis collapses.
 
 **The compounding problem**: The data flywheel requires tourists to have good experiences to generate ratings, which improves matching, which generates more good experiences. If the initial matching is poor (because CF hasn't learned anything yet), the flywheel never starts.
 
-**Geographic cold start**: Chiang Mai data may not transfer to Bangkok, Penang, or Bali. Guides in different cultural contexts may require different matching logic. A "good guide in Chiang Mai" profile may not translate to "good guide in Kyoto."
+**Geographic cold start**: Luang Prabang data may not transfer to Vientiane, Penang, or Bali. Guides in different cultural contexts may require different matching logic. A "good guide in Luang Prabang" profile may not translate to "good guide in Kyoto."
 
-### 3.3 The Hybrid Architecture May Be Wrong
+### 3.3 The Hybrid Architecture Weighting Was Arbitrary
 
-**The 40/40/20 weighting is arbitrary**: The architecture document provides no empirical basis for the 40/40/20 content/CF/context split. This is an **architectural guess**, not a derived parameter.
+**The original 40/40/20 weighting was arbitrary**: The architecture document provided no empirical basis for the 40/40/20 content/CF/context split. This was an **architectural guess**, not a derived parameter.
+
+_(Note: The architecture has since been corrected to 45/45/10 based on review findings. See COC_DECISION_LOG_A_PLUS.md.)_
 
 **What if the correct weighting is 60/20/20?** Then 40% of the model's capacity is allocated to collaborative filtering before it has enough data to be meaningful.
 
-**What if context dominates?** The contextual component (XGBoost on weather, availability, group size) may be the only reliable signal in early tours — before the CF model has learned anything. If so, the architecture should weight context at 50%+, not 20%.
+**What if context dominates?** The contextual component (planned: XGBoost on weather, availability, group size) may be the only reliable signal in early tours — before the CF model has learned anything. If so, the architecture should weight context at 50%+, not 10%.
 
-**The architectural decision is irreversible without a reset**: Changing the 40/40/20 split requires retraining the entire model from scratch. If the wrong baseline is deployed, correcting it costs 6-12 months of retraining plus re-accumulating labeled data.
+**The architectural decision is irreversible without a reset**: Changing the 45/45/10 split requires retraining the entire model from scratch. If the wrong baseline is deployed, correcting it costs 6-12 months of retraining plus re-accumulating labeled data.
 
 ### 3.4 Technical Risk Summary
 
@@ -267,11 +269,11 @@ The window closes when:
 
 **Moat strength: LOW-MEDIUM**
 
-**The problem**: Geographic density is the weakest moat because it can be replicated by outspending. If Klook invests $20M in Chiang Mai guide acquisition and offers 0% commission for 6 months, WanderLess's density advantage evaporates.
+**The problem**: Geographic density is the weakest moat because it can be replicated by outspending. If Klook invests $20M in Luang Prabang guide acquisition and offers 0% commission for 6 months, WanderLess's density advantage evaporates.
 
 **The timeline**: 6-12 months to establish density in one city is optimistic. The actual timeline depends on guide recruitment velocity, guide activation rate, and tourist booking volume. If any of these lags, density takes 12-18 months.
 
-**The moat only exists if**: Incumbents don't respond during the density-building period. If Klook or Airbnb notices WanderLess's traction in Chiang Mai and responds within 6 months, the density moat never solidifies.
+**The moat only exists if**: Incumbents don't respond during the density-building period. If Klook or Airbnb notices WanderLess's traction in Luang Prabang and responds within 6 months, the density moat never solidifies.
 
 ### 5.2 Data Moat (12-24 months, requires 10K+ tours)
 
@@ -358,9 +360,9 @@ What does NOT compound at 10K tours:
 
 ### 6.3 The Operations Gap
 
-**Guide-heavy marketplaces require intensive local operations.** The pitch mentions Chiang Mai as the beachhead but does not address:
+**Guide-heavy marketplaces require intensive local operations.** The pitch mentions Luang Prabang as the beachhead but does not address:
 
-- Who recruits and verifies guides on the ground in Chiang Mai?
+- Who recruits and verifies guides on the ground in Luang Prabang?
 - How is guide quality maintained as the platform scales?
 - Who handles guide disputes, payment issues, or tourist complaints?
 - What is the operations cost per guide per month?
@@ -401,9 +403,9 @@ What does NOT compound at 10K tours:
 **The case for SE Asia**:
 
 - Fastest-growing tourism region globally
-- High solo traveler density (Chiang Mai, Bali, Bangkok)
+- High solo traveler density (Luang Prabang, Bali, Vientiane)
 - Lower competitive intensity than Europe or North America
-- Favorable regulatory environment (Thailand has clear guide licensing)
+- Favorable regulatory environment (Laos has a formal tourism administration under the Ministry of Information, Culture and Tourism)
 
 **The case against SE Asia as first market**:
 
@@ -412,12 +414,12 @@ What does NOT compound at 10K tours:
 - Guide professionalization is lower (more informal economy guides)
 - Payment infrastructure is less mature than claimed (cash economy still dominant for informal guides)
 
-**Is Chiang Mai specifically correct?** Chiang Mai is a good first city for solo travelers but:
+**Is Luang Prabang specifically correct?** Luang Prabang is a good first city for solo travelers but:
 
 - It is not representative of the broader SE Asia market
-- It has a high concentration of digital nomads (not typical tourists)
-- The guide ecosystem is already saturated with budget options
-- Premium guide density may be lower than Bangkok
+- It has a high concentration of heritage tourists (not typical adventure tourists)
+- The guide ecosystem is still developing for premium experiences
+- Premium guide density may be lower than Vientiane
 
 ### 7.3 Market Timing Assessment
 
@@ -461,7 +463,7 @@ What does NOT compound at 10K tours:
 
 **The scenario**:
 
-- WanderLess demonstrates 40% repeat booking in Chiang Mai at month 12
+- WanderLess demonstrates 40% repeat booking in Luang Prabang at month 12
 - Klook notices and acquires a smaller matching startup (Tourboks) at month 14
 - Klook integrates matching into its existing app with 50M users and 200K+ activities
 - Klook offers WanderLess guides 0% commission for 12 months to switch
@@ -480,7 +482,7 @@ What does NOT compound at 10K tours:
 | ML theater / category discredit | 30-40%      | Total loss        | NPS <30 at 6 months                     |
 | Incumbent acquisition/response  | 25-35%      | Value destruction | Any incumbent adds matching language    |
 | Guide disintermediation >40%    | 20-30%      | Major             | Direct booking mentions >20% in surveys |
-| Regulatory headwind             | 10-20%      | Significant       | TAT enforcement increase in Chiang Mai  |
+| Regulatory headwind             | 10-20%      | Significant       | MICT licensing changes in Laos          |
 | Team collapse                   | 15-20%      | Total loss        | Key ML hire fails to materialize        |
 
 ---
@@ -489,11 +491,11 @@ What does NOT compound at 10K tours:
 
 ### 9.1 Regulatory Risks Not Mentioned in Pitch
 
-**Tour guide licensing liability**: Thailand's Tour Guide Act requires guides to hold a TAT license. If WanderLess's matching results in an incident with an unlicensed guide (regardless of who hired them), platform liability could be significant. The pitch mentions licensing verification but not ongoing liability exposure.
+**Tour guide licensing liability**: Laos requires guides working with tour operators to hold appropriate licensing under the Ministry of Information, Culture and Tourism. If WanderLess's matching results in an incident with an unlicensed guide (regardless of who hired them), platform liability could be significant. The pitch mentions licensing verification but not ongoing liability exposure.
 
-**PDPA (Thailand data privacy)**: Thailand's Personal Data Protection Act (effective 2022) governs how tourist preference data (including personality profiles, travel patterns, social connections) can be collected and used. The ML matching system requires extensive profiling — this may require explicit consent mechanisms that degrade UX and reduce conversion.
+**PDPA / Lao data privacy**: Lao PDR's data protection requirements govern how tourist preference data (including personality profiles, travel patterns, social connections) can be collected and used. The ML matching system requires extensive profiling — this may require explicit consent mechanisms that degrade UX and reduce conversion.
 
-**Payment licensing**: Thailand's e-payment regulations require platforms collecting payments to be registered with the Bank of Thailand or partner with a licensed payment aggregator. The pitch mentions payment infrastructure but doesn't address licensing compliance.
+**Payment licensing**: Laos e-payment regulations require platforms collecting payments to partner with licensed payment aggregators. The pitch mentions payment infrastructure but doesn't address licensing compliance.
 
 **Platform worker classification**: As the platform scales, there may be regulatory pressure to classify high-volume guides as platform employees rather than independent contractors. This would destroy the business model (guide CAC would go from $0 to $200-500/guide + benefits).
 
@@ -513,7 +515,7 @@ What does NOT compound at 10K tours:
 
 **Payment fraud**: A sophisticated fraud ring could create fake guide profiles, fake tourist bookings, and extract payments through the payment system before detection. At scale, this becomes a cat-and-mouse game with organized crime.
 
-**Currency risk**: Guide payouts in local currency (THB, MYR) while tourist payments arrive in USD or EUR creates currency exposure. If local currencies appreciate during settlement periods, net revenue decreases.
+**Currency risk**: Guide payouts in local currency (LAK, THB) while tourist payments arrive in USD or EUR creates currency exposure. If local currencies appreciate during settlement periods, net revenue decreases.
 
 ### 9.4 Technical Risks
 
@@ -586,7 +588,7 @@ Before serious capital deploys, the founding team must provide credible answers 
 
 1. **Who is the ML engineering lead, and what is their production experience with hybrid recommendation systems at this scale?** (Not a title — a name and a reference project.)
 
-2. **What is the validated CAC from the first 100 tourists, not the projected CAC?** (Launch in Chiang Mai and measure before scaling.)
+2. **What is the validated CAC from the first 100 tourists, not the projected CAC?** (Launch in Luang Prabang and measure before scaling.)
 
 3. **What is the actual matching quality lift from Day 1 to Month 6?** (A/B test: 10% random matching vs. algorithm matching. Measure NPS and repeat booking by arm.)
 
@@ -594,7 +596,7 @@ Before serious capital deploys, the founding team must provide credible answers 
 
 5. **What is the minimum guide density per city for matching quality to exceed random?** (Define the threshold below which matching is worse than random. Do not launch tourist marketing until this threshold is exceeded.)
 
-6. **Who are the first three local operations hires in Chiang Mai, and what is their travel industry experience?** (Operations is not a software problem.)
+6. **Who are the first three local operations hires in Luang Prabang, and what is their travel industry experience?** (Operations is not a software problem.)
 
 7. **What is the go/no-go metric that determines whether the competitive window is open or closed?** (Define it precisely. Example: "Incumbent response is triggered when Klook or Airbnb announces a matching feature with >50K guides in our target cities.")
 

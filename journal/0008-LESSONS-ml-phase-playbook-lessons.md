@@ -32,4 +32,4 @@ tags:
 
 1. At what point in a real ML project does "we'll set the numeric floor after we see the data" become indefensible governance versus reasonable iteration?
 2. Could Lesson 2 (data validation in Phase 1) have been caught by a simple checklist item, or does it require domain knowledge to anticipate?
-3. The Chiang Mai Playbook specifies synthetic data generation as a cold start strategy. Does Lesson 5 (three cold starts) change how that synthetic data strategy should be designed?
+3. The Luang Prabang Playbook specifies synthetic data generation as a cold start strategy. Does Lesson 5 (three cold starts) change how that synthetic data strategy should be designed?

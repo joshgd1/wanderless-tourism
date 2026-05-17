@@ -10,11 +10,11 @@ type: GAP
 
 The Guide model stores 7 fields that directly signal authentic local knowledge:
 
-- `bio` — "I grew up in Chiang Mai's old city" vs "Certified international guide"
+- `bio` — "I grew up in Luang Prabang's old town" vs "Certified international guide"
 - `rating_history` — quality consistency over time
 - `rating_count` — volume of authentic local practice (127 reviews = trusted by many tourists)
-- `location_coverage` — "old city neighborhoods" vs "all tourist zones"
-- `license_verified` — TAT-licensed local vs unverified
+- `location_coverage` — "old town neighborhoods" vs "all tourist zones"
+- `license_verified` — MICT-licensed local vs unverified
 - `years_experience` — proxy for depth of local knowledge
 - `specialties` — same as expertise_tags, redundant
 

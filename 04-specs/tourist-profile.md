@@ -119,7 +119,7 @@ Screen: "Any special requirements?" (Optional)
 Screen: "Your profile is ready!"
 
 Based on your interests, we found:
-• 12 guides matching your profile in Chiang Mai
+• 12 guides matching your profile in Luang Prabang
 • 3 potential group matches for food tours
 • Average compatibility: 78%
 

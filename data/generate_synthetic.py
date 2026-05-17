@@ -3,7 +3,7 @@
 WanderLess — Synthetic Pilot Data Generator
 
 Generates synthetic tourist-guide-rating tuples for cold-start model development.
-Supports Thailand (Chiang Mai) and Singapore destinations.
+Supports Laos (Luang Prabang) and Singapore destinations.
 
 Rating formula:
     norm_dot = (raw_dot - dot_min) / (dot_max - dot_min)   # [0, 1]
@@ -35,14 +35,14 @@ from datetime import datetime, timedelta
 # ---------------------------------------------------------------------------
 
 DESTINATIONS = {
-    "TH": {
-        "name": "Thailand (Chiang Mai)",
-        "languages": ["en", "zh", "fr", "de", "ja", "ko", "ru", "th"],
+    "LA": {
+        "name": "Laos (Luang Prabang)",
+        "languages": ["en", "zh", "fr", "de", "ja", "ko", "ru", "lo"],
         "locations": [
-            "Old City", "Doi Suthep", "Night Bazaar", "Nimman",
-            "Doi Inthanon", "Mae Sa Valley", "Doi Pui", "Sankamphaeng",
+            "Wat Xieng Thong", "Mount Phousi", "Night Market", "Kuang Si Waterfall",
+            "Mekong River", "Royal Palace", "Tat Kuang Si", "Pak Ou Caves",
         ],
-        "native_tongue": "th",
+        "native_tongue": "lo",
         "license_types": ["licensed", "verified_expert", "community_host"],
     },
     "SG": {
@@ -75,7 +75,7 @@ EXPERTISE_TAGS_POOL = [
     "food_heritage", "museums", "gardens", "beach", "waterfront",
 ]
 
-# Rating distribution parameters (from Chiang Mai Playbook §Cold Start Data Strategy)
+# Rating distribution parameters (from Luang Prabang Playbook §Cold Start Data Strategy)
 RATING_MEAN = 4.2
 RATING_STD = 1.0  # enough spread: ~15-20% poor for average/random pairs
 
@@ -119,7 +119,7 @@ def match_score(t_vec: list[float], g_vec: list[float]) -> float:
 
 def make_tourist_vector(
     rng: random.Random,
-    country: str = "TH",
+    country: str = "LA",
 ) -> dict:
     """
     Tourist feature vector. Fields: food/culture/adventure interest, pace,
@@ -183,10 +183,10 @@ EXPERTISE_MAP = {
 
 def make_guide_profile(
     rng: random.Random,
-    country: str = "TH",
+    country: str = "LA",
 ) -> dict:
     """
-    Guide profile with destination-specific locations and Singapore STB licensing.
+    Guide profile with destination-specific locations and MICT licensing for SG and LA.
     """
     dest = DESTINATIONS[country]
     n_expertise = rng.randint(2, 4)
@@ -218,11 +218,11 @@ def make_guide_profile(
         (rng.choice(lang_pool), native),
     ]
 
-    # Singapore STB licensing
+    # MICT licensing for SG and LA destinations
     license_type = rng.choice(dest["license_types"])
-    if country == "SG":
+    if country in ("SG", "LA"):
         if license_type == "licensed":
-            license_number = f"STB-{rng.randint(100000, 999999)}"
+            license_number = f"MICT-{rng.randint(100000, 999999)}"
             license_verified = True
             license_expiry = (datetime.now() + timedelta(days=rng.randint(180, 730))).strftime("%Y-%m-%d")
         elif license_type == "verified_expert":
@@ -277,7 +277,7 @@ def generate_rating(
     dot_range: tuple[float, float],
 ) -> dict:
     """
-    Generate a rating consistent with vector similarity + Chiang Mai matching rule.
+    Generate a rating consistent with vector similarity + Luang Prabang matching rule.
 
     Rating formula:
         norm_dot = (raw_dot - dot_min) / (dot_max - dot_min)  # mapped to [0, 1]
@@ -458,28 +458,28 @@ Generated: {Path(__file__).name} — seed={args.seed}
 | File | Rows | Description |
 |------|------|-------------|
 | `tourist_profiles.csv` | {total_tourists} | Tourist feature vectors |
-| `guide_profiles.csv` | {total_guides} | Guide feature vectors (includes STB license fields for SG) |
+| `guide_profiles.csv` | {total_guides} | Guide feature vectors (includes MICT license fields for SG and LA) |
 | `synthetic_ratings.csv` | {args.n} | Tourist-Guide-Rating tuples |
 
-## Schema: guide_profiles.csv (new Singapore fields)
+## Schema: guide_profiles.csv (new Singapore and Laos fields)
 
 | Column | Type | Description |
 |--------|------|-------------|
 | `license_verified` | bool | Platform-verified credentials |
-| `license_number` | string | STB license number (SG licensed guides) |
+| `license_number` | string | MICT license number (SG and LA licensed guides) |
 | `license_type` | string | "licensed" | "verified_expert" | "community_host" |
-| `license_country` | string | "SG" | "TH" |
-| `license_expiry` | string | ISO date for STB licenses |
+| `license_country` | string | "SG" | "LA" |
+| `license_expiry` | string | ISO date for MICT licenses |
 
-## Singapore License Tiers
+## Singapore / Laos License Tiers
 
-| Tier | STB Verified | Description |
+| Tier | MICT Verified | Description |
 |------|-------------|-------------|
-| `licensed` | Yes (STB-XXXXXX) | Official STB-licensed tour guide |
+| `licensed` | Yes (MICT-XXXXXX) | Official MICT-licensed tour guide |
 | `verified_expert` | Yes (VXP-XXXXX) | Background-checked local expert / experience host |
 | `community_host` | No | Community host — experience-led activities |
 
-## Rating Model (from Chiang Mai Playbook §Cold Start Data Strategy)
+## Rating Model (from Luang Prabang Playbook §Cold Start Data Strategy)
 
 ```
 norm_dot = (raw_dot - dot_min) / (dot_max - dot_min)   # [0, 1]

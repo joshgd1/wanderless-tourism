@@ -12,7 +12,7 @@
 
 WanderLess is an ML Compatibility Engine for Travel that matches tourists with local guides based on compatibility across five interest dimensions (food, culture, adventure, pace, budget), using hybrid recommendation ML to rank guide candidates and optimize tour itineraries. The product serves three distinct user types — tourists seeking personalized guided experiences, local guides wanting quality traveler matches, and business partners (restaurants, shops, activity providers) seeking foot traffic — connected by a group formation engine that clusters compatible tourists and an itinerary optimizer that sequences stops under constraints.
 
-**Complexity**: Moderate — three-sided marketplace with real-time ML inference, batch group formation, and constraint-based planning; geographic density creates cold-start risk on all three sides simultaneously.
+**Complexity**: Moderate — three-sided marketplace with ML-based matching, batch group formation, and constraint-based planning; geographic density creates cold-start risk on all three sides simultaneously.
 
 ---
 
@@ -24,7 +24,7 @@ WanderLess is an ML Compatibility Engine for Travel that matches tourists with l
 
 | Channel               | Discovery Mechanism                          | Conversion Trigger                        |
 | --------------------- | -------------------------------------------- | ----------------------------------------- |
-| Organic search        | "find local guide Thailand"                  | Guide profile preview + match explanation |
+| Organic search        | "find local guide Laos"                      | Guide profile preview + match explanation |
 | Hostel/hotel referral | Partner concierge mentions WanderLess        | Trust signal from known intermediary      |
 | Social media          | Instagram/TikTok content from prior tourists | User-generated experience video           |
 | App store             | "travel guide matching" search               | Rating + screenshots                      |
@@ -110,12 +110,12 @@ Compatibility Score = 0.40 × ContentScore + 0.40 × CollabScore + 0.20 × Conte
 
 ```
 ┌─────────────────────────────────────────────────────┐
-│  Your Top Matches in Chiang Mai                      │
+│  Your Top Matches in Luang Prabang                   │
 │                                                     │
 │  ┌─────────────────────────────────────────────┐   │
 │  │ 1. [Photo] Kem S. — 94% match              │   │
 │  │    "Food & culture specialist, 8 years"     │   │
-│  │    ★ 4.9 (127 reviews) | Speaks: EN, TH    │   │
+│  │    ★ 4.9 (127 reviews) | Speaks: EN, LO   │   │
 │  │    Top factors: Food interest, Pace match    │   │
 │  │    [View Profile] [Request Match]           │   │
 │  └─────────────────────────────────────────────┘   │
@@ -140,7 +140,7 @@ Compatibility Score = 0.40 × ContentScore + 0.40 × CollabScore + 0.20 × Conte
 | Star rating         | Aggregated reviews       | Social proof            |
 | Review count        | Aggregated reviews       | Volume signal           |
 | Languages           | Profile                  | Communication assurance |
-| Bio excerpt         | Profile (LLM-summarized) | Context                 |
+| Bio excerpt         | Profile (guide-provided) | Context                 |
 | Top match factors   | ML engine explainability | Why this match          |
 | "View Profile"      | Full profile page        | Deep dive               |
 | "Request Match"     | Booking initiation       | Primary CTA             |
@@ -164,13 +164,13 @@ For guides with fewer than 50 ratings, the system shows a confidence indicator:
 │  Kem S. — 94% match                               │
 │  ★ 4.9 (127 reviews) | Guide since 2019          │
 │                                                     │
-│  Languages: English (Native), Thai (Native),        │
+│  Languages: English (Native), Lao (Native),        │
 │             Mandarin (Conversational)               │
 │                                                     │
 │  ──────────────────────────────────────────────    │
 │                                                     │
 │  ABOUT                                             │
-│  "I grew up in Chiang Mai's old city and have      │
+│  "I grew up in Luang Prabang and have             │
 │   been guiding for 8 years. I specialize in        │
 │   food tours that take you beyond the night        │
 │   market — into family kitchens and local          │
@@ -188,7 +188,7 @@ For guides with fewer than 50 ratings, the system shows a confidence indicator:
 │                                                     │
 │  RECENT REVIEWS                                    │
 │  "Kem's food tour was the highlight of our        │
-│   Thailand trip." — Sarah M. (UK)                │
+│   Laos trip." — Sarah M. (UK)                   │
 │  "Amazing hidden gems we never would have found   │
 │   on our own." — James L. (AU)                   │
 │                                                     │
@@ -275,7 +275,7 @@ For guides with fewer than 50 ratings, the system shows a confidence indicator:
 │  Payment (Stripe / Local Payment Methods)          │
 │                                                     │
 │  • Credit/Debit Card                              │
-│  • PromptPay QR (Thai users)                       │
+│  • LAPNet QR (Lao users)                          │
 │  • Apple Pay / Google Pay                          │
 │                                                     │
 │  [    Pay $195.50                        ]         │
@@ -312,7 +312,7 @@ booking = {
     'booking_id': 'uuid',
     'tourist_id': 'uuid',
     'guide_id': 'uuid',
-    'destination': 'chiang_mai',
+    'destination': 'luang_prabang',
     'tour_date': 'date',
     'duration_hours': 6,
     'group_size': 2,
@@ -350,7 +350,7 @@ After booking, tourist and guide collaborate on the itinerary:
 │  09:30 — Warorot Market (morning market)          │
 │  11:00 — cooking class prep (ingredients shop)    │
 │  12:30 — Lunch at local favorite                 │
-│  14:00 — Temple visit (Doi Suthep area)          │
+│  14:00 — Temple visit (Mount Phousi area)        │
 │  16:00 — Coffee at artisan roaster               │
 │  18:00 — Drop off at hotel                      │
 │                                                     │
@@ -436,10 +436,10 @@ After booking, tourist and guide collaborate on the itinerary:
 ┌─────────────────────────────────────────────────────┐
 │  Itinerary Update                                  │
 │                                                     │
-│  ⚠ Doi Suthep Temple closed for ceremony          │
+│  ⚠ Mount Phousi Temple closed for ceremony        │
 │                                                     │
 │  Alternative suggested:                              │
-│  • Doi Pui Temple (nearby, open) — 15 min extra   │
+│  • Wat Xieng Thong (nearby, open) — 15 min extra  │
 │  • Skip this stop, extend lunch — no extra time   │
 │                                                     │
 │  [Accept Alternative] [Skip Stop] [Contact Kem]   │
@@ -530,7 +530,7 @@ rating = {
 │  "Welcome back, Sarah                               │
 │                                                     │
 │   Your interest profile from Feb shows you loved   │
-│   food tours. Want to explore Northern Thai cuisine │
+│   food tours. Want to explore Lao cuisine        │
 │   again, or try something new?"                    │
 │                                                     │
 │  [Same Preferences] [Adjust Interests] [Browse]     │
@@ -539,21 +539,21 @@ rating = {
          ▼ (Same Preferences)
 ┌─────────────────────────────────────────────────────┐
 │  We've updated your matches!                       │
-│  • 12 new guides in Chiang Mai                    │
-│  • Your top match from Feb (Kem) is available     │
+│  • 12 new guides in Luang Prabang               │
+│  • Your top match from Feb (Kem) is available   │
 │                                                     │
-│  [Re-book Kem] [Browse New Matches] [Explore Bangkok] │
+│  [Re-book Kem] [Browse New Matches] [Explore Vientiane] │
 └─────────────────────────────────────────────────────┘
 ```
 
 **Re-Engagement Triggers**:
 
-| Trigger                     | Timeframe | Message                                                  |
-| --------------------------- | --------- | -------------------------------------------------------- |
-| Repeat visit to same city   | 30+ days  | "Kem is in your new city — Bangkok"                      |
-| New city added to platform  | 60+ days  | "We're now in Penang! Here's your match"                 |
-| Guide available in new city | 90+ days  | "Your favorite guide from Chiang Mai now covers Bangkok" |
-| Seasonal reminder           | Annual    | "A year ago you explored Thailand — back this season?"   |
+| Trigger                     | Timeframe | Message                                                       |
+| --------------------------- | --------- | ------------------------------------------------------------- |
+| Repeat visit to same city   | 30+ days  | "Kem is in your new city — Vientiane"                         |
+| New city added to platform  | 60+ days  | "We're now in Hoi An! Here's your match"                      |
+| Guide available in new city | 90+ days  | "Your favorite guide from Luang Prabang now covers Vientiane" |
+| Seasonal reminder           | Annual    | "A year ago you explored Laos — back this season?"            |
 
 **Profile Update Path**:
 
@@ -618,7 +618,7 @@ rating = {
 │  • Full name, location (city/district)              │
 │  • Languages spoken (with proficiency)              │
 │  • Years of guiding experience                     │
-│  • Tour guide license number (Thailand: TAT ID)   │
+│  • Tour guide license number (Laos: MICT ID)   │
 │  • Phone number, email                             │
 │  • Short bio (500 chars)                           │
 │  • Photo (professional or candid)                 │
@@ -645,7 +645,7 @@ guide_application = {
     'location': {'city': 'string', 'district': 'string'},
     'languages': [{'code': 'en', 'name': 'English', 'proficiency': 'native|fluent|conversational'}],
     'years_experience': 'int',
-    'license_number': 'string | null',  # TAT license for Thailand
+    'license_number': 'string | null',  # MICT license for Laos
     'license_verified': 'bool',
     'bio': 'string (max 500)',
     'photo_url': 'string',
@@ -827,7 +827,7 @@ guide_profile = {
 │  • Cultural immersion (your forte ✓)              │
 │                                                     │
 │  Her background:                                  │
-│  • First-time visitor to Chiang Mai               │
+│  • First-time visitor to Luang Prabang             │
 │  • Stayed at: [Show on map]                      │
 │  • Traveling solo                                 │
 │                                                     │
@@ -941,7 +941,7 @@ guide_profile = {
 │  → 09:30 Warorot Market (current)                 │
 │  □ 11:00 Cooking class prep                       │
 │  □ 12:30 Lunch at Ridley's                        │
-│  □ 14:00 Doi Suthep Temple                       │
+│  □ 14:00 Mount Phousi                           │
 │  □ 16:00 Artisan coffee                          │
 │                                                     │
 │  [Mark Complete] [Add Unplanned Stop]              │
@@ -998,12 +998,12 @@ guide_profile = {
 
 **Payout Methods and Timing**:
 
-| Method               | Availability  | Timing   | Fees         |
-| -------------------- | ------------- | -------- | ------------ |
-| TrueMoney            | Thailand      | 48 hours | None         |
-| Bank transfer (Thai) | Thailand      | 48 hours | THB 30       |
-| International wire   | All countries | 3-5 days | $15          |
-| PayPal               | All countries | 24 hours | 2.9% + $0.30 |
+| Method              | Availability  | Timing   | Fees         |
+| ------------------- | ------------- | -------- | ------------ |
+| TrueMoney           | Laos PDR      | 48 hours | None         |
+| Bank transfer (Lao) | Laos PDR      | 48 hours | LAK 30,000   |
+| International wire  | All countries | 3-5 days | $15          |
+| PayPal              | All countries | 24 hours | 2.9% + $0.30 |
 
 ### 2.8 Growth Mechanics
 
@@ -1089,13 +1089,13 @@ guide_profile = {
 │                                                     │
 │  Business name: [________________]                 │
 │  Type: [Restaurant ▼]                             │
-│  Location: [Chiang Mai ▼] [Map pin]               │
+│  Location: [Luang Prabang ▼] [Map pin]           │
 │  Contact email: [________________]                 │
 │  Phone: [________________]                         │
 │  Website (optional): [________________]            │
 │                                                     │
 │  Categories (select all that apply):              │
-│  [x] Local Thai cuisine                          │
+│  [x] Local Lao cuisine                            │
 │  [ ] Vegetarian/vegan options                     │
 │  [ ] Cooking classes                             │
 │  [ ] Cultural experiences                        │
@@ -1274,7 +1274,7 @@ visit = {
 │  • Avg trip duration: 6 nights                    │
 │                                                     │
 │  What tourists say about you:                     │
-│  • "Best meal in Chiang Mai" — 12 reviews        │
+│  • "Best meal in Luang Prabang" — 12 reviews    │
 │  • "Kem recommended this place" — 8 reviews      │
 │  • "Authentic local food" — 15 reviews           │
 │                                                     │
@@ -1353,7 +1353,7 @@ outliers = DBSCAN(eps=1.5, min_samples=5, metric='cosine').fit_predict(features)
 ┌─────────────────────────────────────────────────────┐
 │  Group Tour Preferences                             │
 │                                                     │
-│  For your Aug 10-17 trip to Chiang Mai:            │
+│  For your Aug 10-17 trip to Luang Prabang:          │
 │                                                     │
 │  Group participation:                              │
 │  ○ I'd prefer a private tour (solo)                │
@@ -1447,7 +1447,7 @@ outliers = DBSCAN(eps=1.5, min_samples=5, metric='cosine').fit_predict(features)
 
 ```
 [1. Discovery]
-Tourist searches "find local guide Chiang Mai"
+Tourist searches "find local guide Luang Prabang"
   → Finds WanderLess via organic search
   → Visits landing page, sees "matched by who, not where"
 
@@ -1512,7 +1512,7 @@ Tourist opens WanderLess
   → Payment auto-filled from last time
 
 [3. New City / New Guide]
-"Traveling to Bangkok? Here are your matches"
+"Traveling to Luang Prabang? Here are your matches"
   → System applies same interest vector to new city
   → New guide pool scored
   → Top matches displayed
@@ -1533,7 +1533,7 @@ Guide hears about WanderLess from hostel partner
 
 [2. Application]
 Guide submits application
-  → Includes TAT license verification
+  → Includes MICT license verification
   → Profile + specialties + bio
   → 48h review by WanderLess team
 
@@ -1652,11 +1652,11 @@ Time to first visit: 7-21 days (dependent on guide's tour schedule)
 **Translation Strategy**:
 
 ```
-[Message sent in Thai by guide]
+[Message sent in Lao by guide]
          │
          ▼
 ┌─────────────────────────────────────────────────────┐
-│  Original (Thai):                                  │
+│  Original (Lao):                                    │
 │  "วันนี้เราจะไปตลาดเช้านะ อย่าลืมใส่รองเท้าที่สะดวก"  │
 │                                                     │
 │  Translated (English):                             │
@@ -1676,15 +1676,15 @@ Time to first visit: 7-21 days (dependent on guide's tour schedule)
 | Credit/Debit (Visa/MC) | Global   | Instant         | 2.9% + $0.30     |
 | Apple Pay              | iOS      | Instant         | Included in 2.9% |
 | Google Pay             | Android  | Instant         | Included in 2.9% |
-| PromptPay QR           | Thailand | Instant         | 1.5%             |
-| TrueMoney              | Thailand | Instant         | 1.5%             |
+| PromptPay QR           | Laos PDR | Instant         | 1.5%             |
+| TrueMoney              | Laos PDR | Instant         | 1.5%             |
 
 **Guide Payout Methods**:
 
 | Method             | Markets  | Processing Time | Fees         |
 | ------------------ | -------- | --------------- | ------------ |
-| TrueMoney          | Thailand | 48 hours        | None         |
-| Thai bank transfer | Thailand | 48 hours        | THB 30       |
+| TrueMoney          | Laos PDR | 48 hours        | LAK 30,000   |
+| Lao bank transfer  | Laos PDR | 48 hours        | LAK 30,000   |
 | International wire | Global   | 3-5 days        | $15          |
 | PayPal             | Global   | 24 hours        | 2.9% + $0.30 |
 
@@ -1737,14 +1737,14 @@ Time to first visit: 7-21 days (dependent on guide's tour schedule)
 │  Sarah left a review:                              │
 │                                                     │
 │  ★★★★★ — "Kem's food tour was the highlight      │
-│  of our Thailand trip. The hidden food stalls     │
+│  of our Laos trip. The hidden food stalls     │
 │  were incredible!"                                │
 │                                                     │
 │  [Write a Response]                              │
 │                                                     │
 │  Response preview:                                  │
 │  "Thank you Sarah! It was a pleasure showing      │
-│   you the real Chiang Mai food scene..."          │
+│   you the real Luang Prabang food scene..."      │
 │                                                     │
 │  [Save and Publish]                               │
 └─────────────────────────────────────────────────────┘
@@ -1770,10 +1770,10 @@ Time to first visit: 7-21 days (dependent on guide's tour schedule)
 │  Your options:                                     │
 │  • View the 2 available guides (matching still    │
 │    applies, but group formation unavailable)       │
-│  • Expand search to Chiang Mai (45 min away)      │
+│  • Expand search to Vientiane (4 hours away)   │
 │  • Join waitlist for Pai coverage               │
 │                                                     │
-│  [Show Available Guides] [Expand to Chiang Mai]    │
+│  [Show Available Guides] [Expand to Vientiane]  │
 │  [Join Waitlist]                                  │
 └─────────────────────────────────────────────────────┘
 ```
@@ -1926,7 +1926,7 @@ Time to first visit: 7-21 days (dependent on guide's tour schedule)
 │  ⚠ Translation Uncertain                           │
 │                                                     │
 │  Kem wrote:                                        │
-│  [Original Thai text]                              │
+│  [Original Lao text]                              │
 │                                                     │
 │  Our translation:                                   │
 │  "Please be ready at 8:45 AM. We will go to..."   │
@@ -2248,18 +2248,18 @@ tourist_group = {
 
 ## Appendix C: Glossary
 
-| Term                    | Definition                                                                   |
-| ----------------------- | ---------------------------------------------------------------------------- |
-| **Compatibility Score** | ML-calculated 0-100% match score between tourist and guide                   |
-| **Content Score**       | Component of compatibility from interest vector similarity (40%)             |
-| **Collab Score**        | Component from collaborative filtering on historical ratings (40%)           |
-| **Context Score**       | Component from contextual features (availability, weather) (20%)             |
-| **Feature Vector**      | 64-dimensional embedding representing tourist interests or guide specialties |
-| **Silhouette Score**    | Cluster quality metric (-1 to 1) measuring cohesion within group             |
-| **Escrow**              | Funds held by platform until tour completion, then released to guide         |
-| **Match Request**       | Tourist's formal invitation to a specific guide for a specific date          |
-| **Group Formation**     | K-Means clustering process that groups compatible tourists for shared tours  |
-| **Itinerary Optimizer** | Constraint satisfaction solver that sequences POIs for maximum satisfaction  |
+| Term                    | Definition                                                                          |
+| ----------------------- | ----------------------------------------------------------------------------------- |
+| **Compatibility Score** | ML-calculated 0-100% match score between tourist and guide                          |
+| **Content Score**       | Component of compatibility from interest vector similarity (40%)                    |
+| **Collab Score**        | Component from collaborative filtering on historical ratings (40%)                  |
+| **Context Score**       | Component from contextual features (availability, weather) (20%)                    |
+| **Feature Vector**      | 5-dimensional interest vector representing tourist preferences or guide specialties |
+| **Silhouette Score**    | Cluster quality metric (-1 to 1) measuring cohesion within group                    |
+| **Escrow**              | Funds held by platform until tour completion, then released to guide                |
+| **Match Request**       | Tourist's formal invitation to a specific guide for a specific date                 |
+| **Group Formation**     | K-Means clustering process that groups compatible tourists for shared tours         |
+| **Itinerary Optimizer** | Constraint satisfaction solver that sequences POIs for maximum satisfaction         |
 
 ---
 

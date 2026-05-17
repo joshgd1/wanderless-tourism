@@ -1127,7 +1127,7 @@ class _AddStopSheetState extends State<_AddStopSheet> {
           AppTextField(
             controller: _nameController,
             label: 'Stop name',
-            hint: 'e.g. Wat Phra Singh',
+            hint: 'e.g. Wat Xieng Thong',
             prefix: const Icon(Icons.place_outlined,
                 size: 18, color: AppColors.textTertiary),
           ),
