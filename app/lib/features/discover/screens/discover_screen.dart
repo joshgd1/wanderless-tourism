@@ -24,9 +24,13 @@ final matchesProvider = FutureProvider<List<MatchedGuide>>((ref) async {
   if (touristId == null) return [];
   final selectedFilter = ref.watch(_selectedFilterProvider);
   final destination = _filterDestinationMap[selectedFilter];
-  final api = ApiClient();
-  final data = await api.getMatches(touristId, topN: 10, destination: destination);
-  return data.map((e) => MatchedGuide.fromJson(e as Map<String, dynamic>)).toList();
+  try {
+    final api = ApiClient();
+    final data = await api.getMatches(touristId, topN: 10, destination: destination);
+    return data.map((e) => MatchedGuide.fromJson(e as Map<String, dynamic>)).toList();
+  } catch (_) {
+    return [];
+  }
 });
 
 final mlMatchesProvider = FutureProvider<List<MatchedGuide>>((ref) async {
