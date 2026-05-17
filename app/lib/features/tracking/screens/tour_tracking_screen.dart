@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_map/flutter_map.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:latlong2/latlong.dart';
 import '../../../../core/api_client.dart';
 import '../../../../core/auth_provider.dart';
@@ -62,6 +63,12 @@ class _TourTrackingScreenState extends ConsumerState<TourTrackingScreen> {
         // Access blocked — enable demo mode so the map is still visible
         _enableDemoMode();
       }
+    }
+
+    // If API returned data but no valid locations, fall back to demo map
+    // so both guide and tourist can see the sample map illustration
+    if (mounted && _locationData != null && _guideLocation == null && _touristLocation == null) {
+      _enableDemoMode();
     }
   }
 
@@ -181,40 +188,19 @@ class _TourTrackingScreenState extends ConsumerState<TourTrackingScreen> {
                           Expanded(
                             child: Stack(
                               children: [
-                                FlutterMap(
-                                  options: MapOptions(
-                                    initialCenter: _center,
-                                    initialZoom: _zoom,
+                                if (_isDemoMode)
+                                  _StaticMapView(
+                                    center: _center,
+                                    guideLocation: _guideLocation,
+                                    touristLocation: _touristLocation,
+                                  )
+                                else
+                                  _LiveMapView(
+                                    center: _center,
+                                    zoom: _zoom,
+                                    guideLocation: _guideLocation,
+                                    touristLocation: _touristLocation,
                                   ),
-                                  children: [
-                                    TileLayer(
-                                      urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                                      userAgentPackageName: 'com.wanderless.app',
-                                    ),
-                                    if (_guideLocation != null)
-                                      MarkerLayer(markers: [
-                                        Marker(
-                                          point: _guideLocation!,
-                                          width: 48,
-                                          height: 48,
-                                          child: _LocationMarker(
-                                            color: AppColors.info,
-                                            icon: Icons.person,
-                                          ),
-                                        ),
-                                        if (_touristLocation != null)
-                                          Marker(
-                                            point: _touristLocation!,
-                                            width: 48,
-                                            height: 48,
-                                            child: _LocationMarker(
-                                              color: AppColors.success,
-                                              icon: Icons.person,
-                                            ),
-                                          ),
-                                      ]),
-                                  ],
-                                ),
                                 if (_isDemoMode)
                                   Positioned(
                                     top: 12,
@@ -233,7 +219,7 @@ class _TourTrackingScreenState extends ConsumerState<TourTrackingScreen> {
                                             const Icon(Icons.map_outlined, color: Colors.white, size: 16),
                                             const SizedBox(width: 6),
                                             Text(
-                                              'Preview — Sample tour for illustration',
+                                              'Static Map — Location access unavailable',
                                               style: AppText.captionBold.copyWith(color: Colors.white),
                                             ),
                                           ],
@@ -311,6 +297,121 @@ class _TourTrackingScreenState extends ConsumerState<TourTrackingScreen> {
     } catch (_) {
       return '';
     }
+  }
+}
+// Live map widget for when location data is available
+class _LiveMapView extends StatelessWidget {
+  final LatLng center;
+  final double zoom;
+  final LatLng? guideLocation;
+  final LatLng? touristLocation;
+
+  const _LiveMapView({
+    required this.center,
+    required this.zoom,
+    this.guideLocation,
+    this.touristLocation,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return FlutterMap(
+      options: MapOptions(
+        initialCenter: center,
+        initialZoom: zoom,
+      ),
+      children: [
+        TileLayer(
+          urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+          userAgentPackageName: 'com.wanderless.app',
+        ),
+        if (guideLocation != null)
+          MarkerLayer(markers: [
+            Marker(
+              point: guideLocation!,
+              width: 48,
+              height: 48,
+              child: _LocationMarker(
+                color: AppColors.info,
+                icon: Icons.person,
+              ),
+            ),
+            if (touristLocation != null)
+              Marker(
+                point: touristLocation!,
+                width: 48,
+                height: 48,
+                child: _LocationMarker(
+                  color: AppColors.success,
+                  icon: Icons.person,
+                ),
+              ),
+          ]),
+      ],
+    );
+  }
+}
+
+// Static map widget shown when location access is blocked (guide view)
+class _StaticMapView extends StatelessWidget {
+  final LatLng center;
+  final LatLng? guideLocation;
+  final LatLng? touristLocation;
+
+  const _StaticMapView({
+    required this.center,
+    this.guideLocation,
+    this.touristLocation,
+  });
+
+  String get _staticMapUrl {
+    // Build markers parameter for OpenStreetMap static map
+    final markers = <String>[];
+    if (guideLocation != null) {
+      markers.add('blue,1,${guideLocation!.latitude},${guideLocation!.longitude}');
+    }
+    if (touristLocation != null) {
+      markers.add('green,1,${touristLocation!.latitude},${touristLocation!.longitude}');
+    }
+    final markerParam = markers.isNotEmpty ? '&markers=${markers.join('|')}' : '';
+    // bbox: center point with ~5km radius
+    final lat = center.latitude.toStringAsFixed(6);
+    final lng = center.longitude.toStringAsFixed(6);
+    return 'https://staticmap.openstreetmap.de/staticmap.php'
+        '?center=$lat,$lng'
+        '&zoom=13'
+        '&size=600x400'
+        '&maptype=mapnik'
+        '$markerParam';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: AppColors.surface,
+      child: Center(
+        child: CachedNetworkImage(
+          imageUrl: _staticMapUrl,
+          fit: BoxFit.contain,
+          placeholder: (context, url) => Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const CircularProgressIndicator(strokeWidth: 2),
+              const SizedBox(height: 16),
+              Text('Loading map...', style: AppText.caption),
+            ],
+          ),
+          errorWidget: (context, url, error) => Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.map_outlined, size: 64, color: AppColors.textSecondary),
+              const SizedBox(height: 12),
+              Text('Map unavailable', style: AppText.caption),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }
 

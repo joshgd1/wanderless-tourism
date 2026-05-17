@@ -231,10 +231,10 @@ class ApiClient {
     return resp.data as Map<String, dynamic>;
   }
 
-  Future<Map<String, dynamic>> declineTripRequest(int planId) async {
+  Future<Map<String, dynamic>> declineTripRequest(int planId, {required String guideToken}) async {
     final resp = await _dioInstance.post(
       '/trip-plans/$planId/decline-guide',
-      options: Options(headers: _authHeaders),
+      options: Options(headers: {'Authorization': 'Bearer $guideToken'}),
     );
     return resp.data as Map<String, dynamic>;
   }

@@ -438,9 +438,10 @@ class _OpenRequestRowState extends ConsumerState<_OpenRequestRow> {
 
   Future<void> _decline() async {
     final id = widget.request['id'] as int;
+    final guideAuth = ref.read(guideAuthProvider);
     setState(() { _loading = true; _action = 'decline'; });
     try {
-      await ApiClient().declineTripRequest(id);
+      await ApiClient().declineTripRequest(id, guideToken: guideAuth.token!);
       ref.invalidate(guideOpenRequestsProvider);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
