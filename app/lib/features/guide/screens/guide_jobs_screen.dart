@@ -446,8 +446,8 @@ class _OpenRequestRowState extends ConsumerState<_OpenRequestRow> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Text('Request declined'),
-            backgroundColor: AppColors.error,
+            content: const Text('Request declined successfully'),
+            backgroundColor: AppColors.success,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.sm)),
           ),

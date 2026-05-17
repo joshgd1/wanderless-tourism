@@ -975,8 +975,8 @@ class _PendingTab extends ConsumerWidget {
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Request Declined.'),
-              backgroundColor: AppColors.error,
+              content: const Text('Request declined successfully'),
+              backgroundColor: AppColors.success,
               behavior: SnackBarBehavior.floating,
               shape:
                   RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.sm)),
