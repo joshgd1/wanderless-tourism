@@ -35,9 +35,31 @@ final mlMatchesProvider = FutureProvider<List<MatchedGuide>>((ref) async {
   if (touristId == null) return [];
   final selectedFilter = ref.watch(_selectedFilterProvider);
   final destination = _filterDestinationMap[selectedFilter];
-  final api = ApiClient();
-  final data = await api.getMlGuideRecommendations(touristId, topN: 10, destination: destination);
-  return data.map((e) => MatchedGuide.fromJson(e as Map<String, dynamic>)).toList();
+  // Demo Mei Ling guide — always shown first
+  final meiLing = MatchedGuide(
+    guideId: 'GTH268',
+    name: 'Mei Ling 🇸🇬',
+    photoUrl: 'https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=400&h=400&fit=crop&crop=face',
+    bio: 'Passionate Singapore guide specializing in cultural heritage walks through Chinatown, Little India, and Gardens by the Bay.',
+    expertiseTags: ['culture', 'food', 'heritage', 'nature'],
+    languagePairs: ['en→zh', 'en→ms'],
+    locationCoverage: ['SG:Chinatown', 'SG:Little India', 'SG:Gardens by the Bay'],
+    ratingHistory: 4.8,
+    ratingCount: 127,
+    budgetTier: 'mid',
+    licenseVerified: true,
+    score: 0.99,
+    langMatch: true,
+  );
+  try {
+    final api = ApiClient();
+    final data = await api.getMlGuideRecommendations(touristId, topN: 10, destination: destination);
+    final guides = data.map((e) => MatchedGuide.fromJson(e as Map<String, dynamic>)).toList();
+    return [meiLing, ...guides];
+  } catch (_) {
+    // Backend unavailable — show Mei Ling demo guide only
+    return [meiLing];
+  }
 });
 
 final _selectedFilterProvider = StateProvider<String>((_) => 'Recommended');

@@ -7,6 +7,26 @@ import '../../../../shared/models/guide.dart';
 import '../../../../design_system.dart';
 
 final guideDetailProvider = FutureProvider.family<Guide, String>((ref, guideId) async {
+  // Demo guide fallback — no backend needed
+  if (guideId == 'GTH268') {
+    return Guide(
+      id: 'GTH268',
+      name: 'Mei Ling 🇸🇬',
+      bio: 'Passionate Singapore guide specializing in cultural heritage walks through Chinatown, Little India, and Gardens by the Bay.',
+      photoUrl: 'https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=400&h=400&fit=crop&crop=face',
+      expertiseTags: ['culture', 'food', 'heritage', 'nature'],
+      languagePairs: ['en→zh', 'en→ms'],
+      paceStyle: 3.0,
+      groupSizePreferred: 6,
+      budgetTier: 'mid',
+      locationCoverage: ['SG:Chinatown', 'SG:Little India', 'SG:Gardens by the Bay'],
+      ratingHistory: 4.8,
+      ratingCount: 127,
+      specialties: ['Cultural Heritage', 'Food Tours', 'Nature Walks'],
+      licenseVerified: true,
+      pricePerPerson: 45.0,
+    );
+  }
   final api = ApiClient();
   final data = await api.getGuide(guideId);
   return Guide.fromJson(data);
@@ -35,17 +55,27 @@ class GuideDetailScreen extends ConsumerWidget {
       backgroundColor: AppColors.background,
       body: guideAsync.when(
         loading: () => const AppLoading(message: 'Loading guide...'),
-        error: (e, _) => EmptyState(
-          icon: Icons.error_outline,
-          title: 'Failed to load guide',
-          subtitle: e.toString().contains('timeout')
-              ? 'Connection timed out. The server might be waking up.'
-              : e.toString(),
-          action: PrimaryButton(
-            label: 'Try Again',
-            onPressed: () => ref.invalidate(guideDetailProvider(guideId)),
-          ),
-        ),
+        error: (e, _) {
+          String msg = e.toString();
+          if (msg.contains('DioException')) {
+            if (msg.contains('connection') || msg.contains('network') || msg.contains('SocketException')) {
+              msg = 'Cannot connect to server. Check your internet connection.';
+            } else if (msg.contains('timeout')) {
+              msg = 'Connection timed out. Please try again.';
+            } else {
+              msg = 'Failed to load guide. Please try again.';
+            }
+          }
+          return EmptyState(
+            icon: Icons.error_outline,
+            title: 'Failed to load guide',
+            subtitle: msg,
+            action: PrimaryButton(
+              label: 'Try Again',
+              onPressed: () => ref.invalidate(guideDetailProvider(guideId)),
+            ),
+          );
+        },
         data: (guide) => _buildContent(context, guide),
       ),
     );

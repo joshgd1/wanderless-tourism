@@ -18,14 +18,7 @@ final _matchedGuidesForPlanProvider =
     FutureProvider.family<List<MatchedGuide>, String>((ref, destination) async {
   final authState = ref.watch(authProvider);
   final touristId = authState.touristId;
-  if (touristId == null) return [];
-  final api = ApiClient();
-  final data = await api.getMlGuideRecommendations(touristId,
-      topN: 3, destination: destination);
-  final guides = data
-      .map((e) => MatchedGuide.fromJson(e as Map<String, dynamic>))
-      .toList();
-  // Always show Mei Ling first as the demo guide
+  // Demo Mei Ling guide — always shown first
   final meiLing = MatchedGuide(
     guideId: 'GTH268',
     name: 'Mei Ling 🇸🇬',
@@ -47,7 +40,19 @@ final _matchedGuidesForPlanProvider =
     score: 0.99,
     langMatch: true,
   );
-  return [meiLing, ...guides];
+  if (touristId == null) return [meiLing];
+  try {
+    final api = ApiClient();
+    final data = await api.getMlGuideRecommendations(touristId,
+        topN: 3, destination: destination);
+    final guides = data
+        .map((e) => MatchedGuide.fromJson(e as Map<String, dynamic>))
+        .toList();
+    return [meiLing, ...guides];
+  } catch (_) {
+    // Backend unavailable — show Mei Ling demo guide only
+    return [meiLing];
+  }
 });
 
 final _safetyScoreProvider =
