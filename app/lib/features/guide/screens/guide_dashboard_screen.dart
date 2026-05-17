@@ -153,6 +153,7 @@ class _GuideDashboardScreenState extends ConsumerState<GuideDashboardScreen>
   late TabController _tabController;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   Timer? _pollingTimer;
+  bool _wasAuthenticated = false;
 
   @override
   void initState() {
@@ -161,6 +162,19 @@ class _GuideDashboardScreenState extends ConsumerState<GuideDashboardScreen>
     _pollingTimer = Timer.periodic(_openRequestsPollInterval, (_) {
       ref.invalidate(guideOpenRequestsProvider);
     });
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final authState = ref.read(guideAuthProvider);
+    // When auth transitions from unauthenticated → authenticated, invalidate
+    // guideMeProvider so it refetches with the new token instead of returning
+    // the cached null result from before login.
+    if (authState.isAuthenticated && !_wasAuthenticated) {
+      ref.invalidate(guideMeProvider);
+    }
+    _wasAuthenticated = authState.isAuthenticated;
   }
 
   @override
@@ -195,7 +209,7 @@ class _GuideDashboardScreenState extends ConsumerState<GuideDashboardScreen>
             // Clean sticky header — Airbnb/Grab-style
             _GuideStickyHeader(
               guideMeAsync: guideMeAsync,
-              guideName: authState.guideName ?? 'Guide',
+              authState: authState,
               onMenuTap: () => _scaffoldKey.currentState?.openDrawer(),
             ),
             // Sticky tab bar
@@ -366,17 +380,21 @@ class _GuideProfileCard extends StatelessWidget {
 
 class _GuideStickyHeader extends StatelessWidget {
   final AsyncValue<Map<String, dynamic>?> guideMeAsync;
-  final String guideName;
+  final GuideAuthState authState;
   final VoidCallback onMenuTap;
 
   const _GuideStickyHeader({
     required this.guideMeAsync,
-    required this.guideName,
+    required this.authState,
     required this.onMenuTap,
   });
 
   @override
   Widget build(BuildContext context) {
+    // Demo: guide@wanderless.com always shows as Mei Ling
+    final isDemoGuide = authState.email == 'guide@wanderless.com';
+    final displayName = isDemoGuide ? 'Mei Ling' : (authState.guideName ?? 'Guide');
+
     return Container(
       color: AppColors.surface,
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
@@ -385,18 +403,14 @@ class _GuideStickyHeader extends StatelessWidget {
           // Guide avatar + name
           guideMeAsync.when(
             data: (guide) {
-              if (guide == null) return _buildCompactProfile(guideName, '');
-              // Demo: if authState says "Mei Ling", force override on guide data
-              final displayName = guideName == 'Mei Ling'
-                  ? 'Mei Ling'
-                  : (guide['name'] ?? guideName);
+              final name = isDemoGuide ? 'Mei Ling' : (guide?['name'] ?? displayName);
               return _buildCompactProfile(
-                displayName,
-                guide['photo_url'] ?? '',
+                name,
+                guide?['photo_url'] ?? '',
               );
             },
-            loading: () => _buildCompactProfile(guideName, ''),
-            error: (_, __) => _buildCompactProfile(guideName, ''),
+            loading: () => _buildCompactProfile(displayName, ''),
+            error: (_, __) => _buildCompactProfile(displayName, ''),
           ),
           const Spacer(),
           // Notification bell (placeholder for future)
