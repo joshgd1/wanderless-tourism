@@ -1,30 +1,19 @@
-# Session Notes — 2026-05-07
+# Session Notes — 2026-05-17
 
 ## Where we are
 
-Backend guide-request flow fully fixed and verified. Two-layer bug resolved: FastAPI route ordering + `.renderignore` Python exclusion. Full 7-step flow verified end-to-end in production.
+Final compressed report `FINAL_GROUP_ASSIGNMENT_REPORT.md` created and pushed (~2,465 words, 7 pages). README updated to link only to the new report. Old `FINAL_GROUP_ASSIGNMENT_REPORT_8P.md` deleted. Repo is clean.
 
 ## Read first
 
-1. `journal/0010-DISCOVERY-FastAPI-route-ordering-guide-requests.md` — route ordering pattern for FastAPI/Starlette
-2. `journal/0011-DISCOVERY-renderignore-python-deployment.md` — `.renderignore` silent deployment block
-3. `backend/main.py` — full FastAPI backend (~2700 LOC); guide auth routes at lines 660-860
-4. `.renderignore` — must NOT contain `*.py`; controls what gets uploaded to Render
+1. `FINAL_GROUP_ASSIGNMENT_REPORT.md` — the submitted 7-page report for Prof. Jack Hong
+2. `README.md` — links to the final report; verify "Final Report" section points to `FINAL_GROUP_ASSIGNMENT_REPORT.md`
 
 ## In-flight state
 
-- Guide-request flow end-to-end verified: tourist login → create Singapore plan → see Mei Ling → request guide → guide login → view open requests → accept → status ACCEPTED
-- Production DB seeded: Mei Ling (GTH268, guide@wanderless.com), Alex Traveler (TTEST001, test@wanderless.com)
-- Two commits pushed: `218f469` (route ordering), `02296b9` (.renderignore)
+None. All changes committed and pushed.
 
 ## Traps
 
-- FastAPI route order: `/{guide_id}` MUST be after all specific `/guides/*` routes — greedy param matches any string including "open-requests"
-- Render `.renderignore`: `*.py` excludes ALL Python from upload — remove it; only ignore frontend/Flutter files
-- Guide login: `POST /api/guides/login` (not `/api/auth/login`)
-- Guide auth: `guide_id` from JWT via `_get_guide_id` dependency, not request body
-- Accept: `POST /api/trip-plans/{id}/accept` (guide's accept) or `POST /api/guides/open-requests/{id}/accept`
-
-## Open questions for the human
-
-None
+- Git push always rejected (remote has new commits). Always `git pull --rebase origin main && git push origin main`.
+- The formatter hook modifies files on write — if a targeted old_string no longer matches, re-read the file first.
