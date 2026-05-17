@@ -828,6 +828,7 @@ class _PendingTab extends ConsumerWidget {
       final guideAuth = ref.read(guideAuthProvider);
       await api.updateBookingStatus(bookingId, status, guideToken: guideAuth.token);
       ref.refresh(guideBookingsProvider);
+      ref.refresh(guideOpenRequestsProvider);
       if (status == 'CONFIRMED' && context.mounted) {
         // Show beautiful success dialog
         await showDialog(
@@ -840,9 +841,8 @@ class _PendingTab extends ConsumerWidget {
       } else if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(status == 'CONFIRMED' ? 'Booking accepted!' : 'Booking declined'),
-            backgroundColor:
-                status == 'CONFIRMED' ? AppColors.success : AppColors.error,
+            content: Text(status == 'CONFIRMED' ? 'Booking accepted!' : 'Successfully declined'),
+            backgroundColor: AppColors.success,
             behavior: SnackBarBehavior.floating,
             shape:
                 RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.sm)),
@@ -856,6 +856,7 @@ class _PendingTab extends ConsumerWidget {
             content: Text('Failed to update: $e'),
             backgroundColor: AppColors.error,
             behavior: SnackBarBehavior.floating,
+            duration: const Duration(seconds: 5),
             shape:
                 RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.sm)),
           ),
