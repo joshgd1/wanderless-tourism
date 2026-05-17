@@ -348,7 +348,7 @@ class _StaticMapView extends StatelessWidget {
           children: [
             Icon(Icons.map_outlined, size: 64, color: AppColors.textSecondary),
             const SizedBox(height: 16),
-            Text('Location Preview', style: AppText.h4),
+            Text('Location Preview', style: AppText.h3),
             const SizedBox(height: 8),
             if (guideLocation != null) ...[
               Row(
