@@ -1257,7 +1257,8 @@ class _CurrentJobsTab extends ConsumerWidget {
   ) async {
     try {
       final api = ApiClient();
-      await api.updateBookingStatus(bookingId, status);
+      final guideAuth = ref.read(guideAuthProvider);
+      await api.updateBookingStatus(bookingId, status, guideToken: guideAuth.token);
       ref.refresh(guideBookingsProvider);
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
