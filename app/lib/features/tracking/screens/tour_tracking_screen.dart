@@ -188,37 +188,18 @@ class _TourTrackingScreenState extends ConsumerState<TourTrackingScreen> {
                           Expanded(
                             child: Stack(
                               children: [
-                                _LiveMapView(
-                                  center: _center,
-                                  zoom: _zoom,
-                                  guideLocation: _guideLocation,
-                                  touristLocation: _touristLocation,
-                                ),
                                 if (_isDemoMode)
-                                  Positioned(
-                                    top: 12,
-                                    left: 0,
-                                    right: 0,
-                                    child: Center(
-                                      child: Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-                                        decoration: BoxDecoration(
-                                          color: AppColors.info.withOpacity(0.92),
-                                          borderRadius: BorderRadius.circular(20),
-                                        ),
-                                        child: Row(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            const Icon(Icons.map_outlined, color: Colors.white, size: 16),
-                                            const SizedBox(width: 6),
-                                            Text(
-                                              'Preview — Sample tour for illustration',
-                                              style: AppText.captionBold.copyWith(color: Colors.white),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ),
+                                  _StaticMapView(
+                                    center: _center,
+                                    guideLocation: _guideLocation,
+                                    touristLocation: _touristLocation,
+                                  )
+                                else
+                                  _LiveMapView(
+                                    center: _center,
+                                    zoom: _zoom,
+                                    guideLocation: _guideLocation,
+                                    touristLocation: _touristLocation,
                                   ),
                               ],
                             ),
