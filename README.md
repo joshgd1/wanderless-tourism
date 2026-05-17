@@ -2,7 +2,7 @@
 
 ## Product Thesis
 
-WanderLess is an AI/ML decision-support product for compatibility-based local guide matching in Luang Prabang, Laos.
+WanderLess is an AI/ML decision-support platform for compatibility-based local guide matching — starting in Luang Prabang, Laos, with expansion planned to Vientiane, Hoi An, and additional SE Asian destinations.
 
 It helps tourists answer: _"Which local guide or group best fits my travel style, safety preference, language, budget, pace, and itinerary needs?"_
 
@@ -14,15 +14,19 @@ This is not a generic itinerary generator. The product wedge is **compatibility 
 
 ## Final Report
 
-**Read this first:** [FINAL_GROUP_ASSIGNMENT_REPORT.md](FINAL_GROUP_ASSIGNMENT_REPORT.md)
+**Download:** [FINAL_GROUP_ASSIGNMENT_REPORT.docx](FINAL_GROUP_ASSIGNMENT_REPORT.docx) ← Word document (8 pages, easy to read)
 
-The 8-page final report is written for three audiences:
+**Read online:** [FINAL_GROUP_ASSIGNMENT_REPORT.md](FINAL_GROUP_ASSIGNMENT_REPORT.md) (same content)
+
+The 8-page report is written for three audiences:
 
 1. a **business manager** approving launch
 2. a **user of the app**
 3. a **fellow developer** taking over the app
 
 It covers: product overview, problem and market need, user journey, AI/ML design, business model, technical architecture, team contributions, and validation.
+
+**Live App (demo):** https://joshgd1.github.io/wanderless-tourism/#/login
 
 **Repository:** https://github.com/joshgd1/wanderless-tourism
 Professor Hong has been granted repository access. Access will be removed after grading.
