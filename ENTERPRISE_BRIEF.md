@@ -24,7 +24,7 @@ The core insight: **compatibility matching has been proven in other consumer dom
 
 **3. Compatibility gap.** No platform matches by _who you are_ — only _where you're going_. This is the same gap that Netflix, Spotify, and Amazon closed with collaborative filtering 15 years ago. Travel has not closed it.
 
-**Result:** 40% of tour bookings result in a "meh" experience (3/5 or below). Guides with 4.9 stars and 200 reviews still get mismatched tourists weekly.
+**Compatibility gap impact:** A guide with a 4.9-star aggregate rating may still be a poor fit for a traveler seeking food and adventure — the rating averages across all guide-tourist combinations and hides individual mismatch patterns. Poor matches reduce satisfaction, increase cancellations, and weaken repeat/referral potential for operators.
 
 ---
 

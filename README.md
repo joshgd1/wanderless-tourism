@@ -1,19 +1,50 @@
 # Wanderless Laos — MGMT655 Team Project
 
-## 1. Executive Summary
+## 1. What This Product Does
 
-Wanderless Laos is an AI/ML decision-support product for local guided tourism in Luang Prabang. Instead of generating generic itineraries, it matches tourists to compatible local guides and travel groups based on travel style, risk preference, language, budget, cultural interests, and itinerary constraints. The current prototype uses synthetic but structured tourism data to demonstrate compatibility scoring, clustering, itinerary logic, safety indicators, and booking simulation. The product is designed for travel platforms, local tour operators, and destination-management partners seeking higher-trust guide matching.
+Wanderless Laos is an AI/ML decision-support product for compatibility-based local guide matching in Luang Prabang, Laos.
+
+It helps tourists answer: _"Which local guide or group best fits my travel style, safety preference, language, budget, and itinerary needs?"_
+
+It helps operators answer: _"Which guide should we recommend, and why?"_
+
+This is not a generic itinerary generator. The product wedge is **compatibility intelligence** for local guided travel.
 
 ---
 
-## 2. Live Demo / How to Run
+## 2. Why This Problem Matters
+
+Generic travel platforms are strong at discovery, ratings, and price comparison, but weak at explaining traveler-guide fit. For guided cultural destinations, a poor guide match reduces trust, satisfaction, conversion, and repeat/referral potential.
+
+---
+
+## 3. What Is Implemented
+
+| Capability                             | Status                     | Evidence                              |
+| -------------------------------------- | -------------------------- | ------------------------------------- |
+| Tourist preference onboarding          | Implemented                | `app/lib/features/onboarding/`        |
+| Guide matching (cosine + TruncatedSVD) | Implemented                | `backend/ml/recommender.py`           |
+| Group matching (K-Means + DBSCAN)      | Implemented                | `backend/ml/group_formation.py`       |
+| Itinerary sequencing (greedy + 2-opt)  | Prototype                  | `backend/ml/itinerary.py`             |
+| Safety/trust indicator                 | Prototype decision-support | `backend/ml/safety_score.py`          |
+| Dynamic pricing                        | Implemented                | `backend/ml/pricing.py`               |
+| Booking flow                           | Simulated                  | `app/lib/features/booking/`           |
+| Real payment processing                | Not implemented            | Future work                           |
+| Real user pilot                        | Not yet conducted          | Pilot proposed in `BUSINESS_MODEL.md` |
+| XGBoost satisfaction model             | Prototype, not wired       | `backend/ml/review_intelligence.py`   |
+| CP-SAT solver                          | Not implemented            | Greedy+2-opt used instead             |
+| LLM/RAG                                | Not implemented            | Not used                              |
+
+---
+
+## 4. Quick Start
 
 **Backend:**
 
 ```bash
 cd backend
 pip install -r requirements.txt
-pytest
+pytest        # 14/14 tests pass
 python main.py
 ```
 
@@ -25,11 +56,13 @@ flutter pub get
 flutter run
 ```
 
-Backend runs on `http://localhost:8000`. API docs at `http://localhost:8000/docs`.
+Backend runs at `http://localhost:8000`. API docs at `http://localhost:8000/docs`.
+
+**If Flutter fails:** Use `DEMO_API_COMMANDS.md` with curl against the backend API. Screenshots in `docs/demo_screenshots/`.
 
 ---
 
-## 3. Key Deliverables
+## 5. Key Deliverables
 
 | Deliverable          | Path                                 |
 | -------------------- | ------------------------------------ |
@@ -38,11 +71,11 @@ Backend runs on `http://localhost:8000`. API docs at `http://localhost:8000/docs
 | Business Model       | `BUSINESS_MODEL.md`                  |
 | Model Card           | `MODEL_CARD.md`                      |
 | AI/ML Architecture   | `AI_ML_ARCHITECTURE.md`              |
-| COC Decision Log     | `docs/COC_DECISION_LOG_A_PLUS.md`    |
 | Demo Script          | `DEMO_SCRIPT.md`                     |
 | Demo API Commands    | `DEMO_API_COMMANDS.md`               |
 | Validation Report    | `VALIDATION_REPORT.md`               |
 | Rubric Alignment     | `FINAL_RUBRIC_ALIGNMENT.md`          |
+| COC Decision Log     | `docs/COC_DECISION_LOG_A_PLUS.md`    |
 | Submission Checklist | `SUBMISSION_CHECKLIST.md`            |
 | Backend              | `backend/`                           |
 | Frontend             | `app/`                               |
@@ -50,63 +83,31 @@ Backend runs on `http://localhost:8000`. API docs at `http://localhost:8000/docs
 
 ---
 
-## 4. Rubric Mapping
+## 6. Rubric Mapping
 
-| Rubric Area      | Where to Find Evidence                                    | What We Demonstrate                                                                 |
-| ---------------- | --------------------------------------------------------- | ----------------------------------------------------------------------------------- |
-| Market & Problem | `MARKET_PROBLEM.md`, `SUBMISSION_EXECUTIVE_SUMMARY_4P.md` | Clear Luang Prabang beachhead, guide trust and compatibility gap                    |
-| Product & Demo   | `app/`, `backend/`, `DEMO_SCRIPT.md`                      | Working UI, matching flow, safety view, itinerary and booking simulation            |
-| Business Model   | `BUSINESS_MODEL.md`                                       | Commission model, pilot metrics, unit-economics assumptions                         |
-| Team & Execution | `docs/COC_DECISION_LOG_A_PLUS.md`, `VALIDATION_REPORT.md` | Structured decisions, rejected options, validation evidence                         |
-| AI/ML Depth      | `MODEL_CARD.md`, `backend/ml/`                            | Compatibility scoring, dimensionality reduction, clustering, optimization heuristic |
-
----
-
-## 5. What Is Implemented vs Not Implemented
-
-| Capability                 | Status               | Notes                                                                       |
-| -------------------------- | -------------------- | --------------------------------------------------------------------------- |
-| Tourist onboarding         | Implemented          | UI flow in `app/lib/features/onboarding/`                                   |
-| Guide matching             | Implemented          | Cosine similarity + TruncatedSVD hybrid in `backend/ml/recommender.py`      |
-| Group matching             | Implemented          | K-Means + DBSCAN clustering in `backend/ml/group_formation.py`              |
-| Itinerary suggestion       | Implemented          | Greedy + 2-opt heuristic in `backend/ml/itinerary.py`                       |
-| Safety indicator           | Implemented          | Rule-based scoring in `backend/ml/safety_score.py`                          |
-| Dynamic pricing            | Implemented          | Rule-based pricing in `backend/ml/pricing.py`                               |
-| Booking/payment            | Simulated            | State machine demo; no real payment                                         |
-| Real users                 | Not yet              | Pilot proposed                                                              |
-| Real production deployment | Not yet              | Prototype only                                                              |
-| XGBoost satisfaction model | Prototype, not wired | Code exists in `backend/ml/review_intelligence.py` but not connected to API |
-| CP-SAT solver              | Not implemented      | Greedy + 2-opt used instead; CP-SAT described as future production upgrade  |
-| LLM/RAG                    | Not implemented      | Not used in current implementation                                          |
-| Real-time GPS              | Not implemented      | Not in current scope                                                        |
-| Live booking/payments      | Not implemented      | Booking simulation only                                                     |
+| Rubric Area      | Evidence                                                  | Demonstrates                                                             |
+| ---------------- | --------------------------------------------------------- | ------------------------------------------------------------------------ |
+| Market & Problem | `MARKET_PROBLEM.md`, `SUBMISSION_EXECUTIVE_SUMMARY_4P.md` | Luang Prabang beachhead; guide trust and compatibility gap               |
+| Product & Demo   | `app/`, `backend/`, `DEMO_SCRIPT.md`                      | Working UI, matching flow, safety view, itinerary and booking simulation |
+| Business Model   | `BUSINESS_MODEL.md`                                       | Commission-first B2B2C model; pilot metrics; honest assumptions          |
+| Team & Execution | `docs/COC_DECISION_LOG_A_PLUS.md`, `VALIDATION_REPORT.md` | Structured decisions; rejected options; validation evidence              |
+| AI/ML Depth      | `MODEL_CARD.md`, `AI_ML_ARCHITECTURE.md`, `backend/ml/`   | Compatibility scoring, TruncatedSVD, clustering, heuristic optimization  |
 
 ---
 
-## 6. Test Status
+## 7. Test Status
 
-**Backend tests passed: 14/14**
-Date: 2026-05-17
+**Backend tests: 14/14 passed** (date: 2026-05-17)
 
-Test command: `pytest tests/`
-All tests pass with no failures.
+Run: `pytest tests/`
 
 ---
 
-## 7. Known Limitations
+## 8. Known Limitations
 
-- **Synthetic data**: All matching results use synthetic tourist/guide profiles and ratings
+- **Synthetic data**: All matching uses synthetic tourist/guide profiles and ratings
 - **Fixed feature weights**: ML weights are hardcoded, not learned from real outcomes
 - **No live marketplace integration**: Prototype not connected to real booking systems
-- **No real payment processing**: Booking simulation only
-- **No field validation**: Pilot with real users is planned post-submission
-
----
-
-## 8. Demo Fallback
-
-If Flutter frontend fails to start:
-
-1. Run `pytest tests/` — 14/14 pass
-2. Use `DEMO_API_COMMANDS.md` to test API endpoints via curl
-3. Screenshots available in `docs/demo_screenshots/`
+- **Booking is simulated**: No real payment processing
+- **No real user validation yet**: Pilot with real users is planned post-submission
+- **Safety score is decision support**: Human judgment required; not an automated safety guarantee
