@@ -401,15 +401,19 @@ class _OpenRequestRowState extends ConsumerState<_OpenRequestRow> {
   Future<void> _accept() async {
     final id = widget.request['id'] as int;
     final guideAuth = ref.read(guideAuthProvider);
+    final guideName = widget.request['guide_name'] as String?;
     setState(() { _loading = true; _action = 'accept'; });
     try {
       await ApiClient().acceptGuideRequest(id, guideToken: guideAuth.token!);
       ref.invalidate(guideOpenRequestsProvider);
       ref.invalidate(guideBookingsProvider);
       if (mounted) {
+        final message = guideName != null && guideName.isNotEmpty
+            ? 'Request accepted! You are now guiding $guideName'
+            : 'Request accepted successfully';
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Text('Request accepted successfully'),
+            content: Text(message),
             backgroundColor: AppColors.success,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.sm)),
@@ -476,21 +480,37 @@ class _OpenRequestRowState extends ConsumerState<_OpenRequestRow> {
     final dietary = widget.request['dietary_requirement'] as String?;
     final proposedStops = (widget.request['proposed_stops'] as List?)?.cast<Map<String, dynamic>>() ?? [];
     final avoidLateNight = widget.request['avoid_late_night'] as bool? ?? false;
+    final guideName = widget.request['guide_name'] as String?;
 
     final isPending = status == 'PENDING_ACCEPTANCE';
+    final isOpen = status == 'OPEN';
 
     return AppCard(
       padding: const EdgeInsets.all(AppSpacing.md),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header: status badge + id
+          // Header: status badge + guide name (if assigned) + id
           Row(
             children: [
               StatusBadge(
-                label: isPending ? 'Pending Your Response' : 'New Request',
+                label: isPending ? 'Pending Your Response' : (isOpen ? 'Open Request' : 'New Request'),
                 color: isPending ? AppColors.statusRequested : AppColors.statusRequested,
               ),
+              if (guideName != null && guideName.isNotEmpty) ...[
+                const SizedBox(width: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: AppColors.brand.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(AppRadius.sm),
+                  ),
+                  child: Text(
+                    'For: $guideName',
+                    style: AppText.caption.copyWith(color: AppColors.brand, fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ],
               const Spacer(),
               Text('#${widget.request['id']}', style: AppText.caption),
             ],

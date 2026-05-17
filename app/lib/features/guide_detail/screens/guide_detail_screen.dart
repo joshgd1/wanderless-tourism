@@ -38,7 +38,13 @@ class GuideDetailScreen extends ConsumerWidget {
         error: (e, _) => EmptyState(
           icon: Icons.error_outline,
           title: 'Failed to load guide',
-          subtitle: e.toString(),
+          subtitle: e.toString().contains('timeout')
+              ? 'Connection timed out. The server might be waking up.'
+              : e.toString(),
+          action: PrimaryButton(
+            label: 'Try Again',
+            onPressed: () => ref.invalidate(guideDetailProvider(guideId)),
+          ),
         ),
         data: (guide) => _buildContent(context, guide),
       ),
