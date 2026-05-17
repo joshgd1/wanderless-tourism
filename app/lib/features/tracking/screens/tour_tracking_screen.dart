@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -350,7 +351,7 @@ class _StaticMapView extends StatelessWidget {
     final n = 1 << zoom;
     final x = ((lng + 180.0) / 360.0 * n).floor();
     final latRad = lat * 3.141592653589793 / 180.0;
-    final y = ((1.0 - (latRad.tan() + 1.0 / latRad.cos()).log() / 3.141592653589793) / 2.0 * n).floor();
+    final y = ((1.0 - (tan(latRad) + 1.0 / cos(latRad)).log() / 3.141592653589793) / 2.0 * n).floor();
     return (zoom, x, y);
   }
 
