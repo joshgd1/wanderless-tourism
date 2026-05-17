@@ -988,9 +988,26 @@ class _PendingTab extends ConsumerWidget {
       }
     } catch (e) {
       if (context.mounted) {
+        String msg = e.toString();
+        // Clean up DioException message
+        if (msg.contains('DioException')) {
+          if (msg.contains('connection')) {
+            msg = 'Cannot connect to server';
+          } else if (msg.contains('401')) {
+            msg = 'Unauthorized - please login again';
+          } else if (msg.contains('403')) {
+            msg = 'Access denied';
+          } else if (msg.contains('404')) {
+            msg = 'Request not found';
+          } else if (msg.contains('500')) {
+            msg = 'Server error';
+          } else {
+            msg = 'Request failed. Please try again.';
+          }
+        }
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error: ${e.toString()}'),
+            content: Text(msg),
             backgroundColor: AppColors.error,
             behavior: SnackBarBehavior.floating,
             duration: const Duration(seconds: 5),

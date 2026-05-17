@@ -338,57 +338,98 @@ class _StaticMapView extends StatelessWidget {
     this.touristLocation,
   });
 
+  // Calculate relative position on map image (0-1 range)
+  Offset _getRelativePosition(LatLng location, LatLng center) {
+    // Singapore bounds roughly: lat 1.2-1.5, lng 103.6-104.0
+    const double minLat = 1.20;
+    const double maxLat = 1.50;
+    const double minLng = 103.60;
+    const double maxLng = 104.00;
+    final x = (location.longitude - minLng) / (maxLng - minLng);
+    final y = (maxLat - location.latitude) / (maxLat - minLat);
+    return Offset(x.clamp(0.0, 1.0), y.clamp(0.0, 1.0));
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
       color: AppColors.surface,
-      child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.map_outlined, size: 64, color: AppColors.textSecondary),
-            const SizedBox(height: 16),
-            Text('Location Preview', style: AppText.h3),
-            const SizedBox(height: 8),
-            if (guideLocation != null) ...[
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
+      child: Stack(
+        children: [
+          // Singapore map background
+          Positioned.fill(
+            child: CachedNetworkImage(
+              imageUrl: 'https://images.unsplash.com/photo-1525625293386-3f8f99389edd?w=800&q=80',
+              fit: BoxFit.cover,
+              placeholder: (context, url) => Container(color: AppColors.surface),
+              errorWidget: (context, url, error) => Container(
+                color: AppColors.surface,
+                child: const Center(child: Icon(Icons.map, size: 64, color: AppColors.textSecondary)),
+              ),
+            ),
+          ),
+          // Guide pin
+          if (guideLocation != null)
+            Positioned(
+              left: _getRelativePosition(guideLocation!, center).dx * MediaQuery.of(context).size.width - 16,
+              top: _getRelativePosition(guideLocation!, center).dy * 300 - 32,
+              child: Column(
                 children: [
                   Container(
-                    width: 12,
-                    height: 12,
+                    padding: const EdgeInsets.all(8),
                     decoration: const BoxDecoration(
                       color: AppColors.info,
                       shape: BoxShape.circle,
+                      boxShadow: [BoxShadow(color: Colors.black26, blurRadius: 4)],
                     ),
+                    child: const Icon(Icons.person, color: Colors.white, size: 20),
                   ),
-                  const SizedBox(width: 8),
-                  Text('Guide: ${guideLocation!.latitude.toStringAsFixed(4)}, ${guideLocation!.longitude.toStringAsFixed(4)}', style: AppText.caption),
+                  const Text('Guide', style: TextStyle(fontSize: 10, color: AppColors.info, fontWeight: FontWeight.bold)),
                 ],
               ),
-              const SizedBox(height: 4),
-            ],
-            if (touristLocation != null) ...[
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
+            ),
+          // Tourist pin
+          if (touristLocation != null)
+            Positioned(
+              left: _getRelativePosition(touristLocation!, center).dx * MediaQuery.of(context).size.width - 16,
+              top: _getRelativePosition(touristLocation!, center).dy * 300 - 32,
+              child: Column(
                 children: [
                   Container(
-                    width: 12,
-                    height: 12,
+                    padding: const EdgeInsets.all(8),
                     decoration: const BoxDecoration(
                       color: AppColors.success,
                       shape: BoxShape.circle,
+                      boxShadow: [BoxShadow(color: Colors.black26, blurRadius: 4)],
                     ),
+                    child: const Icon(Icons.person, color: Colors.white, size: 20),
                   ),
-                  const SizedBox(width: 8),
-                  Text('Tourist: ${touristLocation!.latitude.toStringAsFixed(4)}, ${touristLocation!.longitude.toStringAsFixed(4)}', style: AppText.caption),
+                  const Text('Tourist', style: TextStyle(fontSize: 10, color: AppColors.success, fontWeight: FontWeight.bold)),
                 ],
               ),
-            ],
-            const SizedBox(height: 16),
-            Text('Live tracking available when connected', style: AppText.caption.copyWith(color: AppColors.textSecondary)),
-          ],
-        ),
+            ),
+          // Legend overlay
+          Positioned(
+            bottom: 12,
+            left: 12,
+            right: 12,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.9),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  _LegendDot(color: AppColors.info, label: 'Guide'),
+                  const SizedBox(width: 24),
+                  _LegendDot(color: AppColors.success, label: 'Tourist'),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
