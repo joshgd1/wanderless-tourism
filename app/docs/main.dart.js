@@ -114674,19 +114674,20 @@ return A.o(p.F(0,"guide_email"),$async$jK)
 case 17:case 4:return A.t(null,r)}})
 return A.u($async$jK,r)},
 fg(a,b){return this.aNO(a,b)},
-aNO(a,b){var s=0,r=A.v(t.y),q,p=2,o=[],n=this,m,l,k,j,i,h,g,f,e
-var $async$fg=A.q(function(c,d){if(c===1){o.push(d)
+aNO(a,b){var s=0,r=A.v(t.y),q,p=2,o=[],n=this,m,l,k,j,i,h,g,f,e,d
+var $async$fg=A.q(function(c,a0){if(c===1){o.push(a0)
 s=p}for(;;)switch(s){case 0:n.sc_(0,n.f.kL(null,!0))
 p=4
 if($.aI==null)$.aI=u.l
 m=new A.bX()
 s=7
 return A.o(m.Ce(a,b),$async$fg)
-case 7:l=d
+case 7:l=a0
 k=A.aG(J.a7(l,"access_token"))
 j=A.aG(J.a7(l,"guide_id"))
 i=A.aG(J.a7(l,"name"))
-n.sc_(0,new A.l6(k,j,i,a,!1,null))
+f=a==="guide@wanderless.com"?"Mei Ling":i
+n.sc_(0,new A.l6(k,j,f,a,!1,null))
 if($.aI==null)$.aI=u.l
 new A.bX().qc(k)
 s=8
@@ -114698,8 +114699,8 @@ p=2
 s=6
 break
 case 4:p=3
-e=o.pop()
-h=A.ae(e)
+d=o.pop()
+h=A.ae(d)
 g=J.ch(h)
 if(B.c.p(g.toLowerCase(),"connection")||B.c.p(g.toLowerCase(),"network"))g=u.h
 else if(J.ee(g,"DioException"))if(J.ee(g,"401")||B.c.p(g.toLowerCase(),"unauthorized"))g="Invalid email or password."
