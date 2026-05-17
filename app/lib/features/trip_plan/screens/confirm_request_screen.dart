@@ -38,21 +38,51 @@ class _ConfirmRequestScreenState extends ConsumerState<ConfirmRequestScreen> {
   Future<void> _loadData() async {
     try {
       final api = ApiClient();
-      final results = await Future.wait([
-        api.getTripPlan(widget.planId),
-        api.getGuide(widget.guideId),
-      ]);
+      final planData = await api.getTripPlan(widget.planId);
+      // Demo guide fallback — no API call needed
+      Map<String, dynamic> guideData;
+      if (widget.guideId == 'GTH268') {
+        guideData = {
+          'id': 'GTH268',
+          'name': 'Mei Ling 🇸🇬',
+          'bio': 'Passionate Singapore guide specializing in cultural heritage walks through Chinatown, Little India, and Gardens by the Bay.',
+          'photo_url': 'https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=400&h=400&fit=crop&crop=face',
+          'expertise_tags': ['culture', 'food', 'heritage', 'nature'],
+          'language_pairs': ['en→zh', 'en→ms'],
+          'pace_style': 3.0,
+          'group_size_preferred': 6,
+          'budget_tier': 'mid',
+          'location_coverage': ['SG:Chinatown', 'SG:Little India', 'SG:Gardens by the Bay'],
+          'rating': 4.8,
+          'review_count': 127,
+          'specialties': ['Cultural Heritage', 'Food Tours', 'Nature Walks'],
+          'license_verified': true,
+          'price_per_person': 45.0,
+        };
+      } else {
+        guideData = await api.getGuide(widget.guideId);
+      }
       if (mounted) {
         setState(() {
-          _plan = results[0] as Map<String, dynamic>;
-          _guide = results[1] as Map<String, dynamic>;
+          _plan = planData;
+          _guide = guideData;
           _loading = false;
         });
       }
     } catch (e) {
       if (mounted) {
+        String msg = e.toString();
+        if (msg.contains('DioException')) {
+          if (msg.contains('connection') || msg.contains('network') || msg.contains('SocketException')) {
+            msg = 'Cannot connect to server. Check your internet connection.';
+          } else if (msg.contains('timeout')) {
+            msg = 'Connection timed out. Please try again.';
+          } else {
+            msg = 'Failed to load. Please try again.';
+          }
+        }
         setState(() {
-          _error = e.toString();
+          _error = msg;
           _loading = false;
         });
       }
@@ -79,9 +109,19 @@ class _ConfirmRequestScreenState extends ConsumerState<ConfirmRequestScreen> {
       }
     } catch (e) {
       if (mounted) {
+        String msg = e.toString();
+        if (msg.contains('DioException')) {
+          if (msg.contains('connection') || msg.contains('network') || msg.contains('SocketException')) {
+            msg = 'Cannot connect to server. Check your internet connection.';
+          } else if (msg.contains('timeout')) {
+            msg = 'Connection timed out. Please try again.';
+          } else {
+            msg = 'Failed to send request. Please try again.';
+          }
+        }
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to send request: $e'),
+            content: Text(msg),
             backgroundColor: AppColors.error,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
