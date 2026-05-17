@@ -338,28 +338,36 @@ class _StaticMapView extends StatelessWidget {
     this.touristLocation,
   });
 
-  // Calculate relative position on map image (0-1 range)
-  Offset _getRelativePosition(LatLng location, LatLng center) {
-    // Singapore bounds roughly: lat 1.2-1.5, lng 103.6-104.0
-    const double minLat = 1.20;
-    const double maxLat = 1.50;
-    const double minLng = 103.60;
-    const double maxLng = 104.00;
-    final x = (location.longitude - minLng) / (maxLng - minLng);
-    final y = (maxLat - location.latitude) / (maxLat - minLat);
-    return Offset(x.clamp(0.0, 1.0), y.clamp(0.0, 1.0));
+  // Get OpenStreetMap tile image URL for a given zoom, x, y
+  String _getTileUrl(int zoom, int x, int y) {
+    return 'https://tile.openstreetmap.org/$zoom/$x/$y.png';
+  }
+
+  // Get tile coordinates from lat/lng
+  (int, int, int) _latLngToTile(LatLng location, int zoom) {
+    final lat = location.latitude;
+    final lng = location.longitude;
+    final n = 1 << zoom;
+    final x = ((lng + 180.0) / 360.0 * n).floor();
+    final latRad = lat * 3.141592653589793 / 180.0;
+    final y = ((1.0 - (latRad.tan() + 1.0 / latRad.cos()).log() / 3.141592653589793) / 2.0 * n).floor();
+    return (zoom, x, y);
   }
 
   @override
   Widget build(BuildContext context) {
+    const zoom = 13;
+    final (z, x, y) = _latLngToTile(center, zoom);
+    final tileUrl = _getTileUrl(z, x, y);
+
     return Container(
       color: AppColors.surface,
       child: Stack(
         children: [
-          // Singapore map background
+          // Real OpenStreetMap tile image
           Positioned.fill(
             child: CachedNetworkImage(
-              imageUrl: 'https://images.unsplash.com/photo-1525625293386-3f8f99389edd?w=800&q=80',
+              imageUrl: tileUrl,
               fit: BoxFit.cover,
               placeholder: (context, url) => Container(color: AppColors.surface),
               errorWidget: (context, url, error) => Container(
@@ -368,46 +376,6 @@ class _StaticMapView extends StatelessWidget {
               ),
             ),
           ),
-          // Guide pin
-          if (guideLocation != null)
-            Positioned(
-              left: _getRelativePosition(guideLocation!, center).dx * MediaQuery.of(context).size.width - 16,
-              top: _getRelativePosition(guideLocation!, center).dy * 300 - 32,
-              child: Column(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: const BoxDecoration(
-                      color: AppColors.info,
-                      shape: BoxShape.circle,
-                      boxShadow: [BoxShadow(color: Colors.black26, blurRadius: 4)],
-                    ),
-                    child: const Icon(Icons.person, color: Colors.white, size: 20),
-                  ),
-                  const Text('Guide', style: TextStyle(fontSize: 10, color: AppColors.info, fontWeight: FontWeight.bold)),
-                ],
-              ),
-            ),
-          // Tourist pin
-          if (touristLocation != null)
-            Positioned(
-              left: _getRelativePosition(touristLocation!, center).dx * MediaQuery.of(context).size.width - 16,
-              top: _getRelativePosition(touristLocation!, center).dy * 300 - 32,
-              child: Column(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: const BoxDecoration(
-                      color: AppColors.success,
-                      shape: BoxShape.circle,
-                      boxShadow: [BoxShadow(color: Colors.black26, blurRadius: 4)],
-                    ),
-                    child: const Icon(Icons.person, color: Colors.white, size: 20),
-                  ),
-                  const Text('Tourist', style: TextStyle(fontSize: 10, color: AppColors.success, fontWeight: FontWeight.bold)),
-                ],
-              ),
-            ),
           // Legend overlay
           Positioned(
             bottom: 12,
