@@ -12,6 +12,20 @@ This is not a generic itinerary generator. The product wedge is **compatibility 
 
 ---
 
+## Final Report
+
+The 4–8 page final group assignment report requested by Prof. Jack Hong is available here:
+
+**[FINAL_GROUP_ASSIGNMENT_REPORT_8P.md](FINAL_GROUP_ASSIGNMENT_REPORT_8P.md)**
+
+The report is written for:
+
+1. a **business manager** approving launch,
+2. a **user of the app**,
+3. a **fellow developer** taking over the app.
+
+---
+
 ## Why This Problem Matters
 
 Generic travel platforms are strong at discovery, ratings, and price comparison, but weak at explaining traveler-guide fit. In cultural guided tourism, poor guide fit can reduce booking confidence, satisfaction, safety comfort, and repeat/referral potential.
@@ -65,23 +79,24 @@ Backend runs at `http://localhost:8000`. API docs at `http://localhost:8000/docs
 
 ## Key Deliverables
 
-| Deliverable            | Path                                 |
-| ---------------------- | ------------------------------------ |
-| Executive Summary (4P) | `SUBMISSION_EXECUTIVE_SUMMARY_4P.md` |
-| CO Configuration       | `CO_CONFIGURATION.md`                |
-| Market & Problem       | `MARKET_PROBLEM.md`                  |
-| Business Model         | `BUSINESS_MODEL.md`                  |
-| Model Card             | `MODEL_CARD.md`                      |
-| AI/ML Architecture     | `AI_ML_ARCHITECTURE.md`              |
-| Demo Script            | `DEMO_SCRIPT.md`                     |
-| Demo API Commands      | `DEMO_API_COMMANDS.md`               |
-| Validation Report      | `VALIDATION_REPORT.md`               |
-| Rubric Alignment       | `FINAL_RUBRIC_ALIGNMENT.md`          |
-| COC Decision Log       | `docs/COC_DECISION_LOG_A_PLUS.md`    |
-| Submission Checklist   | `SUBMISSION_CHECKLIST.md`            |
-| Backend                | `backend/`                           |
-| Frontend               | `app/`                               |
-| Data                   | `data/`                              |
+| Deliverable                       | Path                                      |
+| --------------------------------- | ----------------------------------------- |
+| **Final group assignment report** | **`FINAL_GROUP_ASSIGNMENT_REPORT_8P.md`** |
+| Executive Summary (4P)            | `SUBMISSION_EXECUTIVE_SUMMARY_4P.md`      |
+| CO Configuration                  | `CO_CONFIGURATION.md`                     |
+| Market & Problem                  | `MARKET_PROBLEM.md`                       |
+| Business Model                    | `BUSINESS_MODEL.md`                       |
+| Model Card                        | `MODEL_CARD.md`                           |
+| AI/ML Architecture                | `AI_ML_ARCHITECTURE.md`                   |
+| Demo Script                       | `DEMO_SCRIPT.md`                          |
+| Demo API Commands                 | `DEMO_API_COMMANDS.md`                    |
+| Validation Report                 | `VALIDATION_REPORT.md`                    |
+| Rubric Alignment                  | `FINAL_RUBRIC_ALIGNMENT.md`               |
+| COC Decision Log                  | `docs/COC_DECISION_LOG_A_PLUS.md`         |
+| Submission Checklist              | `SUBMISSION_CHECKLIST.md`                 |
+| Backend                           | `backend/`                                |
+| Frontend                          | `app/`                                    |
+| Data                              | `data/`                                   |
 
 ---
 
