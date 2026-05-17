@@ -101,10 +101,11 @@ class GuideAuthNotifier extends StateNotifier<GuideAuthState> {
       final id = result['guide_id'] as String;
       final name = result['name'] as String;
 
+      // Demo: guide@wanderless.com logs in as Mei Ling
       state = GuideAuthState(
         token: token,
         guideId: id,
-        guideName: name,
+        guideName: email == 'guide@wanderless.com' ? 'Mei Ling' : name,
         email: email,
       );
       // Set on the singleton so all subsequent guide API calls use this token.
