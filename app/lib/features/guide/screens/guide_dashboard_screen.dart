@@ -65,12 +65,20 @@ final guideMeProvider = FutureProvider<Map<String, dynamic>?>((ref) async {
   final authState = ref.watch(guideAuthProvider);
   if (authState.guideId == null || authState.token == null) return null;
   final api = ApiClient();
-  final data = await api.getGuideMe(guideToken: authState.token);
-  // Demo: guide@wanderless.com shows as Mei Ling even if API returns different name
-  if (authState.email == 'guide@wanderless.com') {
-    data['name'] = 'Mei Ling';
+  try {
+    final data = await api.getGuideMe(guideToken: authState.token);
+    // Demo: guide@wanderless.com shows as Mei Ling even if API returns different name
+    if (authState.email == 'guide@wanderless.com' && data != null) {
+      data['name'] = 'Mei Ling';
+    }
+    return data;
+  } catch (e) {
+    // API failed — return synthetic data so UI still renders with demo name
+    if (authState.email == 'guide@wanderless.com') {
+      return {'name': 'Mei Ling', 'photo_url': ''};
+    }
+    return null;
   }
-  return data;
 });
 
 final guideOpenGroupsProvider = FutureProvider<List<Map<String, dynamic>>>((ref) async {
@@ -378,8 +386,12 @@ class _GuideStickyHeader extends StatelessWidget {
           guideMeAsync.when(
             data: (guide) {
               if (guide == null) return _buildCompactProfile(guideName, '');
+              // Demo: if authState says "Mei Ling", force override on guide data
+              final displayName = guideName == 'Mei Ling'
+                  ? 'Mei Ling'
+                  : (guide['name'] ?? guideName);
               return _buildCompactProfile(
-                guide['name'] ?? guideName,
+                displayName,
                 guide['photo_url'] ?? '',
               );
             },
