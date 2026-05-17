@@ -214,10 +214,9 @@ class _TourTrackingScreenState extends ConsumerState<TourTrackingScreen> {
                               children: [
                                 if (_isDemoMode)
                                   _StaticMapView(
-                                    center: _center,
-                                    zoom: _zoom,
                                     guideLocation: _guideLocation,
                                     touristLocation: _touristLocation,
+                                    destination: _locationData?['destination'],
                                   )
                                 else
                                   _LiveMapView(
@@ -351,56 +350,114 @@ class _LiveMapView extends StatelessWidget {
   }
 }
 
-// Static map widget shown when location access is blocked (guide view).
-// Uses FlutterMap with markers as proper overlay and interaction disabled.
+// Static placeholder shown when location access is blocked.
+// No network tile fetching — always displays immediately.
 class _StaticMapView extends StatelessWidget {
-  final LatLng center;
-  final double zoom;
   final LatLng? guideLocation;
   final LatLng? touristLocation;
+  final String? destination;
 
   const _StaticMapView({
-    required this.center,
-    required this.zoom,
     this.guideLocation,
     this.touristLocation,
+    this.destination,
   });
 
   @override
   Widget build(BuildContext context) {
-    final markers = <Marker>[];
-    if (guideLocation != null) {
-      markers.add(Marker(
-        point: guideLocation!,
-        width: 48,
-        height: 48,
-        child: _LocationMarker(color: AppColors.info, icon: Icons.person),
-      ));
-    }
-    if (touristLocation != null) {
-      markers.add(Marker(
-        point: touristLocation!,
-        width: 48,
-        height: 48,
-        child: _LocationMarker(color: AppColors.success, icon: Icons.person),
-      ));
-    }
-
-    return FlutterMap(
-      options: MapOptions(
-        initialCenter: center,
-        initialZoom: zoom,
-        interactionOptions: const InteractionOptions(
-          flags: InteractiveFlag.none, // non-interactive, looks static
+    return Container(
+      color: AppColors.surface,
+      child: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 72,
+              height: 72,
+              decoration: BoxDecoration(
+                color: AppColors.brand.withOpacity(0.1),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.map_outlined,
+                size: 36,
+                color: AppColors.brand,
+              ),
+            ),
+            const SizedBox(height: AppSpacing.md),
+            Text(
+              destination ?? 'Tour Tracking',
+              style: AppText.h3.copyWith(color: AppColors.textPrimary),
+            ),
+            const SizedBox(height: AppSpacing.xs),
+            Text(
+              'Live tracking will appear once\nthe guide starts the tour.',
+              textAlign: TextAlign.center,
+              style: AppText.body.copyWith(color: AppColors.textSecondary),
+            ),
+            const SizedBox(height: AppSpacing.lg),
+            // Participant status chips
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                _StatusChip(
+                  icon: Icons.person,
+                  color: AppColors.info,
+                  label: 'Guide',
+                  active: guideLocation != null,
+                ),
+                const SizedBox(width: AppSpacing.md),
+                _StatusChip(
+                  icon: Icons.person,
+                  color: AppColors.success,
+                  label: 'Tourist',
+                  active: touristLocation != null,
+                ),
+              ],
+            ),
+          ],
         ),
       ),
-      children: [
-        TileLayer(
-          urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-          userAgentPackageName: 'com.wanderless.app',
-        ),
-        if (markers.isNotEmpty) MarkerLayer(markers: markers),
-      ],
+    );
+  }
+}
+
+class _StatusChip extends StatelessWidget {
+  final IconData icon;
+  final Color color;
+  final String label;
+  final bool active;
+
+  const _StatusChip({
+    required this.icon,
+    required this.color,
+    required this.label,
+    required this.active,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: active ? color.withOpacity(0.15) : AppColors.border,
+        borderRadius: BorderRadius.circular(AppRadius.full),
+        border: Border.all(color: active ? color : AppColors.border),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 14, color: active ? color : AppColors.textTertiary),
+          const SizedBox(width: 6),
+          Text(
+            label,
+            style: AppText.caption.copyWith(
+              color: active ? color : AppColors.textTertiary,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

@@ -851,9 +851,25 @@ class _PendingTab extends ConsumerWidget {
       }
     } catch (e) {
       if (context.mounted) {
+        String msg = e.toString();
+        if (msg.toLowerCase().contains('permission') || msg.toLowerCase().contains('denied') || msg.contains('403')) {
+          msg = 'You do not have permission to perform this action';
+        } else if (msg.contains('DioException')) {
+          if (msg.contains('connection')) {
+            msg = 'Cannot connect to server';
+          } else if (msg.contains('401')) {
+            msg = 'Unauthorized - please login again';
+          } else if (msg.contains('404')) {
+            msg = 'Request not found';
+          } else if (msg.contains('500')) {
+            msg = 'Server error';
+          } else {
+            msg = 'Failed to update booking. Please try again.';
+          }
+        }
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to update: $e'),
+            content: Text(msg),
             backgroundColor: AppColors.error,
             behavior: SnackBarBehavior.floating,
             duration: const Duration(seconds: 5),
@@ -991,14 +1007,14 @@ class _PendingTab extends ConsumerWidget {
     } catch (e) {
       if (context.mounted) {
         String msg = e.toString();
-        // Clean up DioException message
-        if (msg.contains('DioException')) {
+        // Clean up DioException message — check broad patterns first
+        if (msg.toLowerCase().contains('permission') || msg.toLowerCase().contains('denied') || msg.contains('403')) {
+          msg = 'You do not have permission to perform this action';
+        } else if (msg.contains('DioException')) {
           if (msg.contains('connection')) {
             msg = 'Cannot connect to server';
           } else if (msg.contains('401')) {
             msg = 'Unauthorized - please login again';
-          } else if (msg.contains('403')) {
-            msg = 'Access denied';
           } else if (msg.contains('404')) {
             msg = 'Request not found';
           } else if (msg.contains('500')) {
