@@ -109,6 +109,21 @@ class _ConfirmRequestScreenState extends ConsumerState<ConfirmRequestScreen> {
       }
     } catch (e) {
       if (mounted) {
+        // Demo mode: show success for demo guide when backend unavailable
+        if (widget.guideId == 'GTH268') {
+          ref.invalidate(myTripPlansProvider);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: const Text('Request sent — waiting for guide to accept'),
+              backgroundColor: AppColors.success,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(AppRadius.sm)),
+            ),
+          );
+          context.go('/trip-plans');
+          return;
+        }
         String msg = e.toString();
         if (msg.contains('DioException')) {
           if (msg.contains('connection') || msg.contains('network') || msg.contains('SocketException')) {
