@@ -958,7 +958,9 @@ class _PendingTab extends ConsumerWidget {
       if (status == 'PENDING_ACCEPTANCE') {
         await api.acceptGuideRequest(requestId, guideToken: guideAuth.token!);
       } else {
-        await api.updateBookingStatus(requestId, 'CANCELLED', cancelledBy: 'guide', guideToken: guideAuth.token);
+        // Use declineTripRequest for trip-plan declines; updateBookingStatus
+        // is for confirmed-booking cancellations only.
+        await api.declineTripRequest(requestId, guideToken: guideAuth.token!);
       }
       ref.refresh(guideOpenRequestsProvider);
       if (context.mounted) {

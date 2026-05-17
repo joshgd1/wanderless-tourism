@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_map/flutter_map.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:latlong2/latlong.dart';
 import '../../../../core/api_client.dart';
 import '../../../../core/auth_provider.dart';
@@ -115,10 +114,34 @@ class _TourTrackingScreenState extends ConsumerState<TourTrackingScreen> {
     return guide ?? tourist ?? const LatLng(1.2936, 103.8474);
   }
 
-  // Fixed zoom at 13 — shows ~10km x 10km area centered on Singapore,
-  // ensuring both Guide (Orchard Rd) and Tourist (Marina Bay) markers are
-  // visible on initial load without user interaction
-  double get _zoom => 13.0;
+  // Dynamically compute zoom so both guide and tourist markers fit in view.
+  // Uses Haversine distance; zoom 13 tile ≈ 4.9km at Singapore's latitude.
+  double get _zoom {
+    final guide = _guideLocation;
+    final tourist = _touristLocation;
+    if (guide == null || tourist == null) return 13.0;
+
+    // Haversine distance in km
+    const R = 6371.0;
+    final dLat = (tourist.latitude - guide.latitude) * pi / 180.0;
+    final dLng = (tourist.longitude - guide.longitude) * pi / 180.0;
+    final a = sin(dLat / 2) * sin(dLat / 2) +
+        cos(guide.latitude * pi / 180.0) *
+            cos(tourist.latitude * pi / 180.0) *
+            sin(dLng / 2) *
+            sin(dLng / 2);
+    final dist = R * 2 * atan2(sqrt(a), sqrt(1 - a));
+
+    // Add 50% padding so markers aren't at tile edges
+    final target = dist * 1.5;
+    // World circumference / 2^zoom = km per tile at equator (≈ Singapore)
+    const worldKm = 40075.0;
+    // Find lowest zoom whose tile covers target km
+    for (int z = 9; z <= 16; z++) {
+      if (worldKm / pow(2, z) >= target) return z.toDouble();
+    }
+    return 11.0;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -192,6 +215,7 @@ class _TourTrackingScreenState extends ConsumerState<TourTrackingScreen> {
                                 if (_isDemoMode)
                                   _StaticMapView(
                                     center: _center,
+                                    zoom: _zoom,
                                     guideLocation: _guideLocation,
                                     touristLocation: _touristLocation,
                                   )
@@ -300,8 +324,8 @@ class _LiveMapView extends StatelessWidget {
           urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
           userAgentPackageName: 'com.wanderless.app',
         ),
-        if (guideLocation != null)
-          MarkerLayer(markers: [
+        MarkerLayer(markers: [
+          if (guideLocation != null)
             Marker(
               point: guideLocation!,
               width: 48,
@@ -311,95 +335,72 @@ class _LiveMapView extends StatelessWidget {
                 icon: Icons.person,
               ),
             ),
-            if (touristLocation != null)
-              Marker(
-                point: touristLocation!,
-                width: 48,
-                height: 48,
-                child: _LocationMarker(
-                  color: AppColors.success,
-                  icon: Icons.person,
-                ),
+          if (touristLocation != null)
+            Marker(
+              point: touristLocation!,
+              width: 48,
+              height: 48,
+              child: _LocationMarker(
+                color: AppColors.success,
+                icon: Icons.person,
               ),
-          ]),
+            ),
+        ]),
       ],
     );
   }
 }
 
-// Static map widget shown when location access is blocked (guide view)
+// Static map widget shown when location access is blocked (guide view).
+// Uses FlutterMap with markers as proper overlay and interaction disabled.
 class _StaticMapView extends StatelessWidget {
   final LatLng center;
+  final double zoom;
   final LatLng? guideLocation;
   final LatLng? touristLocation;
 
   const _StaticMapView({
     required this.center,
+    required this.zoom,
     this.guideLocation,
     this.touristLocation,
   });
 
-  // Get OpenStreetMap tile image URL for a given zoom, x, y
-  String _getTileUrl(int zoom, int x, int y) {
-    return 'https://tile.openstreetmap.org/$zoom/$x/$y.png';
-  }
-
-  // Get tile coordinates from lat/lng
-  (int, int, int) _latLngToTile(LatLng location, int zoom) {
-    final lat = location.latitude;
-    final lng = location.longitude;
-    final n = 1 << zoom;
-    final x = ((lng + 180.0) / 360.0 * n).floor();
-    final latRad = lat * 3.141592653589793 / 180.0;
-    final y = ((1.0 - log(tan(latRad) + 1.0 / cos(latRad)) / 3.141592653589793) / 2.0 * n).floor();
-    return (zoom, x, y);
-  }
-
   @override
   Widget build(BuildContext context) {
-    const zoom = 13;
-    final (z, x, y) = _latLngToTile(center, zoom);
-    final tileUrl = _getTileUrl(z, x, y);
+    final markers = <Marker>[];
+    if (guideLocation != null) {
+      markers.add(Marker(
+        point: guideLocation!,
+        width: 48,
+        height: 48,
+        child: _LocationMarker(color: AppColors.info, icon: Icons.person),
+      ));
+    }
+    if (touristLocation != null) {
+      markers.add(Marker(
+        point: touristLocation!,
+        width: 48,
+        height: 48,
+        child: _LocationMarker(color: AppColors.success, icon: Icons.person),
+      ));
+    }
 
-    return Container(
-      color: AppColors.surface,
-      child: Stack(
-        children: [
-          // Real OpenStreetMap tile image
-          Positioned.fill(
-            child: CachedNetworkImage(
-              imageUrl: tileUrl,
-              fit: BoxFit.cover,
-              placeholder: (context, url) => Container(color: AppColors.surface),
-              errorWidget: (context, url, error) => Container(
-                color: AppColors.surface,
-                child: const Center(child: Icon(Icons.map, size: 64, color: AppColors.textSecondary)),
-              ),
-            ),
-          ),
-          // Legend overlay
-          Positioned(
-            bottom: 12,
-            left: 12,
-            right: 12,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.9),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  _LegendDot(color: AppColors.info, label: 'Guide'),
-                  const SizedBox(width: 24),
-                  _LegendDot(color: AppColors.success, label: 'Tourist'),
-                ],
-              ),
-            ),
-          ),
-        ],
+    return FlutterMap(
+      options: MapOptions(
+        initialCenter: center,
+        initialZoom: zoom,
+        interactionOptions: const InteractionOptions(
+          flags: InteractiveFlag.none, // non-interactive, looks static
+        ),
       ),
+      children: [
+        TileLayer(
+          urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+          userAgentPackageName: 'com.wanderless.app',
+        ),
+        if (markers.isNotEmpty) MarkerLayer(markers: markers),
+      ],
     );
   }
 }
