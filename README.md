@@ -1,14 +1,12 @@
 # Wanderless Laos — MGMT655 Team Project
 
-## 1. What This Product Does
+## 1. Product Thesis
 
-Wanderless Laos is an AI/ML decision-support product for compatibility-based local guide matching in Luang Prabang, Laos.
+WanderLess is a compatibility-intelligence marketplace for local guided travel in Laos, starting with Luang Prabang. The product matches tourists with guides based on who they are, not where they're going — using ML-assisted compatibility scoring, group formation, and itinerary optimization.
 
-It helps tourists answer: _"Which local guide or group best fits my travel style, safety preference, language, budget, and itinerary needs?"_
+Unlike catalog-first platforms (Klook, Viator, GetYourGuide) where travelers browse pre-packaged offerings, WanderLess builds a multi-dimensional profile of each tourist and guide and uses machine learning to surface the right match before browsing begins.
 
-It helps operators answer: _"Which guide should we recommend, and why?"_
-
-This is not a generic itinerary generator. The product wedge is **compatibility intelligence** for local guided travel.
+**Core insight:** Compatibility matching has been proven in other consumer domains (Netflix, Spotify, Amazon) but remains largely uncaptured in travel, particularly for local guide matching. WanderLess closes that gap.
 
 ---
 
@@ -20,20 +18,23 @@ Generic travel platforms are strong at discovery, ratings, and price comparison,
 
 ## 3. What Is Implemented
 
-| Capability                             | Status                     | Evidence                              |
-| -------------------------------------- | -------------------------- | ------------------------------------- |
-| Tourist preference onboarding          | Implemented                | `app/lib/features/onboarding/`        |
-| Guide matching (cosine + TruncatedSVD) | Implemented                | `backend/ml/recommender.py`           |
-| Group matching (K-Means + DBSCAN)      | Implemented                | `backend/ml/group_formation.py`       |
-| Itinerary sequencing (greedy + 2-opt)  | Prototype                  | `backend/ml/itinerary.py`             |
-| Safety/trust indicator                 | Prototype decision-support | `backend/ml/safety_score.py`          |
-| Dynamic pricing                        | Implemented                | `backend/ml/pricing.py`               |
-| Booking flow                           | Simulated                  | `app/lib/features/booking/`           |
-| Real payment processing                | Not implemented            | Future work                           |
-| Real user pilot                        | Not yet conducted          | Pilot proposed in `BUSINESS_MODEL.md` |
-| XGBoost satisfaction model             | Prototype, not wired       | `backend/ml/review_intelligence.py`   |
-| CP-SAT solver                          | Not implemented            | Greedy+2-opt used instead             |
-| LLM/RAG                                | Not implemented            | Not used                              |
+| Capability | Algorithm | Status | Evidence |
+|-----------|-----------|--------|---------|
+| Tourist-Guide Matching | Cosine similarity + TruncatedSVD collaborative filtering | Implemented | `backend/ml/recommender.py` |
+| Group Formation | K-Means clustering + DBSCAN outlier detection | Implemented | `backend/ml/group_formation.py` |
+| Itinerary Construction | Greedy construction + 2-opt local search | Implemented | `backend/ml/itinerary.py` |
+| Safety Indicator | Rule-based scoring | Decision-support prototype | `backend/ml/safety_score.py` |
+| Dynamic Pricing | Cost-model pricing | Implemented | `backend/ml/pricing.py` |
+| Satisfaction Prediction | XGBoost regression | Prototype, NOT wired to API | `backend/ml/review_intelligence.py` |
+
+**Implemented ML weights:** 45% content-based + 45% collaborative + 10% destination boost (fixed at implementation time; tunable in production).
+
+**Prototype limitations (disclosed):**
+- Satisfaction prediction (XGBoost) is a prototype model not wired to any recommendation endpoint
+- Collaborative filtering trained on 600 synthetic ratings (88% genuine signal + 12% calibrated noise)
+- No real user pilot has been conducted
+- Booking flow is simulated (no real payment processing)
+- Safety score is a decision-support indicator, not a safety guarantee
 
 ---
 
@@ -62,40 +63,41 @@ Backend runs at `http://localhost:8000`. API docs at `http://localhost:8000/docs
 
 ---
 
-## 5. Key Deliverables
+## Key Deliverables
 
-| Deliverable          | Path                                 |
-| -------------------- | ------------------------------------ |
-| Executive Summary    | `SUBMISSION_EXECUTIVE_SUMMARY_4P.md` |
-| Market & Problem     | `MARKET_PROBLEM.md`                  |
-| Business Model       | `BUSINESS_MODEL.md`                  |
-| Model Card           | `MODEL_CARD.md`                      |
-| AI/ML Architecture   | `AI_ML_ARCHITECTURE.md`              |
-| Demo Script          | `DEMO_SCRIPT.md`                     |
-| Demo API Commands    | `DEMO_API_COMMANDS.md`               |
-| Validation Report    | `VALIDATION_REPORT.md`               |
-| Rubric Alignment     | `FINAL_RUBRIC_ALIGNMENT.md`          |
-| COC Decision Log     | `docs/COC_DECISION_LOG_A_PLUS.md`    |
-| Submission Checklist | `SUBMISSION_CHECKLIST.md`            |
-| Backend              | `backend/`                           |
-| Frontend             | `app/`                               |
-| Data                 | `data/`                              |
-
----
-
-## 6. Rubric Mapping
-
-| Rubric Area      | Evidence                                                  | Demonstrates                                                             |
-| ---------------- | --------------------------------------------------------- | ------------------------------------------------------------------------ |
-| Market & Problem | `MARKET_PROBLEM.md`, `SUBMISSION_EXECUTIVE_SUMMARY_4P.md` | Luang Prabang beachhead; guide trust and compatibility gap               |
-| Product & Demo   | `app/`, `backend/`, `DEMO_SCRIPT.md`                      | Working UI, matching flow, safety view, itinerary and booking simulation |
-| Business Model   | `BUSINESS_MODEL.md`                                       | Commission-first B2B2C model; pilot metrics; honest assumptions          |
-| Team & Execution | `docs/COC_DECISION_LOG_A_PLUS.md`, `VALIDATION_REPORT.md` | Structured decisions; rejected options; validation evidence              |
-| AI/ML Depth      | `MODEL_CARD.md`, `AI_ML_ARCHITECTURE.md`, `backend/ml/`   | Compatibility scoring, TruncatedSVD, clustering, heuristic optimization  |
+| Deliverable | Path |
+|------------|------|
+| Executive Summary (4P) | `SUBMISSION_EXECUTIVE_SUMMARY_4P.md` |
+| CO Configuration | `CO_CONFIGURATION.md` |
+| Market & Problem | `MARKET_PROBLEM.md` |
+| Business Model | `BUSINESS_MODEL.md` |
+| Model Card | `MODEL_CARD.md` |
+| AI/ML Architecture | `AI_ML_ARCHITECTURE.md` |
+| Demo Script | `DEMO_SCRIPT.md` |
+| Demo API Commands | `DEMO_API_COMMANDS.md` |
+| Validation Report | `VALIDATION_REPORT.md` |
+| Rubric Alignment | `FINAL_RUBRIC_ALIGNMENT.md` |
+| COC Decision Log | `docs/COC_DECISION_LOG_A_PLUS.md` |
+| Submission Checklist | `SUBMISSION_CHECKLIST.md` |
+| Backend | `backend/` |
+| Frontend | `app/` |
+| Data | `data/` |
 
 ---
 
-## 7. Test Status
+## 5. Rubric Mapping
+
+| Rubric Area | Primary Evidence | Supporting Evidence |
+|------------|-----------------|-------------------|
+| Market & Problem | `MARKET_PROBLEM.md`, `SUBMISSION_EXECUTIVE_SUMMARY_4P.md` | `docs/MARKET_PROBLEM_A_PLUS.md` |
+| Product & Demo | `app/`, `backend/`, `DEMO_SCRIPT.md` | `docs/DEMO_A_PLUS_SCRIPT.md`, `docs/VALIDATION_REPORT.md` |
+| Business Model | `BUSINESS_MODEL.md` | `docs/BUSINESS_MODEL_ASSUMPTIONS.md` |
+| Team & Execution | `docs/COC_DECISION_LOG_A_PLUS.md` | `docs/TEAM_EXECUTION_A_PLUS.md` |
+| AI/ML Depth | `MODEL_CARD.md`, `AI_ML_ARCHITECTURE.md`, `backend/ml/` | `docs/ML_CLAIMS_IMPLEMENTATION_MATRIX.md` |
+
+---
+
+## 6. Test Status
 
 **Backend tests: 14/14 passed** (date: 2026-05-17)
 
@@ -103,7 +105,7 @@ Run: `pytest tests/`
 
 ---
 
-## 8. Known Limitations
+## 7. Known Limitations
 
 - **Synthetic data**: All matching uses synthetic tourist/guide profiles and ratings
 - **Fixed feature weights**: ML weights are hardcoded, not learned from real outcomes
