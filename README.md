@@ -1,4 +1,4 @@
-# Wanderless Laos — MGMT655 Team Project
+# WanderLess — MGMT655 Team Project
 
 ## Product Thesis
 
@@ -12,17 +12,17 @@ This is not a generic itinerary generator. The product wedge is **compatibility 
 
 ---
 
-## Final Report
+## Final Reports
 
-The 4–8 page final group assignment report for Prof. Jack Hong is available here:
+Both reports are written for three audiences: (1) a **business manager** approving launch, (2) a **user of the app**, and (3) a **fellow developer** taking over the app.
 
-**[FINAL_GROUP_ASSIGNMENT_REPORT.md](FINAL_GROUP_ASSIGNMENT_REPORT.md)**
+| Report                | File                                                                               | Description                                                                                      |
+| --------------------- | ---------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| **Group Report**      | **[FINAL_GROUP_ASSIGNMENT_REPORT.md](FINAL_GROUP_ASSIGNMENT_REPORT.md)**           | 8-page group submission — full product, ML architecture, and team execution                      |
+| **Individual Report** | **[FINAL_INDIVIDUAL_ASSIGNMENT_REPORT.md](FINAL_INDIVIDUAL_ASSIGNMENT_REPORT.md)** | 8-page individual technical contribution — Flutter app, matching flow, ML decisions, and handoff |
 
-The report satisfies Prof. Hong's audience requirement and is written for:
-
-1. a **business manager** approving launch,
-2. a **user of the app**,
-3. a **fellow developer** taking over the app.
+**Repository:** https://github.com/joshgd1/wanderless-tourism
+Professor Hong has been granted repository access separately. Access may be removed after grading.
 
 ---
 

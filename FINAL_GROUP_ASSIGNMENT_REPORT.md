@@ -1,4 +1,4 @@
-# Wanderless Laos — Final Group Assignment Report
+# WanderLess — Final Group Assignment Report
 
 ## MGMT 655: Machine Learning for Decision Making | Professor Jack Hong | Singapore Management University MBA Programme
 
