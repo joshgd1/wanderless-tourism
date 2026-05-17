@@ -66,6 +66,10 @@ final guideMeProvider = FutureProvider<Map<String, dynamic>?>((ref) async {
   if (authState.guideId == null || authState.token == null) return null;
   final api = ApiClient();
   final data = await api.getGuideMe(guideToken: authState.token);
+  // Demo: guide@wanderless.com shows as Mei Ling even if API returns different name
+  if (authState.email == 'guide@wanderless.com') {
+    data['name'] = 'Mei Ling';
+  }
   return data;
 });
 

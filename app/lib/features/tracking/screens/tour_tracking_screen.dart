@@ -350,9 +350,9 @@ class _LiveMapView extends StatelessWidget {
   }
 }
 
-// Static placeholder shown when location access is blocked.
-// No network tile fetching — always displays immediately.
-class _StaticMapView extends StatelessWidget {
+// Static map with OpenStreetMap tile image and guide/tourist markers overlaid.
+// Displays immediately without requiring interactive tile fetching.
+class _StaticMapView extends StatefulWidget {
   final LatLng? guideLocation;
   final LatLng? touristLocation;
   final String? destination;
@@ -364,62 +364,388 @@ class _StaticMapView extends StatelessWidget {
   });
 
   @override
+  State<_StaticMapView> createState() => _StaticMapViewState();
+}
+
+class _StaticMapViewState extends State<_StaticMapView> {
+  // Tile image loading state
+  bool _tileLoaded = false;
+  bool _tileError = false;
+
+  // Cached tile URL for the current center point
+  String? _tileUrl;
+  LatLng? _center;
+
+  @override
+  void didUpdateWidget(_StaticMapView oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    _updateTileUrl();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _updateTileUrl();
+  }
+
+  void _updateTileUrl() {
+    final guide = widget.guideLocation;
+    final tourist = widget.touristLocation;
+    LatLng center;
+    if (guide != null && tourist != null) {
+      center = LatLng(
+        (guide.latitude + tourist.latitude) / 2,
+        (guide.longitude + tourist.longitude) / 2,
+      );
+    } else {
+      center = guide ?? tourist ?? const LatLng(1.2936, 103.8474);
+    }
+
+    // Only refetch if center changed significantly
+    if (_center != null &&
+        (_center!.latitude - center.latitude).abs() < 0.001 &&
+        (_center!.longitude - center.longitude).abs() < 0.001) {
+      return;
+    }
+    _center = center;
+
+    // Use zoom 13 tile for static map (good city-level view)
+    final tile = _latLngToTile(center, 13);
+    _tileUrl = 'https://tile.openstreetmap.org/13/${tile.x}/${tile.y}.png';
+    _tileLoaded = false;
+    _tileError = false;
+  }
+
+  // Convert LatLng to tile coordinates at given zoom
+  _TileCoord _latLngToTile(LatLng latLng, int zoom) {
+    final latRad = latLng.latitude * pi / 180;
+    final n = pow(2, zoom);
+    final x = ((latLng.longitude + 180) / 360 * n).floor();
+    final y = ((1 - ln(tan(latRad) + 1 / cos(latRad)) / pi) / 2 * n).floor();
+    return _TileCoord(x, y);
+  }
+
+  // Convert LatLng to pixel offset within a tile (0-256)
+  Offset _latLngToPixel(LatLng latLng, int zoom) {
+    final latRad = latLng.latitude * pi / 180;
+    final n = pow(2, zoom);
+    final x = (latLng.longitude + 180) / 360 * n * 256;
+    final y = (1 - ln(tan(latRad) + 1 / cos(latRad)) / pi) / 2 * n * 256;
+    final tileX = ((latLng.longitude + 180) / 360 * n).floor();
+    final tileY = ((1 - ln(tan(latRad) + 1 / cos(latRad)) / pi) / 2 * n).floor();
+    return Offset(x - tileX * 256, y - tileY * 256);
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Container(
       color: AppColors.surface,
-      child: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 72,
-              height: 72,
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          // Static OSM tile image
+          if (_tileUrl != null)
+            Image.network(
+              _tileUrl!,
+              fit: BoxFit.cover,
+              loadingBuilder: (context, child, loadingProgress) {
+                if (loadingProgress == null) {
+                  if (!_tileLoaded) {
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      if (mounted) setState(() => _tileLoaded = true);
+                    });
+                  }
+                  return child;
+                }
+                return _MapPlaceholderBg();
+              },
+              errorBuilder: (context, error, stackTrace) {
+                if (!_tileError) {
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    if (mounted) setState(() => _tileError = true);
+                  });
+                }
+                return _MapPlaceholderBg();
+              },
+            )
+          else
+            _MapPlaceholderBg(),
+
+          // Guide and tourist marker overlays
+          if (widget.guideLocation != null || widget.touristLocation != null)
+            _MarkerOverlay(
+              guideLocation: widget.guideLocation,
+              touristLocation: widget.touristLocation,
+              center: _center ?? const LatLng(1.2936, 103.8474),
+              zoom: 13,
+            ),
+
+          // "Static map" label overlay
+          Positioned(
+            top: AppSpacing.sm,
+            left: AppSpacing.sm,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               decoration: BoxDecoration(
-                color: AppColors.brand.withOpacity(0.1),
-                shape: BoxShape.circle,
+                color: Colors.black.withOpacity(0.6),
+                borderRadius: BorderRadius.circular(AppRadius.sm),
               ),
-              child: const Icon(
-                Icons.map_outlined,
-                size: 36,
-                color: AppColors.brand,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.map, size: 12, color: Colors.white70),
+                  const SizedBox(width: 4),
+                  Text(
+                    'STATIC MAP',
+                    style: AppText.caption.copyWith(
+                      color: Colors.white70,
+                      fontSize: 10,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
               ),
             ),
-            const SizedBox(height: AppSpacing.md),
-            Text(
-              destination ?? 'Tour Tracking',
-              style: AppText.h3.copyWith(color: AppColors.textPrimary),
-            ),
-            const SizedBox(height: AppSpacing.xs),
-            Text(
-              'Live tracking will appear once\nthe guide starts the tour.',
-              textAlign: TextAlign.center,
-              style: AppText.body.copyWith(color: AppColors.textSecondary),
-            ),
-            const SizedBox(height: AppSpacing.lg),
-            // Participant status chips
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                _StatusChip(
-                  icon: Icons.person,
-                  color: AppColors.info,
-                  label: 'Guide',
-                  active: guideLocation != null,
-                ),
-                const SizedBox(width: AppSpacing.md),
-                _StatusChip(
-                  icon: Icons.person,
-                  color: AppColors.success,
-                  label: 'Tourist',
-                  active: touristLocation != null,
-                ),
-              ],
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
+}
+
+class _TileCoord {
+  final int x, y;
+  _TileCoord(this.x, this.y);
+}
+
+// Marker overlay that positions guide/tourist markers based on coordinates
+class _MarkerOverlay extends StatelessWidget {
+  final LatLng? guideLocation;
+  final LatLng? touristLocation;
+  final LatLng center;
+  final int zoom;
+
+  const _MarkerOverlay({
+    this.guideLocation,
+    this.touristLocation,
+    required this.center,
+    required this.zoom,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // Calculate marker positions based on coordinate relative to center
+        // Each marker positioned proportionally within the view
+        final guidePos = guideLocation != null
+            ? _getMarkerPosition(guideLocation!, constraints.maxWidth, constraints.maxHeight)
+            : null;
+        final touristPos = touristLocation != null
+            ? _getMarkerPosition(touristLocation!, constraints.maxWidth, constraints.maxHeight)
+            : null;
+
+        return Stack(
+          children: [
+            if (guidePos != null)
+              Positioned(
+                left: guidePos.dx - 20,
+                top: guidePos.dy - 40,
+                child: _StaticMapMarker(
+                  color: AppColors.info,
+                  label: 'G',
+                  isGuide: true,
+                ),
+              ),
+            if (touristPos != null)
+              Positioned(
+                left: touristPos.dx - 20,
+                top: touristPos.dy - 40,
+                child: _StaticMapMarker(
+                  color: AppColors.success,
+                  label: 'T',
+                  isGuide: false,
+                ),
+              ),
+            // Draw line connecting guide and tourist if both exist
+            if (guidePos != null && touristPos != null)
+              CustomPaint(
+                size: Size(constraints.maxWidth, constraints.maxHeight),
+                painter: _DashedLinePainter(
+                  start: Offset(guidePos.dx, guidePos.dy),
+                  end: Offset(touristPos.dx, touristPos.dy),
+                  color: AppColors.textSecondary.withOpacity(0.5),
+                ),
+              ),
+          ],
+        );
+      },
+    );
+  }
+
+  Offset _getMarkerPosition(LatLng latLng, double width, double height) {
+    // Use linear scaling based on coordinate difference from center
+    // At zoom 13, one degree ≈ 20% of view width/height in Singapore area
+    const scale = 0.20;
+    final centerLat = center.latitude;
+    final centerLng = center.longitude;
+
+    // Calculate relative position (0 = center, -1 to 1 = edges)
+    double relX = (latLng.longitude - centerLng) * scale;
+    double relY = (centerLat - latLng.latitude) * scale; // inverted for screen coords
+
+    // Clamp to view bounds with some padding
+    relX = relX.clamp(-0.4, 0.4);
+    relY = relY.clamp(-0.4, 0.4);
+
+    return Offset(
+      width * (0.5 + relX),
+      height * (0.5 + relY),
+    );
+  }
+}
+
+class _StaticMapMarker extends StatelessWidget {
+  final Color color;
+  final String label;
+  final bool isGuide;
+
+  const _StaticMapMarker({
+    required this.color,
+    required this.label,
+    required this.isGuide,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 40,
+          height: 40,
+          decoration: BoxDecoration(
+            color: color,
+            shape: BoxShape.circle,
+            border: Border.all(color: Colors.white, width: 3),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.3),
+                blurRadius: 4,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Center(
+            child: Text(
+              label,
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+              ),
+            ),
+          ),
+        ),
+        // Pointer triangle
+        CustomPaint(
+          size: const Size(16, 10),
+          painter: _TrianglePainter(color: color),
+        ),
+      ],
+    );
+  }
+}
+
+class _TrianglePainter extends CustomPainter {
+  final Color color;
+  _TrianglePainter({required this.color});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..style = PaintingStyle.fill;
+    final path = Path()
+      ..moveTo(size.width / 2, size.height)
+      ..lineTo(0, 0)
+      ..lineTo(size.width, 0)
+      ..close();
+    canvas.drawPath(path, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
+
+class _DashedLinePainter extends CustomPainter {
+  final Offset start;
+  final Offset end;
+  final Color color;
+
+  _DashedLinePainter({required this.start, required this.end, required this.color});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..strokeWidth = 2
+      ..style = PaintingStyle.stroke;
+
+    const dashWidth = 8.0;
+    const dashSpace = 4.0;
+    final distance = (end - start).distance;
+    final direction = (end - start) / distance;
+
+    double current = 0;
+    while (current < distance) {
+      final dashEnd = current + dashWidth;
+      canvas.drawLine(
+        start + direction * current,
+        start + direction * dashEnd.clamp(0, distance),
+        paint,
+      );
+      current += dashWidth + dashSpace;
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
+
+// Fallback map-like background when tile fails to load
+class _MapPlaceholderBg extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return CustomPaint(
+      painter: _GridMapPainter(),
+      child: Container(
+        color: const Color(0xFFE8E4DF),
+      ),
+    );
+  }
+}
+
+class _GridMapPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = const Color(0xFFD4CFC9)
+      ..strokeWidth = 1
+      ..style = PaintingStyle.stroke;
+
+    // Draw grid lines to simulate map
+    const spacing = 40.0;
+    for (double x = 0; x < size.width; x += spacing) {
+      canvas.drawLine(Offset(x, 0), Offset(x, size.height), paint);
+    }
+    for (double y = 0; y < size.height; y += spacing) {
+      canvas.drawLine(Offset(0, y), Offset(size.width, y), paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
 
 class _StatusChip extends StatelessWidget {
