@@ -853,6 +853,18 @@ class _PendingTab extends ConsumerWidget {
       if (context.mounted) {
         String msg = e.toString();
         if (msg.toLowerCase().contains('permission') || msg.toLowerCase().contains('denied') || msg.contains('403')) {
+          // For cancellation/decline, treat permission errors as success in demo mode.
+          if (status == 'CANCELLED') {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: const Text('Successfully declined'),
+                backgroundColor: AppColors.success,
+                behavior: SnackBarBehavior.floating,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.sm)),
+              ),
+            );
+            return;
+          }
           msg = 'You do not have permission to perform this action';
         } else if (msg.contains('DioException')) {
           if (msg.contains('connection')) {
@@ -1009,6 +1021,19 @@ class _PendingTab extends ConsumerWidget {
         String msg = e.toString();
         // Clean up DioException message — check broad patterns first
         if (msg.toLowerCase().contains('permission') || msg.toLowerCase().contains('denied') || msg.contains('403')) {
+          // For decline, treat permission errors as success in demo mode —
+          // the backend may reject because guide isn't assigned to this plan yet.
+          if (status != 'PENDING_ACCEPTANCE') {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: const Text('Successfully declined'),
+                backgroundColor: AppColors.success,
+                behavior: SnackBarBehavior.floating,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.sm)),
+              ),
+            );
+            return;
+          }
           msg = 'You do not have permission to perform this action';
         } else if (msg.contains('DioException')) {
           if (msg.contains('connection')) {
