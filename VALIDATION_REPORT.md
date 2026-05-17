@@ -80,7 +80,9 @@
 - **No real-time geolocation:** Location features not in current scope
 - **No trained model on real labels:** Weights are fixed, not learned from outcomes
 
-## Next Validation
+## Post-Submission Validation Roadmap
+
+The following are planned validation steps after pilot deployment:
 
 - 90-day pilot with real users in Luang Prabang
 - Collect conversion outcomes (match → booking → completion)
