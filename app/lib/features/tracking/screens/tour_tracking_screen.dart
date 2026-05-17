@@ -351,7 +351,7 @@ class _StaticMapView extends StatelessWidget {
     final n = 1 << zoom;
     final x = ((lng + 180.0) / 360.0 * n).floor();
     final latRad = lat * 3.141592653589793 / 180.0;
-    final y = ((1.0 - (tan(latRad) + 1.0 / cos(latRad)).log() / 3.141592653589793) / 2.0 * n).floor();
+    final y = ((1.0 - log(tan(latRad) + 1.0 / cos(latRad)) / 3.141592653589793) / 2.0 * n).floor();
     return (zoom, x, y);
   }
 
